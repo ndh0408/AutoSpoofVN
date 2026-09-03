@@ -74,7 +74,7 @@ struct MainView: View {
 
                         // Diem Ca phe hoac Am thuc
                         Annotation("Ăn uống / Cà phê", coordinate: routine.cafeLocation) {
-                            Image(systemName: "cup.and.saucer.circle.fill")
+                            Image(systemName: "cup.and.saucer.fill")
                                 .font(.title2)
                                 .foregroundColor(.orange)
                         }
