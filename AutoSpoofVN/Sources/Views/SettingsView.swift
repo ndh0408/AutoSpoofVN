@@ -106,7 +106,7 @@ struct SettingsView: View {
                 Section {
                     Toggle("Hiện thông tin kỹ thuật", isOn: $settings.showDeveloperInfo)
                     NavigationLink("Chẩn đoán hệ thống") {
-                        DiagnosticsView()
+                        DiagnosticsV2View()
                     }
                     NavigationLink("Lịch sử mô phỏng") {
                         HistoryView()
