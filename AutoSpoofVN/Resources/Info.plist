@@ -57,5 +57,13 @@
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 	</array>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>shadowrocket</string>
+		<string>surge</string>
+		<string>surge3</string>
+		<string>loon</string>
+		<string>stash</string>
+	</array>
 </dict>
 </plist>
