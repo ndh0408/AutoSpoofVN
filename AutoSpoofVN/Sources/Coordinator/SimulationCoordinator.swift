@@ -277,8 +277,60 @@ final class SimulationCoordinator: ObservableObject {
         legacyEngine.$currentCoordinate
             .receive(on: DispatchQueue.main)
             .sink { [weak self] coord in
-                self?.currentCoordinate = coord
-                self?.telemetry.coordinate = coord
+                guard let self else { return }
+                self.currentCoordinate = coord
+                self.telemetry.coordinate = coord
+                // Sync tới CoordinateServer cho Shadowrocket — cover cả
+                // FlightManager và RoutineManager gửi trực tiếp qua SpoofEngine
+                CoordinateServer.shared.updateCoordinate(
+                    latitude: coord.latitude,
+                    longitude: coord.longitude,
+                    accuracy: Int(self.noiseConfig.radiusMeters * 10 + 10),
+                    speed: self.telemetry.speedKmh,
+                    heading: self.telemetry.headingDegrees
+                )
+            }
+            .store(in: &cancellables)
+
+        // Sync isSimulating → cập nhật state
+        legacyEngine.$isSimulating
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] simulating in
+                guard let self else { return }
+                if simulating && self.state == .idle {
+                    // FlightManager hoặc RoutineManager bắt đầu mô phỏng
+                    if self.activeSource == nil {
+                        if FlightManager.shared.isFlying {
+                            self.activeSource = .flight
+                        } else if RoutineManager.shared.isAutoRoutineEnabled {
+                            self.activeSource = .routine
+                        }
+                    }
+                    self.state = .running
+                } else if !simulating && self.state == .running && self.activeSource != .route && self.activeSource != .scenario {
+                    self.state = .idle
+                    self.activeSource = nil
+                }
+            }
+            .store(in: &cancellables)
+
+        // Sync speed từ FlightManager
+        FlightManager.shared.$activeFlight
+            .receive(on: DispatchQueue.main)
+            .compactMap { \/bin/sh }
+            .sink { [weak self] sim in
+                self?.telemetry.speedKmh = sim.currentSpeedKmh
+                self?.telemetry.altitudeMeters = sim.currentAltitudeMeters
+            }
+            .store(in: &cancellables)
+
+        // Sync speed từ RoutineManager
+        RoutineManager.shared.$currentSpeedKmh
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] speed in
+                if !(FlightManager.shared.isFlying) {
+                    self?.telemetry.speedKmh = speed
+                }
             }
             .store(in: &cancellables)
 
