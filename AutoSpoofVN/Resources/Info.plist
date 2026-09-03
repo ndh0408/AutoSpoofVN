@@ -28,11 +28,16 @@
 	<string>Cần quyền vị trí để duy trì mô phỏng di chuyển ngầm tự nhiên.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Cần truy cập mạng cục bộ để kết nối với dịch vụ mô phỏng vị trí DVT trên thiết bị.</string>
+	<!-- audio: phat WAV im lang de giu tien trinh song.
+	     location: CLLocationManager voi allowsBackgroundLocationUpdates trong
+	     BackgroundKeeper - vua hop thuc hoa khai bao nay, vua la co che duy nhat
+	     iOS cho phep danh thuc lai app.
+	     Da bo "processing": khong co BGTaskScheduler nao dung no, khai bao thua
+	     vua vo tac dung vua la rui ro bi tu choi khi xet duyet. -->
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>
 		<string>location</string>
-		<string>processing</string>
 	</array>
 	<key>UILaunchScreen</key>
 	<dict/>

@@ -3,24 +3,73 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/*
+ * Cầu nối C tới crate Rust `idevice` (jkcoxson), cho mô phỏng vị trí qua DVT.
+ *
+ * Bản đầu của file này khai bốn hàm không tồn tại trong crate thật. Đã kiểm chứng
+ * bằng cách đọc mã nguồn idevice 0.1.65: API thật là
+ * `LocationSimulationClient::new(&mut RemoteServerClient)` cùng `.set()` / `.clear()`,
+ * và phải đi qua năm chặng chứ không phải một lời gọi:
+ *
+ *     lockdownd 62078  ->  CoreDeviceProxy (CDTunnel)
+ *                      ->  software tunnel (jktcp)
+ *                      ->  RemoteServiceDiscovery
+ *                      ->  com.apple.instruments.dtservicehub
+ *                      ->  kênh DTX LocationSimulation
+ *
+ * Bốn hàm dưới đây gói trọn chuỗi đó. Phần cài đặt ở `idevice_ffi` (Rust, staticlib);
+ * `idevice_stub.c` là bản giả để biên dịch và link được khi chưa có thư viện thật.
+ *
+ * Toạ độ mô phỏng chỉ tồn tại chừng nào phiên còn mở. Gọi idevice_disconnect() là
+ * thiết bị tự trả lại GPS thật.
+ *
+ * ABI version 2.
+ */
+
 typedef void* IdeviceHandle;
 
-/// Khởi tạo kết nối DVT Location Simulation qua loopback (LocalDevVPN 10.7.0.1)
-IdeviceHandle idevice_connect_dvt(const char* host, uint16_t port, const char* pairing_plist);
+/**
+ * Mở phiên mô phỏng vị trí.
+ *
+ * @param host          Địa chỉ thiết bị qua VPN loopback, thường là "10.7.0.1".
+ * @param port          Cổng lockdownd, thường là 62078.
+ * @param pairing_data  Nội dung NHỊ PHÂN của lockdown pairing record.
+ *                      Đừng truyền chuỗi C: pairing file là binary plist và sẽ bị
+ *                      cắt cụt ở byte 0 đầu tiên.
+ * @param pairing_len   Số byte của pairing_data.
+ *
+ * @return Handle phiên, hoặc NULL nếu thất bại. Khi NULL, gọi idevice_last_error()
+ *         để lấy lý do cụ thể.
+ */
+IdeviceHandle idevice_connect_dvt(const char* host,
+                                  uint16_t port,
+                                  const uint8_t* pairing_data,
+                                  size_t pairing_len);
 
-/// Thiết lập toạ độ GPS giả lập
+/** Đặt toạ độ mô phỏng. Trả về false nếu thất bại; xem idevice_last_error(). */
 bool idevice_set_location(IdeviceHandle handle, double latitude, double longitude);
 
-/// Dừng giả lập và khôi phục GPS thật
+/** Xoá mô phỏng, trả thiết bị về GPS thật. */
 bool idevice_clear_location(IdeviceHandle handle);
 
-/// Đóng kết nối
+/** Đóng phiên và giải phóng handle. An toàn khi gọi với NULL. Chỉ gọi một lần. */
 void idevice_disconnect(IdeviceHandle handle);
+
+/**
+ * Mô tả lỗi gần nhất, hoặc NULL nếu chưa có lỗi.
+ *
+ * Con trỏ chỉ hợp lệ tới lần gọi FFI kế tiếp — phía gọi phải sao chép ngay.
+ */
+const char* idevice_last_error(void);
+
+/** Phiên bản ABI của thư viện đang link. Hiện là 2. */
+int idevice_ffi_abi_version(void);
 
 #ifdef __cplusplus
 }

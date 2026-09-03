@@ -11,12 +11,16 @@ Tài liệu này phân biệt rõ hai loại kết luận:
 
 ## 1. Kết luận sống còn
 
-**Mục tiêu "GPS ảo 24/7, không cần máy tính" — chưa đạt được ở dạng đang thiết kế, và
-khoảng cách còn xa hơn nhiều so với vẻ ngoài của mã nguồn.**
+> **Cập nhật 03/09 chiều.** Phần lớn nội dung mục này đã chuyển từ *giả thuyết* sang
+> *đã kiểm chứng*, và **chốt chặn lớn nhất đã được gỡ**: `libidevice_ffi.a` thật đã build
+> xong cho `aarch64-apple-ios` và app đã link được. Xem mục 1.4.
 
-Ba lý do độc lập, mỗi lý do đủ để chặn:
+**Mục tiêu "GPS ảo 24/7, không cần máy tính" vẫn chưa đạt, nhưng lý do đã thu hẹp lại:
+không còn là "thiếu thư viện", mà là "chưa thử trên phần cứng thật".**
 
-**(a) Tầng kết nối chưa từng tồn tại. [ĐÃ CHẠY THẬT]**
+Ba lý do độc lập ban đầu, mỗi lý do đủ để chặn:
+
+**(a) Tầng kết nối chưa từng tồn tại — nay đã có. [ĐÃ CHẠY THẬT]**
 `Vendor/idevice/idevice.h` khai báo 4 hàm `idevice_connect_dvt` / `idevice_set_location` /
 `idevice_clear_location` / `idevice_disconnect`, nhưng trong repo không có thư viện nào cài
 đặt chúng. Linker xác nhận:
@@ -28,12 +32,18 @@ Undefined symbols for architecture arm64:
 ld: library 'idevice_ffi' not found
 ```
 
-**[CHƯA KIỂM CHỨNG]** Theo tra cứu, crate Rust `idevice` là có thật nhưng API C của nó
-khác hẳn: họ `lockdown_location_simulation_*` (chỉ cho iOS ≤ 16, cần DDI) và họ
-`location_simulation_new/set/clear/free` đi qua `RemoteServerHandle` cho iOS 17+.
-Nghĩa là 4 hàm trong header là do người viết tự đặt ra, không phải API thật.
+**[ĐÃ CHẠY THẬT]** Đã tải crate `idevice` 0.1.65 và đọc thẳng mã nguồn. Xác nhận:
+bốn hàm trong header là **tự đặt ra**. API thật là
 
-**(b) Một lời gọi tới cổng 62078 là không đủ trên iOS 17+. [CHƯA KIỂM CHỨNG]**
+```rust
+LocationSimulationClient::new(&mut RemoteServerClient)   // mở kênh DTX
+    .set(latitude: f64, longitude: f64)
+    .clear()
+```
+
+cùng một họ riêng `SimulateLocationClient` qua lockdown cho iOS ≤ 16.
+
+**(b) Một lời gọi tới cổng 62078 là không đủ trên iOS 17+. [ĐÃ CHẠY THẬT — đọc từ mã nguồn crate]**
 Từ iOS 17, dịch vụ Instruments không còn trả lời `StartService` trực tiếp của lockdownd.
 Chuỗi thật gồm 5 chặng:
 
@@ -69,6 +79,41 @@ Nhưng kể cả khi audio chạy, **[CHƯA KIỂM CHỨNG]** Apple không cam k
 `audio` giữ app sống, và không có cách nào trên iOS không jailbreak để tự khởi động lại sau
 reboot / crash / user vuốt tắt.
 
+### 1.4 Đã gỡ được chốt chặn: thư viện FFI thật [ĐÃ CHẠY THẬT]
+
+Đã viết một crate Rust `idevice_ffi` (`crate-type = ["staticlib"]`) bọc đúng chuỗi năm
+chặng ở trên, và build thành công:
+
+```
+libidevice_ffi.a   12.272.552 byte
+lipo -info         architecture arm64
+nm -g              _idevice_connect_dvt  _idevice_set_location  _idevice_clear_location
+                   _idevice_disconnect   _idevice_last_error    _idevice_ffi_abi_version
+```
+
+Link vào app ở cấu hình `Debug-FFI`: `** BUILD SUCCEEDED **`. Không còn là thư viện giả.
+
+Hai trở ngại gặp phải và cách vượt, ghi lại vì sẽ cần đến nữa:
+
+- **Không cross-compile được từ Windows.** `aws-lc-rs` cần trình biên dịch C và `xcrun`
+  để lấy iOS SDK. Giải pháp: `cargo vendor` trên Windows (276 MB) rồi build `--offline`
+  trên máy ảo macOS, nơi đã cài Rust 1.98 bằng bộ cài rời.
+- **Máy ảo macOS không ra được internet, và sửa triệt để cần quyền quản trị.** Đi vòng
+  bằng cách ép interface và bỏ qua DNS: `curl --interface en1 --resolve host:443:<IP>`.
+  Nhờ vậy **việc số 1 ở mục 5 không còn chặn nữa** — vẫn nên chạy để tiện về sau.
+
+Một chi tiết đáng lưu: `Runtime::spawn` **không dùng được** ở đây. Trait `RsdService` chỉ
+được cài cho `RemoteServerClient<Box<dyn ReadWrite + 'static>>`, còn `spawn` đòi future
+phải hợp lệ với mọi lifetime, nên trình biên dịch từ chối với *"implementation of
+RsdService is not general enough"*. Mỗi phiên vì thế chạy trong một thread riêng với
+`block_on`.
+
+Lợi ích phụ nhưng lớn: lỗi trả về giờ **nói đúng vấn đề**. Ví dụ khi chưa mount DDI:
+
+> thiết bị không quảng bá `com.apple.instruments.dtservicehub`. Thường là do chưa mount
+> Developer Disk Image, hoặc chưa bật Developer Mode trong Settings > Privacy & Security.
+> DDI mất sau mỗi lần khởi động lại máy.
+
 ### Còn hai điều phá vỡ khẩu hiệu "không cần máy tính" [CHƯA KIỂM CHỨNG]
 
 - **Pairing file phải sinh từ máy tính một lần.** App không tự tạo được vì pairing là bắt
@@ -88,9 +133,11 @@ reboot / crash / user vuốt tắt.
 | --- | --- |
 | Swift type-check toàn bộ nguồn | Sạch |
 | `xcodebuild -configuration Debug` (chế độ mô phỏng) | `** BUILD SUCCEEDED **` |
-| `xcodebuild -configuration Debug-FFI` (kèm thư viện stub) | `** BUILD SUCCEEDED **` |
-| Chạy trên thiết bị thật | Chưa thử — chưa có chữ ký |
-| Đổi được GPS thật | **Không**. Chưa có thư viện FFI thật |
+| `xcodebuild -configuration Debug-FFI` (thư viện **thật**) | `** BUILD SUCCEEDED **` |
+| `libidevice_ffi.a` cho `aarch64-apple-ios` | Đã build, 12,2 MB, đủ 6 symbol |
+| Kiểm thử đơn vị | **16 test, 0 thất bại**, `** TEST SUCCEEDED **` trên iPhone 17 simulator |
+| Chạy trên thiết bị thật | Chưa thử — chưa có chữ ký, chưa có pairing file |
+| Đổi được GPS thật | **Chưa xác nhận.** Thư viện đã có; còn cần thiết bị, pairing, VPN, DDI |
 
 Chạy được ngay hôm nay: bản đồ, chạm để đặt toạ độ, chu trình sinh hoạt 24/7, mô phỏng
 chuyến bay và tour du lịch thế giới — tất cả ở **chế độ mô phỏng trong app**, GPS thật của

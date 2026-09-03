@@ -61,3 +61,16 @@ targets:
           OTHER_LDFLAGS:
             - "$(inherited)"
             - "-lidevice_ffi"
+
+  AutoSpoofVNTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: AutoSpoofVNTests
+    dependencies:
+      - target: AutoSpoofVN
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.autospoof.vn.tests
+        GENERATE_INFOPLIST_FILE: true
+        TARGETED_DEVICE_FAMILY: "1"

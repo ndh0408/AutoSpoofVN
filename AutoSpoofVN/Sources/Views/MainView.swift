@@ -1,10 +1,13 @@
 import SwiftUI
 import MapKit
+import CoreLocation
+import UniformTypeIdentifiers
 
 struct MainView: View {
     @EnvironmentObject var engine: SpoofEngine
     @EnvironmentObject var routine: RoutineManager
     @EnvironmentObject var flight: FlightManager
+    @StateObject private var backgroundKeeper = BackgroundKeeper.shared
 
     @State private var cameraPosition: MapCameraPosition = .camera(
         MapCamera(centerCoordinate: CLLocationCoordinate2D(latitude: 21.0285, longitude: 105.8542), distance: 5000)
@@ -17,6 +20,7 @@ struct MainView: View {
     @State private var manualLat: String = "21.0285"
     @State private var manualLon: String = "105.8542"
     @State private var copiedToast: Bool = false
+    @State private var showingConnectionRequiredAlert: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -86,7 +90,7 @@ struct MainView: View {
                     .mapStyle(.standard(elevation: .realistic))
                     .onTapGesture { screenPoint in
                         if let loc = proxy.convert(screenPoint, from: .local) {
-                            engine.setLocation(latitude: loc.latitude, longitude: loc.longitude)
+                            setManualLocation(loc)
                         }
                     }
                 }
@@ -154,6 +158,37 @@ struct MainView: View {
                     .padding(.horizontal, 16)
                     .padding(.top, 8)
 
+                    #if USE_IDEVICE_FFI
+                    if !engine.isLoopbackConnected {
+                        HStack {
+                            Image(systemName: "link.badge.plus")
+                                .foregroundColor(.orange)
+                            Text("Chưa kết nối DVT: chạm bản đồ chưa thể đổi GPS.")
+                                .font(.caption2)
+                            Spacer()
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 5)
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(8)
+                        .padding(.horizontal, 16)
+                    }
+                    #else
+                    HStack {
+                        Image(systemName: "testtube.2")
+                            .foregroundColor(.orange)
+                        Text("CHẾ ĐỘ MÔ PHỎNG — GPS thật không đổi.")
+                            .font(.caption2)
+                            .fontWeight(.bold)
+                        Spacer()
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 5)
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(8)
+                    .padding(.horizontal, 16)
+                    #endif
+
                     // Canh bao keep-alive neu co loi
                     if let err = engine.keepAliveError {
                         HStack {
@@ -165,6 +200,21 @@ struct MainView: View {
                         }
                         .padding(.horizontal, 12)
                         .padding(.vertical, 4)
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(8)
+                        .padding(.horizontal, 16)
+                    }
+
+                    if backgroundKeeper.authorizationStatus != .authorizedAlways {
+                        HStack {
+                            Image(systemName: "location.slash.fill")
+                                .foregroundColor(.orange)
+                            Text("Chưa có quyền vị trí Luôn luôn: app không thể tự được đánh thức lại ổn định.")
+                                .font(.caption2)
+                            Spacer()
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 5)
                         .background(.ultraThinMaterial)
                         .cornerRadius(8)
                         .padding(.horizontal, 16)
@@ -301,13 +351,35 @@ struct MainView: View {
                     .keyboardType(.decimalPad)
                 Button("Mô phỏng") {
                     if let lat = Double(manualLat), let lon = Double(manualLon) {
-                        engine.setLocation(latitude: lat, longitude: lon)
-                        cameraPosition = .camera(MapCamera(centerCoordinate: CLLocationCoordinate2D(latitude: lat, longitude: lon), distance: 3000))
+                        let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+                        if setManualLocation(coordinate) {
+                            cameraPosition = .camera(MapCamera(centerCoordinate: coordinate, distance: 3000))
+                        }
                     }
                 }
                 Button("Huỷ", role: .cancel) {}
             }
+            .alert("Chưa kết nối DVT", isPresented: $showingConnectionRequiredAlert) {
+                Button("Mở ghép nối") {
+                    showingPairingSheet = true
+                }
+                Button("Huỷ", role: .cancel) {}
+            } message: {
+                Text("Hãy kết nối DVT trước khi đặt vị trí. GPS thật chưa thay đổi và điểm mô phỏng chưa được kích hoạt.")
+            }
         }
+    }
+
+    @discardableResult
+    private func setManualLocation(_ coordinate: CLLocationCoordinate2D) -> Bool {
+        #if USE_IDEVICE_FFI
+        guard engine.isLoopbackConnected else {
+            showingConnectionRequiredAlert = true
+            return false
+        }
+        #endif
+        engine.setLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+        return true
     }
 }
 
@@ -315,7 +387,16 @@ struct MainView: View {
 struct PairingSetupView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var engine: SpoofEngine
-    @State private var textInput: String = ""
+    @State private var showingFileImporter = false
+    @State private var textInput = ""
+    @State private var pairingData: Data?
+    @State private var pairingFileName: String?
+    @State private var pairingFormat: String?
+    @State private var importError: String?
+
+    private var isConnecting: Bool {
+        engine.connectionStatus.hasPrefix("Đang kết nối")
+    }
 
     var body: some View {
         NavigationStack {
@@ -328,28 +409,68 @@ struct PairingSetupView: View {
                             .foregroundColor(engine.isLoopbackConnected ? .green : .secondary)
                             .font(.callout)
                     }
+
+                    if isConnecting {
+                        ProgressView("Đang mở tunnel và kết nối dtservicehub…")
+                            .font(.caption)
+                    }
+
+                    if let error = engine.lastFFIError {
+                        Label(error, systemImage: "exclamationmark.triangle.fill")
+                            .font(.caption)
+                            .foregroundColor(.red)
+                    }
                 }
 
                 Section(header: Text("Hướng dẫn thiết lập LocalDevVPN")) {
                     Text("1. Cài đặt app **LocalDevVPN** từ App Store trên thiết bị.")
                     Text("2. Mở LocalDevVPN và gạt bật kết nối VPN Loopback (10.7.0.1).")
-                    Text("3. Dùng công cụ `idevice_pair` hoặc Mac xuất file `RPPairing.plist`.")
-                    Text("4. Sao chép nội dung file XML Plist và dán vào ô bên dưới.")
+                    Text("3. Xuất file ghép nối `.mobiledevicepairing` từ máy đã Trust thiết bị.")
+                    Text("4. Chọn trực tiếp file bên dưới. File có thể là Binary Plist nên không thể dán dưới dạng văn bản.")
                 }
 
-                Section(header: Text("Nội dung RPPairing.plist")) {
+                Section(header: Text("File ghép nối thiết bị")) {
+                    Button {
+                        showingFileImporter = true
+                    } label: {
+                        Label(pairingFileName == nil ? "Chọn file .mobiledevicepairing" : "Chọn file khác", systemImage: "doc.badge.plus")
+                    }
+
+                    if let pairingFileName, let pairingData {
+                        LabeledContent("Tên file", value: pairingFileName)
+                        LabeledContent("Kích thước", value: ByteCountFormatter.string(fromByteCount: Int64(pairingData.count), countStyle: .file))
+                        if let pairingFormat {
+                            LabeledContent("Định dạng", value: pairingFormat)
+                        }
+                    }
+
+                    Text(engine.pairingSummary)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
+                    if let importError {
+                        Label(importError, systemImage: "exclamationmark.triangle.fill")
+                            .font(.caption)
+                            .foregroundColor(.red)
+                    }
+                }
+
+                Section(header: Text("Dự phòng: Plist dạng XML")) {
                     TextEditor(text: $textInput)
-                        .frame(height: 140)
+                        .frame(minHeight: 120)
                         .font(.system(.caption, design: .monospaced))
+
+                    Text("Chỉ dùng ô này nếu pairing record là plist XML thuần văn bản. File binary phải chọn bằng nút phía trên.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
+                    Button("Kết nối từ Plist XML") {
+                        engine.connectLoopback(plistContent: textInput)
+                    }
+                    .disabled(textInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isConnecting)
                 }
 
                 Section {
-                    Button("Lưu và Kết nối DVT Loopback") {
-                        engine.connectLoopback(plistContent: textInput)
-                        dismiss()
-                    }
-                    .disabled(textInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-
                     if engine.isLoopbackConnected {
                         Button("Ngắt kết nối", role: .destructive) {
                             engine.disconnect()
@@ -367,6 +488,53 @@ struct PairingSetupView: View {
             .onAppear {
                 textInput = engine.pairingPlist
             }
+            .fileImporter(
+                isPresented: $showingFileImporter,
+                allowedContentTypes: [.propertyList, .data],
+                allowsMultipleSelection: false
+            ) { result in
+                switch result {
+                case .success(let urls):
+                    guard let url = urls.first else { return }
+                    importPairingFile(from: url)
+                case .failure(let error):
+                    importError = error.localizedDescription
+                }
+            }
+        }
+    }
+
+    private func importPairingFile(from url: URL) {
+        let didAccess = url.startAccessingSecurityScopedResource()
+        defer {
+            if didAccess {
+                url.stopAccessingSecurityScopedResource()
+            }
+        }
+
+        do {
+            let data = try Data(contentsOf: url, options: .mappedIfSafe)
+            guard !data.isEmpty else {
+                importError = "File ghép nối đang rỗng."
+                pairingData = nil
+                pairingFileName = nil
+                pairingFormat = nil
+                return
+            }
+
+            var format = PropertyListSerialization.PropertyListFormat.binary
+            _ = try PropertyListSerialization.propertyList(from: data, options: [], format: &format)
+
+            pairingData = data
+            pairingFileName = url.lastPathComponent
+            pairingFormat = format == .binary ? "Binary Plist" : "XML Plist"
+            importError = nil
+            engine.connectLoopback(pairingData: data)
+        } catch {
+            pairingData = nil
+            pairingFileName = nil
+            pairingFormat = nil
+            importError = "Không đọc được pairing file: \(error.localizedDescription)"
         }
     }
 }
@@ -472,6 +640,8 @@ struct LocationRow: View {
 struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var engine: SpoofEngine
+    @StateObject private var backgroundKeeper = BackgroundKeeper.shared
+    @State private var showingOnboarding = false
 
     var body: some View {
         NavigationStack {
@@ -511,9 +681,54 @@ struct SettingsView: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
+
+                    HStack {
+                        Image(systemName: "location.fill")
+                            .foregroundColor(backgroundKeeper.authorizationStatus == .authorizedAlways ? .green : .orange)
+                        Text("Quyền vị trí nền")
+                        Spacer()
+                        Text(locationAuthorizationLabel)
+                            .font(.caption)
+                            .foregroundColor(backgroundKeeper.authorizationStatus == .authorizedAlways ? .green : .orange)
+                    }
+
+                    HStack {
+                        Image(systemName: backgroundKeeper.isLocationUpdating ? "location.circle.fill" : "location.slash.circle")
+                            .foregroundColor(backgroundKeeper.isLocationUpdating ? .green : .secondary)
+                        Text("Cập nhật vị trí nền")
+                        Spacer()
+                        Text(backgroundKeeper.isLocationUpdating ? "Đang chạy" : "Không chạy")
+                            .font(.caption)
+                            .foregroundColor(backgroundKeeper.isLocationUpdating ? .green : .secondary)
+                    }
+
+                    HStack {
+                        Image(systemName: "waveform.badge.exclamationmark")
+                            .foregroundColor(.orange)
+                        Text("Lần audio bị gián đoạn")
+                        Spacer()
+                        Text("\(backgroundKeeper.interruptionCount)")
+                            .font(.caption.monospacedDigit())
+                            .foregroundColor(.secondary)
+                    }
+
+                    if backgroundKeeper.authorizationStatus != .authorizedAlways {
+                        Label(
+                            "Không có quyền Luôn luôn thì iOS không thể dùng cập nhật vị trí nền để đánh thức lại app.",
+                            systemImage: "exclamationmark.triangle.fill"
+                        )
+                        .font(.caption)
+                        .foregroundColor(.orange)
+                    }
                 }
 
                 Section(header: Text("Thông tin ứng dụng")) {
+                    Button {
+                        showingOnboarding = true
+                    } label: {
+                        Label("Mở lại checklist thiết lập", systemImage: "checklist")
+                    }
+
                     HStack {
                         Text("Phiên bản")
                         Spacer()
@@ -535,6 +750,26 @@ struct SettingsView: View {
                     Button("Đóng") { dismiss() }
                 }
             }
+            .sheet(isPresented: $showingOnboarding) {
+                OnboardingView(isReviewMode: true)
+            }
+        }
+    }
+
+    private var locationAuthorizationLabel: String {
+        switch backgroundKeeper.authorizationStatus {
+        case .authorizedAlways:
+            return "Luôn luôn"
+        case .authorizedWhenInUse:
+            return "Khi dùng app"
+        case .denied:
+            return "Đã từ chối"
+        case .restricted:
+            return "Bị hạn chế"
+        case .notDetermined:
+            return "Chưa quyết định"
+        @unknown default:
+            return "Không xác định"
         }
     }
 }

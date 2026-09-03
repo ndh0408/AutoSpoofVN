@@ -90,16 +90,70 @@ ld: warning: Could not find or use auto-linked framework 'UIUtilities'
 ld: warning: ... cannot link directly with 'SwiftUICore'
 ```
 
-## 6. Việc chưa làm được
+## 6. Build thư viện FFI thật
 
-- Chưa có `libidevice_ffi.a` cho `aarch64-apple-ios`. Đây là chốt chặn của tính năng cốt lõi.
-- Máy ảo macOS không có `rustup`, `cargo`, `brew`, và không ra được internet.
-  Nguyên nhân mạng: máy có hai default route, `en0` đi qua NAT của VMware (`192.168.25.2`)
-  đang chết, còn `en1` bridge ra LAN thì **có** internet. macOS đang ưu tiên `en0`.
-  Lệnh sửa, cần mật khẩu quản trị nên phải do người dùng chạy:
+`Vendor/idevice/idevice.h` khai báo ABI v2. Phần cài đặt là một crate Rust
+(`crate-type = ["staticlib"]`) bọc crate [`idevice`](https://crates.io/crates/idevice)
+của jkcoxson.
 
-  ```sh
-  sudo networksetup -ordernetworkservices "Bridged LAN" "Ethernet" "Tailscale"
-  ```
+### Vì sao phải build trên macOS
 
+Không cross-compile được từ Windows: `aws-lc-rs` (nhà cung cấp mật mã của `rustls`)
+cần một trình biên dịch C cùng `xcrun` để lấy iOS SDK. Trên Windows nó dừng ngay ở
+
+```
+error occurred in cc-rs: failed to find tool "xcrun": program not found
+```
+
+Nhưng phần *tải phụ thuộc* thì làm trên Windows được, rồi mang sang:
+
+```sh
+# Trên Windows, trong thư mục crate FFI
+cargo vendor vendor          # ~276 MB
+tar -czf idevffi-src.tar.gz Cargo.toml Cargo.lock src vendor
+```
+
+Trên macOS, thêm `.cargo/config.toml` trỏ về thư mục vendor rồi build `--offline`:
+
+```sh
+export PATH=$HOME/rust/bin:$PATH
+export IPHONEOS_DEPLOYMENT_TARGET=17.4
+cargo build --release --offline --target aarch64-apple-ios
+cp target/aarch64-apple-ios/release/libidevice_ffi.a <repo>/Vendor/idevice/
+```
+
+### Máy ảo macOS không có internet — cách đi vòng, không cần quyền quản trị
+
+Máy có hai default route: `en0` qua NAT của VMware (`192.168.25.2`) đã chết, còn `en1`
+nối thẳng ra LAN thì có internet. macOS ưu tiên `en0` nên mọi kết nối đều hỏng, kể cả DNS.
+
+Sửa triệt để cần quyền quản trị:
+
+```sh
+sudo networksetup -ordernetworkservices "Bridged LAN" "Ethernet" "Tailscale"
+```
+
+Không có mật khẩu vẫn tải được, bằng cách ép đúng interface và bỏ qua DNS — phân giải
+tên máy ở nơi khác rồi truyền thẳng IP vào:
+
+```sh
+curl -L --interface en1 --resolve static.rust-lang.org:443:151.101.66.137   -o rust.tar.xz https://static.rust-lang.org/dist/rust-1.98.0-x86_64-apple-darwin.tar.xz
+```
+
+### Cài Rust ngoại tuyến lên máy ảo
+
+Không có `rustup` thì dùng bộ cài rời:
+
+```sh
+tar -xf rust-1.98.0-x86_64-apple-darwin.tar.xz
+tar -xf rust-std-1.98.0-aarch64-apple-ios.tar.xz
+./rust-1.98.0-x86_64-apple-darwin/install.sh --prefix=$HOME/rust --without=rust-docs
+./rust-std-1.98.0-aarch64-apple-ios/install.sh --prefix=$HOME/rust
+```
+
+## 7. Việc chưa làm được
+
+- Chưa chạy thử trên thiết bị thật. Kể cả khi có `libidevice_ffi.a`, để đổi được GPS
+  còn cần: pairing record sinh từ máy tính một lần, VPN loopback đang bật, Developer Mode
+  bật trong Settings, và Developer Disk Image đã mount (DDI mất sau mỗi lần khởi động máy).
 - Chưa có chữ ký để cài lên máy thật, chưa có AppIcon, chưa có test tự động.

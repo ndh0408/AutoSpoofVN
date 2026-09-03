@@ -30,6 +30,10 @@ final class RoutineManager: ObservableObject {
     private var currentWaypointIndex: Int = 0
     /// Khoá định danh chặng đang chạy, tránh khởi động lại lộ trình mỗi lần đánh giá lịch (60 giây/lần).
     private var activeCommuteKey: String? = nil
+
+    /// `moveStepTimer` đang phục vụ việc gì.
+    private enum MoveMode { case idle, commute, walk }
+    private var moveMode: MoveMode = .idle
     /// Chặn didSet ghi ngược xuống đĩa trong lúc đang nạp dữ liệu từ đĩa.
     private var isLoading: Bool = false
 
@@ -53,6 +57,7 @@ final class RoutineManager: ObservableObject {
             routineTimer?.invalidate()
             moveStepTimer?.invalidate()
             activeCommuteKey = nil
+            moveMode = .idle
             currentSpeedKmh = 0.0
             SpoofEngine.shared.release(.routine)
         }
@@ -135,6 +140,7 @@ final class RoutineManager: ObservableObject {
 
     private func applySleepingState() {
         activeCommuteKey = nil
+        moveMode = .idle
         currentState = .sleeping
         currentSpeedKmh = 0.0
         statusDescription = "Ở Nhà (Nghỉ ngơi ban đêm)"
@@ -144,6 +150,7 @@ final class RoutineManager: ObservableObject {
 
     private func applyWorkingState() {
         activeCommuteKey = nil
+        moveMode = .idle
         currentState = .working
         currentSpeedKmh = 0.0
         statusDescription = "Ở Nơi làm việc (Cố định)"
@@ -156,16 +163,68 @@ final class RoutineManager: ObservableObject {
         currentState = .wandering
         currentSpeedKmh = 3.8
         statusDescription = "Đi dạo tối quanh khu vực nhà (~4 km/h)"
-        moveStepTimer?.invalidate()
 
-        // Tạo toạ độ dạo quanh bán kính ~400m quanh nhà
-        let deltaLat = Double.random(in: -0.003...0.003)
-        let deltaLon = Double.random(in: -0.003...0.003)
-        _ = SpoofEngine.shared.submit(
-            latitude: homeLocation.latitude + deltaLat,
-            longitude: homeLocation.longitude + deltaLon,
-            from: .routine
-        )
+        // Bản cũ mỗi lần đánh giá lịch lại nhảy tới một điểm ngẫu nhiên trong bán kính
+        // ~330 m. Với chu kỳ 60 giây, đó là những cú dịch chuyển tức thời tới 660 m —
+        // tương đương 40 km/h mà trạng thái lại ghi "đi bộ 4 km/h".
+        // Nay đi bộ liên tục: mỗi 3 giây một bước, hướng đi đổi từ từ.
+        // Đang đi dạo rồi thì để yên; nhưng nếu timer đang phục vụ chặng đi làm thì
+        // phải dừng nó lại, nếu không buổi tối vẫn tiếp tục "lái xe".
+        if moveMode == .walk, let t = moveStepTimer, t.isValid { return }
+        startWalk()
+    }
+
+    /// Đi bộ liên tục quanh nhà với hướng đi biến thiên chậm.
+    private func startWalk() {
+        moveStepTimer?.invalidate()
+        moveMode = .walk
+        var position = SpoofEngine.shared.currentCoordinate
+        // Nếu đang ở quá xa nhà thì bắt đầu lại từ nhà.
+        if GeodesicMath.distanceKm(from: position, to: homeLocation) > 0.6 {
+            position = homeLocation
+        }
+        var headingRadians = Double.random(in: 0..<(2 * .pi))
+
+        let stepSeconds = 3.0
+        let timer = Timer(timeInterval: stepSeconds, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+
+            // Tốc độ đi bộ dao động nhẹ quanh 4 km/h.
+            let speedKmh = Double.random(in: 3.2...4.6)
+            self.currentSpeedKmh = speedKmh
+            let metres = speedKmh * 1000.0 / 3600.0 * stepSeconds
+
+            // Đổi hướng từ từ; người đi bộ không quay ngoắt.
+            headingRadians += Double.random(in: -0.35...0.35)
+
+            let cosLat = cos(position.latitude * .pi / 180.0)
+            let lonScale = abs(cosLat) < 1e-6 ? 1e-6 : abs(cosLat)
+
+            // Ra quá xa nhà thì bẻ dần hướng quay về.
+            let distanceKm = GeodesicMath.distanceKm(from: position, to: self.homeLocation)
+            if distanceKm > 0.45 {
+                // Chênh lệch kinh độ phải quy về cùng đơn vị mét với vĩ độ, nếu không
+                // hướng tính ra sẽ lệch theo vĩ độ nơi đang đứng.
+                let toHome = atan2(
+                    (self.homeLocation.longitude - position.longitude) * lonScale,
+                    self.homeLocation.latitude - position.latitude
+                )
+                // Đưa chênh lệch góc về [-pi, pi]. Không có bước này thì khi hướng hiện tại
+                // và hướng về nhà nằm hai bên mốc +/-pi, người đi bộ sẽ quay vòng đường xa.
+                var delta = toHome - headingRadians
+                delta = atan2(sin(delta), cos(delta))
+                headingRadians += delta * 0.4
+            }
+            position = CLLocationCoordinate2D(
+                latitude: position.latitude + (metres * cos(headingRadians)) / 111_320.0,
+                longitude: position.longitude + (metres * sin(headingRadians)) / (111_320.0 * lonScale)
+            )
+            _ = SpoofEngine.shared.submit(latitude: position.latitude,
+                                          longitude: position.longitude,
+                                          from: .routine)
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        moveStepTimer = timer
     }
 
     /// Di chuyển mượt theo tuyến đường giữa 2 toạ độ
@@ -192,16 +251,49 @@ final class RoutineManager: ObservableObject {
 
         currentWaypointIndex = 0
         moveStepTimer?.invalidate()
-        moveStepTimer = Timer.scheduledTimer(withTimeInterval: 2.5, repeats: true) { [weak self] timer in
+        moveMode = .commute
+
+        // Xe thật không chạy đều một tốc độ từ đầu tới cuối. Ba yếu tố dưới đây khiến
+        // vệt di chuyển bớt lộ: tăng tốc lúc rời đi, giảm tốc lúc gần tới, và dừng
+        // ngẫu nhiên như gặp đèn đỏ.
+        var stoppedTicksRemaining = 0
+        let timer = Timer(timeInterval: 2.5, repeats: true) { [weak self] timer in
             guard let self = self else { return }
-            if self.currentWaypointIndex < self.targetRoute.count {
-                let coord = self.targetRoute[self.currentWaypointIndex]
-                _ = SpoofEngine.shared.submit(latitude: coord.latitude, longitude: coord.longitude, from: .routine)
-                self.currentWaypointIndex += 1
-            } else {
+
+            if stoppedTicksRemaining > 0 {
+                stoppedTicksRemaining -= 1
+                self.currentSpeedKmh = 0
+                // Vẫn gửi lại toạ độ hiện tại: đứng yên không có nghĩa là mất tín hiệu.
+                // Chỉ số phải kẹp cả hai đầu — `count - 1` bằng -1 khi mảng rỗng, và
+                // một lần treo chỉ số ở đây là crash cho app phải sống 24/7.
+                if let coord = self.targetRoute[safe: min(self.currentWaypointIndex, self.targetRoute.count - 1)] {
+                    _ = SpoofEngine.shared.submit(latitude: coord.latitude, longitude: coord.longitude, from: .routine)
+                }
+                return
+            }
+
+            guard self.currentWaypointIndex < self.targetRoute.count else {
                 timer.invalidate()
+                self.currentSpeedKmh = 0
+                return
+            }
+
+            let progress = Double(self.currentWaypointIndex) / Double(max(1, self.targetRoute.count - 1))
+            // Hệ số hình thang: chậm ở hai đầu, đủ tốc ở giữa.
+            let ramp = min(1.0, min(progress, 1.0 - progress) / 0.15)
+            self.currentSpeedKmh = speed * (0.25 + 0.75 * ramp)
+
+            let coord = self.targetRoute[self.currentWaypointIndex]
+            _ = SpoofEngine.shared.submit(latitude: coord.latitude, longitude: coord.longitude, from: .routine)
+            self.currentWaypointIndex += 1
+
+            // Dừng đèn đỏ: chỉ ở đoạn giữa, và chỉ khi đang di chuyển bằng xe.
+            if speed > 10, progress > 0.15, progress < 0.85, Double.random(in: 0...1) < 0.08 {
+                stoppedTicksRemaining = Int.random(in: 4...12)   // 10 - 30 giây
             }
         }
+        RunLoop.main.add(timer, forMode: .common)
+        moveStepTimer = timer
     }
 
     // MARK: - Chế độ Du lịch (ghi đè tạm thời địa điểm thật)
@@ -295,5 +387,12 @@ final class RoutineManager: ObservableObject {
                 PlaceBookmark(name: "Keangnam Landmark 72", latitude: 21.0172, longitude: 105.7838)
             ]
         }
+    }
+}
+
+extension Array {
+    /// Truy cập theo chỉ số an toàn: trả về `nil` thay vì dừng chương trình.
+    subscript(safe index: Int) -> Element? {
+        indices.contains(index) ? self[index] : nil
     }
 }

@@ -1,6 +1,7 @@
 import Foundation
 import CoreLocation
 import AVFoundation
+import Combine
 
 #if USE_IDEVICE_FFI
 import idevice
@@ -44,7 +45,25 @@ final class SpoofEngine: ObservableObject {
     @Published var enableJitter: Bool = true
     @Published var jitterMeters: Double = 3.0
     @Published var lastSpoofedAt: Date? = nil
+    /// Nội dung thô của lockdown pairing record.
+    ///
+    /// Phải là `Data`, không phải `String`: pairing file thật là **binary plist** và
+    /// chứa byte 0, nên chuyển qua chuỗi C sẽ bị cắt cụt ngay ký tự đầu tiên.
+    @Published private(set) var pairingData: Data? = nil
+
+    /// Chỉ dùng cho ô nhập dạng chữ (plist XML). Với file nhị phân, giá trị này rỗng —
+    /// đọc `pairingData` mới là nguồn sự thật.
     @Published var pairingPlist: String = ""
+
+    /// Lý do thất bại gần nhất do thư viện FFI báo về, đã dịch sang thông điệp cho người dùng.
+    @Published private(set) var lastFFIError: String? = nil
+
+    /// Mô tả ngắn về pairing record đang nạp, để hiển thị trên UI.
+    var pairingSummary: String {
+        guard let d = pairingData, !d.isEmpty else { return "Chưa nạp pairing file" }
+        let kind = d.starts(with: Array("bplist".utf8)) ? "binary plist" : "plist văn bản"
+        return "Đã nạp \(d.count) byte (\(kind))"
+    }
 
     /// Module đang giữ quyền ghi toạ độ. `nil` nghĩa là chưa ai giữ.
     @Published private(set) var activeSource: SpoofSource? = nil
@@ -58,8 +77,8 @@ final class SpoofEngine: ObservableObject {
     /// hành động khởi động lại rõ ràng (bật chu trình, bắt đầu chuyến bay, hoặc đặt tay).
     @Published private(set) var isHalted: Bool = false
 
-    private var audioPlayer: AVAudioPlayer?
     private var heartBeatTimer: Timer?
+    private var keeperObservers: Set<AnyCancellable> = []
 
     /// Mọi lời gọi FFI phải chạy trên đúng hàng đợi này.
     ///
@@ -71,10 +90,34 @@ final class SpoofEngine: ObservableObject {
     /// Chỉ được đọc/ghi bên trong `ffiQueue`.
     private var deviceHandle: UnsafeMutableRawPointer? = nil
 
+    /// Độ lệch nhiễu hiện tại, tính bằng mét. Giữ lại giữa các lần gọi để nhiễu có
+    /// tương quan theo thời gian thay vì nhảy ngẫu nhiên độc lập.
+    private var jitterOffsetNorthMeters: Double = 0
+    private var jitterOffsetEastMeters: Double = 0
+
     private init() {
-        if let savedPlist = UserDefaults.standard.string(forKey: "autospoof_pairing_plist") {
-            self.pairingPlist = savedPlist
+        if let saved = UserDefaults.standard.data(forKey: "autospoof_pairing_data") {
+            self.pairingData = saved
+            // Chỉ đổ ngược ra ô chữ khi nội dung thực sự là văn bản.
+            if !saved.starts(with: Array("bplist".utf8)),
+               let text = String(data: saved, encoding: .utf8) {
+                self.pairingPlist = text
+            }
+        } else if let legacy = UserDefaults.standard.string(forKey: "autospoof_pairing_plist") {
+            // Di trú từ bản cũ từng lưu dạng chuỗi.
+            self.pairingPlist = legacy
+            self.pairingData = Data(legacy.utf8)
         }
+        // Phản chiếu trạng thái nền ra đúng hai thuộc tính MainView đang đọc.
+        let keeper = BackgroundKeeper.shared
+        keeper.$isAudioRunning
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] in self?.isKeepAliveRunning = $0 }
+            .store(in: &keeperObservers)
+        keeper.$audioError
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] in self?.keepAliveError = $0 }
+            .store(in: &keeperObservers)
     }
 
     // MARK: - Phân xử nguồn phát toạ độ (Arbiter)
@@ -124,15 +167,27 @@ final class SpoofEngine: ObservableObject {
         var lat = latitude
         var lon = longitude
 
-        // Thêm GPS Jitter tự nhiên (dao động vài mét) để vị trí không đứng yên tuyệt đối.
+        // Nhiễu GPS. Dùng bước ngẫu nhiên có tương quan chứ không phải nhiễu trắng:
+        // sai số GPS thật trôi dần theo thời gian, còn nhiễu trắng cho ra chuỗi toạ độ
+        // giật ngẫu nhiên hoàn toàn quanh một điểm — chính là dấu hiệu của vị trí giả.
         if enableJitter {
+            let inertia = 0.82  // giữ lại phần lớn độ lệch cũ
+            let kick = jitterMeters * 0.55
+            jitterOffsetNorthMeters = jitterOffsetNorthMeters * inertia + Double.random(in: -kick...kick)
+            jitterOffsetEastMeters = jitterOffsetEastMeters * inertia + Double.random(in: -kick...kick)
+
+            // Giữ độ lệch trong bán kính người dùng đặt.
+            let radius = hypot(jitterOffsetNorthMeters, jitterOffsetEastMeters)
+            if radius > jitterMeters, radius > 0 {
+                let scale = jitterMeters / radius
+                jitterOffsetNorthMeters *= scale
+                jitterOffsetEastMeters *= scale
+            }
+
             let cosLat = cos(lat * .pi / 180.0)
-            let latOffsetDeg = (jitterMeters / 111_320.0) * Double.random(in: -1.0...1.0)
-            // Chặn chia cho 0 khi ở gần hai cực.
             let lonScale = abs(cosLat) < 1e-6 ? 1e-6 : abs(cosLat)
-            let lonOffsetDeg = (jitterMeters / (111_320.0 * lonScale)) * Double.random(in: -1.0...1.0)
-            lat += latOffsetDeg
-            lon += lonOffsetDeg
+            lat += jitterOffsetNorthMeters / 111_320.0
+            lon += jitterOffsetEastMeters / (111_320.0 * lonScale)
         }
 
         lat = min(max(lat, -90.0), 90.0)
@@ -148,34 +203,16 @@ final class SpoofEngine: ObservableObject {
 
     // MARK: - Chạy ngầm (Keep-Alive)
 
-    /// Bật chế độ chạy ngầm bằng Silent Audio để iOS không treo tiến trình.
-    /// Trả về `true` nếu audio thực sự khởi động được.
+    /// Bật chế độ chạy ngầm. Trả về `true` nếu audio thực sự khởi động được.
+    ///
+    /// Gọi lại nhiều lần là an toàn — `MainView.onAppear` chạy mỗi lần view xuất hiện.
     @discardableResult
     func startBackgroundKeepAlive() -> Bool {
-        do {
-            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.mixWithOthers])
-            try AVAudioSession.sharedInstance().setActive(true)
+        BackgroundKeeper.shared.start()
 
-            let silentData = SpoofEngine.makeSilentWavData(seconds: 1.0)
-            let player = try AVAudioPlayer(data: silentData)
-            player.numberOfLoops = -1
-            player.volume = 0.01
-            player.prepareToPlay()
-            let started = player.play()
-            audioPlayer = player
-            isKeepAliveRunning = started
-            keepAliveError = started ? nil : "AVAudioPlayer.play() trả về false"
-            if !started {
-                print("[SpoofEngine] Keep-Alive: play() thất bại.")
-            }
-        } catch {
-            audioPlayer = nil
-            isKeepAliveRunning = false
-            keepAliveError = error.localizedDescription
-            print("[SpoofEngine] Lỗi kích hoạt Audio Keep-Alive: \(error.localizedDescription)")
-        }
-
-        // Heartbeat gửi lại toạ độ định kỳ để giữ phiên DVT sống.
+        // Watchdog định kỳ. Với cầu nối FFI thật, chỗ này phải đổi thành kiểm tra
+        // heartbeat (com.apple.mobile.heartbeat) và dựng lại cả chuỗi kết nối khi đứt,
+        // chứ không phải gửi lặp toạ độ: DVT giữ nguyên vị trí chừng nào kênh còn mở.
         heartBeatTimer?.invalidate()
         let timer = Timer(timeInterval: 20.0, repeats: true) { [weak self] _ in
             guard let self = self, self.isSimulating else { return }
@@ -191,38 +228,57 @@ final class SpoofEngine: ObservableObject {
     func stopBackgroundKeepAlive() {
         heartBeatTimer?.invalidate()
         heartBeatTimer = nil
-        audioPlayer?.stop()
-        audioPlayer = nil
-        isKeepAliveRunning = false
-        try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
+        BackgroundKeeper.shared.stop()
     }
 
     // MARK: - Kết nối DVT
 
     /// Kết nối vào cổng DVT nội bộ qua loopback LocalDevVPN (10.7.0.1).
+    ///
+    /// Bản nhận `String` chỉ dùng được với plist dạng văn bản. Pairing record thật
+    /// thường là binary plist — dùng bản nhận `Data` và một `.fileImporter`.
     func connectLoopback(plistContent: String) {
-        let trimmedPlist = plistContent.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedPlist.isEmpty else {
-            connectionStatus = "File plist không hợp lệ"
+        let trimmed = plistContent.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            connectionStatus = "Chưa có nội dung pairing file"
+            return
+        }
+        pairingPlist = trimmed
+        connectLoopback(pairingData: Data(trimmed.utf8))
+    }
+
+    /// Kết nối bằng nội dung nhị phân của pairing record. Đây là đường đúng.
+    func connectLoopback(pairingData data: Data) {
+        guard !data.isEmpty else {
+            connectionStatus = "Pairing file rỗng"
             return
         }
 
-        self.pairingPlist = trimmedPlist
-        UserDefaults.standard.set(trimmedPlist, forKey: "autospoof_pairing_plist")
+        self.pairingData = data
+        UserDefaults.standard.set(data, forKey: "autospoof_pairing_data")
+        lastFFIError = nil
         connectionStatus = "Đang kết nối 10.7.0.1:62078..."
 
         ffiQueue.async { [weak self] in
             guard let self = self else { return }
             #if USE_IDEVICE_FFI
-            let handle = idevice_connect_dvt("10.7.0.1", 62078, trimmedPlist)
+            let handle: UnsafeMutableRawPointer? = data.withUnsafeBytes { raw in
+                guard let base = raw.bindMemory(to: UInt8.self).baseAddress else { return nil }
+                return idevice_connect_dvt("10.7.0.1", 62078, base, raw.count)
+            }
             self.deviceHandle = handle
+            // Đọc lý do thất bại NGAY, trước bất kỳ lời gọi FFI nào khác:
+            // con trỏ chỉ hợp lệ tới lần gọi kế tiếp.
+            let reason: String? = handle == nil ? SpoofEngine.readLastFFIError() : nil
             DispatchQueue.main.async {
                 if handle != nil {
                     self.isLoopbackConnected = true
+                    self.lastFFIError = nil
                     self.connectionStatus = "Đã kết nối DVT Loopback (10.7.0.1)"
                 } else {
                     self.isLoopbackConnected = false
-                    self.connectionStatus = "Kết nối DVT thất bại (Kiểm tra VPN & Plist)"
+                    self.lastFFIError = reason
+                    self.connectionStatus = reason ?? "Kết nối DVT thất bại"
                 }
             }
             #else
@@ -234,7 +290,14 @@ final class SpoofEngine: ObservableObject {
         }
     }
 
-    /// Khôi phục vị trí GPS thật.
+    #if USE_IDEVICE_FFI
+    /// Sao chép ngay chuỗi lỗi: con trỏ thư viện trả về chỉ sống tới lần gọi FFI kế tiếp.
+    private static func readLastFFIError() -> String? {
+        guard let p = idevice_last_error() else { return nil }
+        return String(cString: p)
+    }
+    #endif
+
     /// Khôi phục vị trí GPS thật và CHẶN mọi nguồn ghi tiếp.
     ///
     /// Nếu không có cờ `isHalted`, chu trình 24/7 (timer 60 giây) hoặc chuyến bay sẽ ghi đè
@@ -264,6 +327,7 @@ final class SpoofEngine: ObservableObject {
         isLoopbackConnected = false
         isSimulating = false
         activeSource = nil
+        lastFFIError = nil
         connectionStatus = "Đã ngắt kết nối"
     }
 
