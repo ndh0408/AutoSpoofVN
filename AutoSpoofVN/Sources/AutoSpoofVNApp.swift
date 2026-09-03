@@ -1,6 +1,15 @@
 import Combine
 import SwiftUI
 
+/// Giữ Combine cancellables của bootstrap ở tầng class để tránh
+/// "Cannot pass immutable value as inout: self is immutable" khi
+/// AutoSpoofVNApp (struct) gọi .store(in:) từ non-mutating method.
+private final class AppBootstrap {
+    static let shared = AppBootstrap()
+    var cancellables = Set<AnyCancellable>()
+    private init() {}
+}
+
 /// Entry point — v2 architecture.
 /// Migration chạy trước khi UI hiện. Recovery check sau onboarding.
 @main
@@ -13,7 +22,6 @@ struct AutoSpoofVNApp: App {
     @StateObject private var recovery = AppRecoveryManager.shared
     @StateObject private var deviceManager = DeviceManager.shared
     @AppStorage("autospoof_onboarding_completed") private var hasCompletedOnboarding = false
-    private var bootstrapCancellables = Set<AnyCancellable>()
 
     init() {
         MigrationManager.runIfNeeded()
@@ -90,7 +98,7 @@ struct AutoSpoofVNApp: App {
                     _ = HistoryManager.shared.stopRecording()
                 }
             }
-            .store(in: &self.bootstrapCancellables)
+            .store(in: &AppBootstrap.shared.cancellables)
 
         // Khởi động ConnectionRecovery
         _ = ConnectionRecovery.shared
