@@ -42,6 +42,7 @@ struct MainViewV2: View {
     @State private var showBookmarks = false
     @State private var showManualInput = false
     @State private var showTelemetryDetail = false
+    @State private var showMoreMenu = false
 
     // Manual input
     @State private var manualLat = "21.0285"
@@ -117,6 +118,15 @@ struct MainViewV2: View {
                     }
             }
             .presentationDetents([.medium])
+        }
+        .confirmationDialog("Thêm", isPresented: $showMoreMenu, titleVisibility: .visible) {
+            Button("Cài đặt") { showSettings = true }
+            Button("Lịch sử mô phỏng") { showHistory = true }
+            Button("Du lịch & Chuyến bay") { showWorldTravel = true }
+            Button("Đã lưu") { showBookmarks = true }
+            Button("Lịch trình 24/7") { showRoutineStudio = true }
+            Button("Chẩn đoán hệ thống") { showDiagnostics = true }
+            Button("Đóng", role: .cancel) {}
         }
         .alert("Nhập toạ độ", isPresented: $showManualInput) {
             TextField("Latitude", text: $manualLat)
@@ -229,12 +239,11 @@ struct MainViewV2: View {
 
                     Divider().frame(width: 30)
 
-                    // Navigation buttons
-                    mapButton("gearshape") { showSettings = true }
-                    mapButton("clock.arrow.circlepath") { showHistory = true }
-                    mapButton("airplane") { showWorldTravel = true }
-                    mapButton("bookmark") { showBookmarks = true }
-                    mapButton("stethoscope") { showDiagnostics = true }
+                    // Truoc day 5 nut dieu huong rieng xep doc o day (8 nut x 36pt+spacing
+                    // ~ 350pt) dung tham xuong khung TelemetryPanel/QuickActionsBar o day man
+                    // hinh tren may man hinh thap (iPhone SE/mini). Gom vao 1 menu "Them" -
+                    // cot nut nay gio co tran cao ~124pt, khong bao gio cham toi sheet duoi day.
+                    mapButton("ellipsis") { showMoreMenu = true }
                 }
                 .padding(.trailing, AppSpacing.md)
                 .padding(.top, 100)
