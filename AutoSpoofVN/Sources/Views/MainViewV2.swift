@@ -39,6 +39,7 @@ struct MainViewV2: View {
     @State private var showHistory = false
     @State private var showWorldTravel = false
     @State private var showDiagnostics = false
+    @State private var showShadowrocket = false
     @State private var showBookmarks = false
     @State private var showManualInput = false
     @State private var showTelemetryDetail = false
@@ -104,6 +105,7 @@ struct MainViewV2: View {
         .sheet(isPresented: $showHistory) { HistoryView() }
         .sheet(isPresented: $showWorldTravel) { WorldTravelViewV2() }
         .sheet(isPresented: $showDiagnostics) { DiagnosticsView() }
+        .sheet(isPresented: $showShadowrocket) { ShadowrocketSetupView() }
         .sheet(isPresented: $showBookmarks) { BookmarksView() }
         .sheet(isPresented: $showTelemetryDetail) {
             NavigationStack {
@@ -235,6 +237,7 @@ struct MainViewV2: View {
                     mapButton("airplane") { showWorldTravel = true }
                     mapButton("bookmark") { showBookmarks = true }
                     mapButton("stethoscope") { showDiagnostics = true }
+                    mapButton("bolt.horizontal") { showShadowrocket = true }
                 }
                 .padding(.trailing, AppSpacing.md)
                 .padding(.top, 100)
