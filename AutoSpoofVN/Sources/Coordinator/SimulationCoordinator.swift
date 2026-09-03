@@ -113,6 +113,9 @@ final class SimulationCoordinator: ObservableObject {
         session = newSession
         state = .running
 
+        // Auto-trigger Shadowrocket VPN khi bắt đầu simulation
+        ShadowrocketManager.shared.ensureVPNActive()
+
         startDeviceUpdateTimer()
         return newSession
     }
