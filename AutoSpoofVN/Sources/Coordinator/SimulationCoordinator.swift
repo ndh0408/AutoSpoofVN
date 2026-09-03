@@ -317,7 +317,7 @@ final class SimulationCoordinator: ObservableObject {
         // Sync speed từ FlightManager
         FlightManager.shared.$activeFlight
             .receive(on: DispatchQueue.main)
-            .compactMap { \/bin/sh }
+            .compactMap { $0 }
             .sink { [weak self] sim in
                 self?.telemetry.speedKmh = sim.currentSpeedKmh
                 self?.telemetry.altitudeMeters = sim.currentAltitudeMeters
