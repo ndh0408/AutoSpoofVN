@@ -1,161 +1,143 @@
-//
-//  HistoryView.swift
-//  AutoSpoofVN
-//
-//  Simulation History, Replay Studio, and GPX Export.
-//
-
 import SwiftUI
 
+/// Lịch sử mô phỏng — xem lại và phát lại các phiên trước.
 struct HistoryView: View {
+    @StateObject private var history = HistoryManager.shared
+    @StateObject private var replay = ReplayEngine.shared
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var replayEngine = ReplayEngine.shared
-    @ObservedObject private var coordinator = SimulationCoordinator.shared
-    @State private var history: [SimulationSession] = []
-    @State private var exportedGPX: String? = nil
-    @State private var showingExportSheet = false
 
     var body: some View {
         NavigationStack {
-            List {
-                if replayEngine.isReplaying, let session = replayEngine.activeSession {
-                    Section("Đang phát lại lộ trình (Replay)") {
-                        VStack(alignment: .leading, spacing: 10) {
-                            HStack {
-                                Image(systemName: "play.circle.fill")
-                                    .foregroundColor(.blue)
-                                Text(session.name)
-                                    .font(.headline)
-                                Spacer()
-                                Button("Dừng phát", role: .destructive) {
-                                    replayEngine.stopReplay()
+            Group {
+                if history.records.isEmpty {
+                    EmptyStateView(
+                        icon: "clock.arrow.circlepath",
+                        title: "Chưa có lịch sử",
+                        message: "Các phiên mô phỏng sẽ được ghi lại tự động."
+                    )
+                } else {
+                    List {
+                        if replay.isPlaying {
+                            Section("Đang phát lại") {
+                                VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                                    HStack {
+                                        StatusBadge("Phát lại", color: .purple, icon: "arrow.counterclockwise")
+                                        Spacer()
+                                        Text("\(Int(replay.playbackSpeed))x")
+                                            .font(AppFont.mono)
+                                    }
+                                    ProgressView(value: replay.progress)
+                                    HStack {
+                                        Button("1x") { replay.playbackSpeed = 1 }
+                                        Button("5x") { replay.playbackSpeed = 5 }
+                                        Button("10x") { replay.playbackSpeed = 10 }
+                                        Spacer()
+                                        Button("Dừng", role: .destructive) { replay.stop() }
+                                    }
+                                    .font(AppFont.footnote.weight(.medium))
                                 }
-                                .buttonStyle(.bordered)
-                                .controlSize(.small)
-                            }
-
-                            HStack {
-                                Text("Điểm: \(replayEngine.currentTrackIndex)/\(replayEngine.totalPoints)")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                Spacer()
-                                Picker("Tốc độ", selection: $replayEngine.replayMultiplier) {
-                                    Text("1x").tag(1.0)
-                                    Text("5x").tag(5.0)
-                                    Text("10x").tag(10.0)
-                                    Text("30x").tag(30.0)
-                                }
-                                .pickerStyle(.segmented)
-                                .frame(width: 160)
                             }
                         }
-                        .padding(.vertical, 4)
-                    }
-                }
 
-                Section("Lịch sử các phiên mô phỏng") {
-                    if history.isEmpty {
-                        Text("Chưa có phiên mô phỏng nào được ghi nhận.")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    } else {
-                        ForEach(history) { session in
-                            VStack(alignment: .leading, spacing: 6) {
-                                HStack {
-                                    Text(session.name)
-                                        .font(.headline)
-                                    Spacer()
-                                    Text(session.source.displayName)
-                                        .font(.caption2)
-                                        .foregroundColor(.blue)
-                                }
-
-                                HStack(spacing: 12) {
-                                    Label("\(String(format: "%.1f", session.distanceTravelledMeters / 1000.0)) km", systemImage: "arrow.left.and.right")
-                                    Label("\(Int(session.maxSpeedKmh)) km/h max", systemImage: "speedometer")
-                                    Label("\(session.recordedTrack.count) điểm", systemImage: "point.filled.topleft.down.curvedto.point.bottomright.up")
-                                }
-                                .font(.caption2)
-                                .foregroundColor(.secondary)
-
-                                HStack {
-                                    Button {
-                                        replayEngine.startReplay(session: session)
-                                    } label: {
-                                        Label("Phát lại", systemImage: "play.fill")
-                                            .font(.caption.weight(.bold))
-                                    }
-                                    .buttonStyle(.borderedProminent)
-                                    .controlSize(.small)
-                                    .disabled(session.recordedTrack.isEmpty)
-
-                                    Button {
-                                        let gpx = PersistenceManager.shared.exportToGPX(track: session.recordedTrack, name: session.name)
-                                        self.exportedGPX = gpx
-                                        self.showingExportSheet = true
-                                    } label: {
-                                        Label("Xuất GPX", systemImage: "square.and.arrow.up")
-                                            .font(.caption)
-                                    }
-                                    .buttonStyle(.bordered)
-                                    .controlSize(.small)
-                                    .disabled(session.recordedTrack.isEmpty)
-                                }
-                                .padding(.top, 2)
-                            }
-                            .padding(.vertical, 4)
+                        // Group by date
+                        let grouped = Dictionary(grouping: history.records) { record in
+                            Calendar.current.startOfDay(for: record.startedAt)
                         }
-                        .onDelete(perform: deleteHistory)
+                        let sortedDates = grouped.keys.sorted(by: >)
+
+                        ForEach(sortedDates, id: \.self) { date in
+                            Section(dateHeader(date)) {
+                                ForEach(grouped[date] ?? []) { record in
+                                    HistoryRow(record: record) {
+                                        replay.play(record: record)
+                                    }
+                                }
+                                .onDelete { indices in
+                                    let records = grouped[date] ?? []
+                                    for i in indices {
+                                        history.deleteRecord(id: records[i].id)
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
-            .navigationTitle("Lịch sử & Replay")
+            .navigationTitle("Lịch sử")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
+                ToolbarItem(placement: .navigationBarLeading) {
                     Button("Đóng") { dismiss() }
                 }
-            }
-            .onAppear {
-                history = PersistenceManager.shared.loadHistory()
-                if history.isEmpty, !coordinator.recentTracks.isEmpty {
-                    let sample = SimulationSession(
-                        name: "Phiên gần nhất",
-                        source: coordinator.activeSource,
-                        startCoordinate: CoordinateCodable(coordinator.recentTracks.first!),
-                        currentCoordinate: CoordinateCodable(coordinator.recentTracks.last!),
-                        totalDistanceMeters: Double(coordinator.recentTracks.count * 20),
-                        distanceTravelledMeters: Double(coordinator.recentTracks.count * 20),
-                        maxSpeedKmh: 45,
-                        recordedTrack: coordinator.recentTracks.map { CoordinateCodable($0) }
-                    )
-                    history.append(sample)
-                    PersistenceManager.shared.saveHistory(history)
-                }
-            }
-            .sheet(isPresented: $showingExportSheet) {
-                if let gpx = exportedGPX {
-                    NavigationStack {
-                        ScrollView {
-                            Text(gpx)
-                                .font(.system(.caption, design: .monospaced))
-                                .padding()
-                        }
-                        .navigationTitle("Nội dung GPX")
-                        .navigationBarTitleDisplayMode(.inline)
-                        .toolbar {
-                            ToolbarItem(placement: .cancellationAction) {
-                                Button("Xong") { showingExportSheet = false }
-                            }
-                        }
+                if !history.records.isEmpty {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button("Xoá tất cả", role: .destructive) { history.clearAll() }
+                            .font(AppFont.footnote)
                     }
                 }
             }
         }
     }
 
-    private func deleteHistory(at offsets: IndexSet) {
-        history.remove(atOffsets: offsets)
-        PersistenceManager.shared.saveHistory(history)
+    private func dateHeader(_ date: Date) -> String {
+        if Calendar.current.isDateInToday(date) { return "Hôm nay" }
+        if Calendar.current.isDateInYesterday(date) { return "Hôm qua" }
+        return DateFormatter.localizedString(from: date, dateStyle: .medium, timeStyle: .none)
+    }
+}
+
+struct HistoryRow: View {
+    let record: SimulationRecord
+    let onReplay: () -> Void
+
+    var body: some View {
+        HStack {
+            Image(systemName: record.source.icon)
+                .font(.title3)
+                .foregroundStyle(AppColor.primary)
+                .frame(width: 32)
+
+            VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+                Text(record.routeName ?? record.source.displayName)
+                    .font(AppFont.body)
+                HStack(spacing: AppSpacing.sm) {
+                    Text(timeString(record.startedAt))
+                        .font(AppFont.caption)
+                    Text("•")
+                        .foregroundStyle(AppColor.textTertiary)
+                    Text(distanceString(record.distanceMeters))
+                        .font(AppFont.caption)
+                    Text("•")
+                        .foregroundStyle(AppColor.textTertiary)
+                    Text(durationString(record.durationSeconds))
+                        .font(AppFont.caption)
+                }
+                .foregroundStyle(AppColor.textSecondary)
+            }
+
+            Spacer()
+
+            if record.replayData != nil {
+                Button(action: onReplay) {
+                    Image(systemName: "play.circle")
+                        .font(.title3)
+                        .foregroundStyle(AppColor.primary)
+                }
+            }
+        }
+        .padding(.vertical, AppSpacing.xs)
+    }
+
+    private func timeString(_ date: Date) -> String {
+        DateFormatter.localizedString(from: date, dateStyle: .none, timeStyle: .short)
+    }
+
+    private func distanceString(_ meters: Double) -> String {
+        meters > 1000 ? String(format: "%.1f km", meters / 1000) : String(format: "%.0f m", meters)
+    }
+
+    private func durationString(_ seconds: TimeInterval) -> String {
+        let m = Int(seconds) / 60
+        return m > 60 ? String(format: "%dh%02dm", m/60, m%60) : "\(m) phút"
     }
 }

@@ -1,129 +1,223 @@
-//
-//  ScenarioStudioView.swift
-//  AutoSpoofVN
-//
-//  Scenario Studio: Visual automation builder for QA and multi-step location testing.
-//
-
+import CoreLocation
 import SwiftUI
 
+/// Scenario Studio — tạo và chạy kịch bản tự động hoá.
 struct ScenarioStudioView: View {
+    @StateObject private var engine = ScenarioEngine.shared
+    @State private var showEditor = false
+    @State private var editingScenario: Scenario?
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var scenarioEngine = ScenarioEngine.shared
-    @State private var scenarios: [Scenario] = []
-    @State private var selectedScenario: Scenario? = nil
-    @State private var showingCreateSheet = false
 
     var body: some View {
         NavigationStack {
-            List {
-                if scenarioEngine.isRunning, let active = scenarioEngine.activeScenario {
-                    Section("Kịch bản đang thực thi") {
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Image(systemName: "play.circle.fill")
-                                    .foregroundColor(.green)
-                                Text(active.name)
-                                    .font(.headline)
-                                Spacer()
-                                Button("Dừng", role: .destructive) {
-                                    scenarioEngine.stopScenario()
-                                }
-                                .buttonStyle(.bordered)
-                                .controlSize(.small)
-                            }
-                            Text(scenarioEngine.statusText)
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            ProgressView(value: Double(scenarioEngine.currentStepIndex + 1), total: Double(max(1, active.steps.count)))
-                                .tint(.green)
-                        }
-                        .padding(.vertical, 4)
+            Group {
+                if engine.scenarios.isEmpty {
+                    EmptyStateView(
+                        icon: "list.bullet.clipboard",
+                        title: L10n.noRoutes,
+                        message: "Tạo kịch bản đầu tiên để tự động hoá mô phỏng GPS.",
+                        actionTitle: "Tạo kịch bản"
+                    ) {
+                        editingScenario = Scenario(name: "Kịch bản mới")
+                        showEditor = true
                     }
-                }
-
-                Section("Kịch bản có sẵn") {
-                    if scenarios.isEmpty {
-                        Text("Chưa có kịch bản nào. Bấm nút '+' để tạo kịch bản mới.")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    } else {
-                        ForEach(scenarios) { scenario in
-                            VStack(alignment: .leading, spacing: 6) {
-                                HStack {
-                                    Text(scenario.name)
-                                        .font(.headline)
-                                    Spacer()
-                                    if scenario.isLooping {
-                                        Label("Lặp vô hạn", systemImage: "repeat")
-                                            .font(.caption2)
-                                            .foregroundColor(.blue)
+                } else {
+                    List {
+                        // Running scenario status
+                        if engine.isRunning {
+                            Section("Đang chạy") {
+                                VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                                    HStack {
+                                        StatusBadge("Đang chạy", color: .green, icon: "play.fill")
+                                        Spacer()
+                                        Text("Bước \(engine.currentStepIndex + 1)")
+                                            .font(AppFont.mono)
                                     }
-                                }
-                                if !scenario.summary.isEmpty {
-                                    Text(scenario.summary)
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-                                Text("\(scenario.steps.count) bước thực hiện")
-                                    .font(.caption2)
-                                    .foregroundColor(.secondary)
-
-                                HStack {
-                                    Button {
-                                        scenarioEngine.startScenario(scenario)
-                                        dismiss()
-                                    } label: {
-                                        Label("Chạy kịch bản", systemImage: "play.fill")
-                                            .font(.caption.weight(.bold))
+                                    Text(engine.currentStepDescription)
+                                        .font(AppFont.footnote)
+                                        .foregroundStyle(AppColor.textSecondary)
+                                    ProgressView(value: engine.progress)
+                                    HStack {
+                                        Button("Tạm dừng") { engine.pause() }
+                                        Spacer()
+                                        Button("Dừng", role: .destructive) { engine.stop() }
                                     }
-                                    .buttonStyle(.borderedProminent)
-                                    .controlSize(.small)
+                                    .font(AppFont.footnote.weight(.medium))
                                 }
-                                .padding(.top, 4)
                             }
-                            .padding(.vertical, 4)
                         }
-                        .onDelete(perform: deleteScenario)
+
+                        // Scenario list
+                        Section("Kịch bản") {
+                            ForEach(engine.scenarios) { scenario in
+                                ScenarioRow(scenario: scenario) {
+                                    engine.start(scenario: scenario)
+                                } onEdit: {
+                                    editingScenario = scenario
+                                    showEditor = true
+                                }
+                            }
+                            .onDelete { indices in
+                                for i in indices {
+                                    engine.deleteScenario(id: engine.scenarios[i].id)
+                                }
+                            }
+                        }
                     }
                 }
             }
             .navigationTitle("Scenario Studio")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
+                ToolbarItem(placement: .navigationBarLeading) {
                     Button("Đóng") { dismiss() }
                 }
-                ToolbarItem(placement: .primaryAction) {
+                ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
-                        createDefaultScenario()
+                        editingScenario = Scenario(name: "Kịch bản mới")
+                        showEditor = true
                     } label: {
                         Image(systemName: "plus")
                     }
                 }
             }
-            .onAppear {
-                scenarios = PersistenceManager.shared.loadScenarios()
+            .sheet(isPresented: $showEditor) {
+                if let scenario = editingScenario {
+                    ScenarioEditorView(scenario: scenario) { updated in
+                        engine.saveScenario(updated)
+                        showEditor = false
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct ScenarioRow: View {
+    let scenario: Scenario
+    let onRun: () -> Void
+    let onEdit: () -> Void
+
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                Text(scenario.name)
+                    .font(AppFont.body)
+                HStack(spacing: AppSpacing.sm) {
+                    Text("\(scenario.steps.count) bước")
+                        .font(AppFont.caption)
+                        .foregroundStyle(AppColor.textSecondary)
+                    if scenario.isLoop {
+                        StatusBadge("Lặp", color: .purple, icon: "repeat")
+                    }
+                }
+            }
+            Spacer()
+            Button(action: onRun) {
+                Image(systemName: "play.circle.fill")
+                    .font(.title2)
+                    .foregroundStyle(AppColor.primary)
+            }
+            Button(action: onEdit) {
+                Image(systemName: "pencil.circle")
+                    .font(.title2)
+                    .foregroundStyle(AppColor.textSecondary)
+            }
+        }
+        .padding(.vertical, AppSpacing.xs)
+    }
+}
+
+// MARK: - Scenario Editor
+
+struct ScenarioEditorView: View {
+    @State var scenario: Scenario
+    let onSave: (Scenario) -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Thông tin") {
+                    TextField("Tên kịch bản", text: $scenario.name)
+                    Toggle("Lặp vô hạn", isOn: $scenario.isLoop)
+                }
+
+                Section("Các bước") {
+                    ForEach(Array(scenario.steps.enumerated()), id: \.element.id) { index, step in
+                        HStack {
+                            Text("\(index + 1).")
+                                .font(AppFont.mono)
+                                .foregroundStyle(AppColor.textTertiary)
+                            VStack(alignment: .leading) {
+                                Text(step.action.displayName)
+                                    .font(AppFont.body)
+                                Text(stepDetail(step.action))
+                                    .font(AppFont.caption)
+                                    .foregroundStyle(AppColor.textSecondary)
+                            }
+                        }
+                    }
+                    .onDelete { indices in
+                        scenario.steps.remove(atOffsets: indices)
+                    }
+                    .onMove { from, to in
+                        scenario.steps.move(fromOffsets: from, toOffset: to)
+                    }
+
+                    Menu("Thêm bước") {
+                        Button("Đặt vị trí", systemImage: "mappin") {
+                            addStep(.setLocation(CoordinateCodable(latitude: 21.0285, longitude: 105.8542)))
+                        }
+                        Button("Di chuyển đến", systemImage: "arrow.right") {
+                            addStep(.moveTo(CoordinateCodable(latitude: 21.03, longitude: 105.85), speedKmh: 30))
+                        }
+                        Button("Chờ", systemImage: "clock") {
+                            addStep(.wait(seconds: 60))
+                        }
+                        Button("Dừng chân", systemImage: "pause") {
+                            addStep(.dwell(seconds: 300))
+                        }
+                        Button("Di chuyển ngẫu nhiên", systemImage: "shuffle") {
+                            addStep(.randomNearby(radiusMeters: 200, durationSeconds: 600))
+                        }
+                        Button("Đổi tốc độ", systemImage: "speedometer") {
+                            addStep(.changeSpeed(kmh: 40))
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Chỉnh sửa kịch bản")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Huỷ") { dismiss() }
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Lưu") { onSave(scenario); dismiss() }
+                        .fontWeight(.semibold)
+                }
             }
         }
     }
 
-    private func deleteScenario(at offsets: IndexSet) {
-        scenarios.remove(atOffsets: offsets)
-        PersistenceManager.shared.saveScenarios(scenarios)
+    private func addStep(_ action: ScenarioAction) {
+        scenario.steps.append(ScenarioStep(action: action, order: scenario.steps.count))
     }
 
-    private func createDefaultScenario() {
-        let newScenario = Scenario(
-            name: "Kịch bản \(scenarios.count + 1)",
-            summary: "Kịch bản tự động kiểm thử tuần tự nhiều địa điểm.",
-            steps: [
-                ScenarioStep(title: "Điểm xuất phát", actionType: .setLocation, targetCoordinate: CoordinateCodable(latitude: 21.0285, longitude: 105.8542)),
-                ScenarioStep(title: "Chờ 5 giây", actionType: .waitSeconds, waitDurationSeconds: 5),
-                ScenarioStep(title: "Đi dạo khu vực", actionType: .dwellArea, dwellRadiusMeters: 30)
-            ]
-        )
-        scenarios.append(newScenario)
-        PersistenceManager.shared.saveScenarios(scenarios)
+    private func stepDetail(_ action: ScenarioAction) -> String {
+        switch action {
+        case .setLocation(let c): return "\(String(format: "%.4f", c.latitude)), \(String(format: "%.4f", c.longitude))"
+        case .moveTo(let c, let s): return "→ \(String(format: "%.4f", c.latitude)), \(String(format: "%.4f", c.longitude)) @ \(Int(s)) km/h"
+        case .wait(let s): return "\(Int(s)) giây"
+        case .dwell(let s): return "\(Int(s)) giây tại chỗ"
+        case .changeSpeed(let s): return "\(Int(s)) km/h"
+        case .changeTravelMode(let m): return m.displayName
+        case .randomNearby(let r, let d): return "bán kính \(Int(r))m, \(Int(d))s"
+        case .followRoute: return "Theo tuyến đường"
+        case .pause: return "Tạm dừng kịch bản"
+        case .resume: return "Tiếp tục"
+        case .loop(let n): return "Lặp \(n) lần"
+        }
     }
 }

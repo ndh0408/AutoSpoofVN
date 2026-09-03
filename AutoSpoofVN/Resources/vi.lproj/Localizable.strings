@@ -1,0 +1,67 @@
+/* Simulation */
+"simulation.running" = "Đang mô phỏng";
+"simulation.paused" = "Tạm dừng";
+"simulation.idle" = "Sẵn sàng";
+"simulation.preparing" = "Đang chuẩn bị";
+"simulation.stopping" = "Đang dừng";
+"simulation.completed" = "Hoàn thành";
+
+/* Device */
+"device.connected" = "Đã kết nối";
+"device.disconnected" = "Chưa kết nối";
+"device.connecting" = "Đang kết nối...";
+"device.pairing" = "Đang ghép nối";
+
+/* Route */
+"route.distance" = "Khoảng cách";
+"route.eta" = "Dự kiến đến";
+"route.source" = "Nguồn tuyến";
+"route.source.mapkit" = "Apple Maps";
+"route.source.fallback" = "Nội suy thẳng";
+
+/* Travel Mode */
+"travel.walking" = "Đi bộ";
+"travel.cycling" = "Xe đạp";
+"travel.motorcycle" = "Xe máy";
+"travel.driving" = "Ô tô";
+"travel.train" = "Tàu";
+"travel.flight" = "Bay";
+
+/* Actions */
+"action.start" = "Bắt đầu";
+"action.stop" = "Dừng";
+"action.pause" = "Tạm dừng";
+"action.resume" = "Tiếp tục";
+"action.retry" = "Thử lại";
+"action.save" = "Lưu";
+"action.delete" = "Xoá";
+"action.cancel" = "Huỷ";
+"action.close" = "Đóng";
+"action.diagnostics" = "Chẩn đoán";
+
+/* Empty States */
+"empty.routes" = "Chưa có tuyến đường";
+"empty.routes.message" = "Tạo tuyến đường đầu tiên để bắt đầu mô phỏng.";
+"empty.scenarios" = "Chưa có kịch bản";
+"empty.history" = "Chưa có lịch sử";
+"empty.bookmarks" = "Chưa có bookmark";
+"empty.device" = "Chưa kết nối thiết bị";
+
+/* Errors */
+"error.connection_lost" = "Không thể gửi vị trí đến thiết bị.";
+"error.pairing_failed" = "Ghép nối thất bại";
+"error.route_failed" = "Không tính được tuyến đường";
+
+/* Recovery */
+"recovery.title" = "Phát hiện phiên chưa hoàn thành";
+"recovery.resume" = "Tiếp tục";
+"recovery.discard" = "Bỏ qua";
+"recovery.details" = "Xem chi tiết";
+
+/* Settings */
+"settings.simulation" = "Mô phỏng";
+"settings.map" = "Bản đồ";
+"settings.device" = "Thiết bị";
+"settings.background" = "Chạy nền";
+"settings.appearance" = "Giao diện";
+"settings.developer" = "Nhà phát triển";
