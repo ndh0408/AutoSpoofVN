@@ -157,7 +157,7 @@ struct MainViewV2: View {
                         .font(.title2).foregroundColor(.indigo)
                 }
                 Annotation("Cà phê", coordinate: routine.cafeLocation) {
-                    Image(systemName: "cup.and.saucer.circle.fill")
+                    Image(systemName: "cup.and.saucer.fill")
                         .font(.title2).foregroundColor(.orange)
                 }
             }
