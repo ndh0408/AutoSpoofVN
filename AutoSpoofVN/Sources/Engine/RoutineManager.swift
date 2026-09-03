@@ -1,5 +1,6 @@
 import Foundation
 import CoreLocation
+import MapKit
 
 /// Quản lý chu trình tự động theo thói quen sinh hoạt thực tế (Đi làm, Nghỉ trưa, Đi dạo, Ngủ)
 final class RoutineManager: ObservableObject {
@@ -34,6 +35,15 @@ final class RoutineManager: ObservableObject {
     /// `moveStepTimer` đang phục vụ việc gì.
     private enum MoveMode { case idle, commute, walk }
     private var moveMode: MoveMode = .idle
+
+    /// Tuyến đang chạy là đường thật hay đường thẳng nội suy. Hiển thị được trên UI
+    /// để người dùng biết mô phỏng đang ở mức nào.
+    @Published private(set) var isFollowingRealRoad: Bool = false
+    /// Số lần phải lùi về nội suy thẳng vì MKDirections không trả được tuyến.
+    @Published private(set) var routeFallbackCount: Int = 0
+
+    /// Tác vụ đang lấy tuyến đường thật. Huỷ khi đổi chặng.
+    private var routeTask: Task<Void, Never>? = nil
     /// Chặn didSet ghi ngược xuống đĩa trong lúc đang nạp dữ liệu từ đĩa.
     private var isLoading: Bool = false
 
@@ -56,8 +66,11 @@ final class RoutineManager: ObservableObject {
             statusDescription = "Đã tạm dừng chu trình tự động"
             routineTimer?.invalidate()
             moveStepTimer?.invalidate()
+            routeTask?.cancel()
+            routeTask = nil
             activeCommuteKey = nil
             moveMode = .idle
+            isFollowingRealRoad = false
             currentSpeedKmh = 0.0
             SpoofEngine.shared.release(.routine)
         }
@@ -252,6 +265,14 @@ final class RoutineManager: ObservableObject {
         currentWaypointIndex = 0
         moveStepTimer?.invalidate()
         moveMode = .commute
+        isFollowingRealRoad = false
+
+        // Bắt đầu ngay bằng đường thẳng, rồi thay bằng đường thật khi lấy được.
+        //
+        // Cố tình không chờ MKDirections trước khi khởi hành: nó cần mạng, có hạn mức
+        // gọi, và trong một ứng dụng phải chạy 24/7 thì một lần gọi mạng hỏng không được
+        // phép làm đứng cả chu trình.
+        requestRealRoad(from: from, to: to, speed: speed, key: key)
 
         // Xe thật không chạy đều một tốc độ từ đầu tới cuối. Ba yếu tố dưới đây khiến
         // vệt di chuyển bớt lộ: tăng tốc lúc rời đi, giảm tốc lúc gần tới, và dừng
@@ -294,6 +315,61 @@ final class RoutineManager: ObservableObject {
         }
         RunLoop.main.add(timer, forMode: .common)
         moveStepTimer = timer
+    }
+
+    /// Hỏi đường đi thật rồi thay tuyến đang chạy, giữ nguyên phần đã đi được.
+    private func requestRealRoad(from: CLLocationCoordinate2D,
+                                 to: CLLocationCoordinate2D,
+                                 speed: Double,
+                                 key: String) {
+        routeTask?.cancel()
+        // Đi bộ dưới 8 km/h, còn lại coi như đi xe.
+        let transport: MKDirectionsTransportType = speed < 8.0 ? .walking : .automobile
+        // Khoảng cách lấy mẫu tính từ tốc độ, sao cho mỗi nhịp 2,5 giây đi được một điểm.
+        let spacing = max(5.0, speed * 1000.0 / 3600.0 * 2.5)
+
+        routeTask = Task { [weak self] in
+            let result = await RouteProvider.shared.resolveRoute(
+                named: key,
+                from: from,
+                to: to,
+                transportType: transport,
+                speedKmh: speed,
+                sampleSpacingMeters: spacing
+            )
+            guard !Task.isCancelled else { return }
+            await MainActor.run { [weak self] in
+                guard let self = self else { return }
+                // Chặng có thể đã đổi trong lúc chờ mạng.
+                guard self.activeCommuteKey == key, self.moveMode == .commute else { return }
+                self.applyRoute(result)
+            }
+        }
+    }
+
+    private func applyRoute(_ result: RouteProvider.RouteResult) {
+        let coords = result.plan.waypoints.map(\.clCoordinate)
+        guard coords.count >= 2 else {
+            routeFallbackCount += 1
+            return
+        }
+
+        if result.usedFallback {
+            routeFallbackCount += 1
+            isFollowingRealRoad = false
+            return   // tuyến thẳng đang chạy đã tương đương, không cần thay
+        }
+
+        // Giữ nguyên tỉ lệ quãng đường đã đi khi đổi sang tuyến mới, nếu không người
+        // dùng ảo sẽ nhảy ngược về đầu đúng lúc đường thật vừa tới.
+        let progress = targetRoute.isEmpty
+            ? 0.0
+            : min(1.0, Double(currentWaypointIndex) / Double(max(1, targetRoute.count - 1)))
+
+        targetRoute = coords
+        currentWaypointIndex = min(coords.count - 1, Int(progress * Double(coords.count - 1)))
+        isFollowingRealRoad = true
+        statusDescription += " · đường thật"
     }
 
     // MARK: - Chế độ Du lịch (ghi đè tạm thời địa điểm thật)

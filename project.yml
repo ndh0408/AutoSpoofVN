@@ -31,6 +31,8 @@ targets:
         buildPhase: none
       - path: Vendor/idevice/idevice_stub.c
         buildPhase: none
+      - path: Vendor/idevice/ffi
+        buildPhase: none
     settings:
       base:
         TARGETED_DEVICE_FAMILY: "1"   # chi iPhone (preset iOS cua XcodeGen mac dinh 1,2 gay warning orientation)

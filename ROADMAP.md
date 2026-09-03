@@ -185,13 +185,13 @@ máy không hề thay đổi.
 Nguyên tắc: **không viết thêm tính năng nào cho tới khi M1 trả lời xong câu hỏi khả thi.**
 Hiện đã có 479 dòng mô phỏng chuyến bay quốc tế nằm trên một lõi chưa đổi được GPS.
 
-### M0 — Chốt nền (gần xong)
+### M0 — Chốt nền *(xong)*
 
 - [x] Build xanh cả hai cấu hình
 - [x] Sửa 15 lỗi ở bảng trên
 - [x] `BUILD.md` ghi quy trình đã kiểm chứng
-- [ ] Người dùng chạy 1 lệnh mở mạng cho VM macOS (mục 5)
-- [ ] Commit mốc "build xanh" làm điểm lùi an toàn
+- [x] Gỡ được vấn đề mạng của VM macOS mà không cần quyền quản trị
+- [x] Commit mốc "build xanh" làm điểm lùi an toàn (`ef3f752`, rồi `25063e7`)
 
 **Xong khi:** `git log` có một commit mà từ đó `xcodebuild -configuration Debug` xanh.
 
@@ -219,7 +219,7 @@ tính, không có phiên nào để chết → 24/7 thật. Nhược: vẫn cầ
 phải cài VPN profile + tin CA thủ công, và **[CHƯA KIỂM CHỨNG]** khi máy bắt được GNSS thật
 ngoài trời thì CoreLocation có thể vẫn ưu tiên vệ tinh.
 
-### M2 — Làm app trung thực về trạng thái
+### M2 — Làm app trung thực về trạng thái *(đã xong)*
 
 Trước khi thêm tính năng, phải hết "giả vờ chạy được". Đây là việc rẻ, làm được ngay, và
 là thứ người dùng cảm nhận đầu tiên.
@@ -232,7 +232,7 @@ là thứ người dùng cảm nhận đầu tiên.
 
 **Xong khi:** không còn màn hình nào báo thành công khi thực tế chưa làm được gì.
 
-### M3 — Chạy ngầm cho ra chạy ngầm
+### M3 — Chạy ngầm cho ra chạy ngầm *(phần code đã xong, còn đo pin trên máy thật)*
 
 - Thêm `CLLocationManager` thật với `allowsBackgroundLocationUpdates` — vừa hợp thức hoá
   background mode `location`, vừa lấy được cơ chế relaunch duy nhất iOS cho.
@@ -242,7 +242,7 @@ là thứ người dùng cảm nhận đầu tiên.
 
 **Xong khi:** app sống qua 12 giờ khoá máy, có log chứng minh, và pin tụt ở mức chấp nhận được.
 
-### M4 — Nối FFI thật
+### M4 — Nối FFI thật *(thư viện đã xong, còn chuỗi kết nối và heartbeat)*
 
 Chỉ bắt đầu khi M1 cho kết quả dương tính.
 
@@ -254,14 +254,25 @@ Chỉ bắt đầu khi M1 cho kết quả dương tính.
 
 **Xong khi:** đặt toạ độ trong app và Apple Maps trên chính máy đó hiển thị đúng vị trí giả.
 
-### M5 — Chất lượng mô phỏng & mở rộng
+### M5 — Chất lượng mô phỏng & mở rộng *(phần lớn đã làm)*
 
-- Bám đường thật bằng `MKDirections` thay cho nội suy đường thẳng.
-- Mô hình gia tốc, dừng đèn đỏ, độ chính xác GPS thay đổi theo môi trường. Hiện tại chuyển
-  động thẳng đều với jitter nhiễu trắng là dấu hiệu dễ nhận ra.
-- Tách protocol cho nguồn toạ độ + tiêm phụ thuộc `Date`/`Timer` để unit-test được logic
-  lịch trình mà không cần thiết bị.
-- Bản địa hoá bằng `Localizable.strings`.
+- [x] **Bám đường thật bằng `MKDirections`.** `RouteProvider` là một actor có gộp request
+  trùng, cache tuyến thành công 24 giờ và cache lỗi 60 giây, lấy mẫu đều theo khoảng cách
+  và luôn giữ điểm đầu/cuối. `RoutineManager` khởi hành ngay bằng đường thẳng rồi **thay
+  bằng đường thật khi lấy được**, giữ nguyên tỉ lệ quãng đường đã đi — cố tình không chờ
+  mạng trước khi khởi hành, vì một lần gọi hỏng không được phép làm đứng chu trình 24/7.
+- [x] **Gia tốc và dừng đèn đỏ.** Chặng di chuyển có hệ số hình thang ở hai đầu và dừng
+  ngẫu nhiên 10–30 giây ở đoạn giữa, thay cho tốc độ hằng suốt tuyến.
+- [x] **Nhiễu GPS có tương quan.** Đổi từ nhiễu trắng sang bước ngẫu nhiên có quán tính:
+  sai số GPS thật trôi dần theo thời gian, còn nhiễu trắng cho ra chuỗi toạ độ giật quanh
+  một điểm — đúng dấu hiệu của vị trí giả.
+- [x] **Đi dạo liên tục.** Trước đây mỗi phút nhảy tới một điểm ngẫu nhiên cách nhà tới
+  330 m, tức dịch chuyển tức thời tương đương 40 km/h trong khi trạng thái ghi "đi bộ
+  4 km/h". Nay đi ba giây một bước, hướng biến thiên chậm, tự bẻ về khi ra xa.
+- [ ] Độ chính xác GPS thay đổi theo môi trường (trong nhà / ngoài trời).
+- [ ] Tách protocol cho nguồn toạ độ + tiêm phụ thuộc `Date`/`Timer` để unit-test được
+  logic lịch trình mà không cần thiết bị.
+- [ ] Bản địa hoá bằng `Localizable.strings`.
 
 ---
 

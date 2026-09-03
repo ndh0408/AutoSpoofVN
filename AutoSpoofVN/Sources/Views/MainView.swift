@@ -8,6 +8,7 @@ struct MainView: View {
     @EnvironmentObject var routine: RoutineManager
     @EnvironmentObject var flight: FlightManager
     @StateObject private var backgroundKeeper = BackgroundKeeper.shared
+    @StateObject private var diagnosticsStore = DiagnosticsStore.shared
 
     @State private var cameraPosition: MapCameraPosition = .camera(
         MapCamera(centerCoordinate: CLLocationCoordinate2D(latitude: 21.0285, longitude: 105.8542), distance: 5000)
@@ -343,6 +344,7 @@ struct MainView: View {
             }
             .sheet(isPresented: $showingSettingsSheet) {
                 SettingsView()
+                    .environmentObject(diagnosticsStore)
             }
             .alert("Nhập toạ độ thủ công", isPresented: $showingManualInput) {
                 TextField("Vĩ độ (Latitude)", text: $manualLat)
@@ -544,6 +546,7 @@ struct LocationsPresetView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var routine: RoutineManager
     @EnvironmentObject var engine: SpoofEngine
+    @State private var showingConnectionRequiredAlert = false
 
     var body: some View {
         NavigationStack {
@@ -574,6 +577,12 @@ struct LocationsPresetView: View {
                             }
                             Spacer()
                             Button("Đến") {
+                                #if USE_IDEVICE_FFI
+                                guard engine.isLoopbackConnected else {
+                                    showingConnectionRequiredAlert = true
+                                    return
+                                }
+                                #endif
                                 engine.setLocation(latitude: bookmark.coordinate.latitude, longitude: bookmark.coordinate.longitude)
                                 dismiss()
                             }
@@ -600,6 +609,11 @@ struct LocationsPresetView: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Đóng") { dismiss() }
                 }
+            }
+            .alert("Chưa kết nối DVT", isPresented: $showingConnectionRequiredAlert) {
+                Button("Đã hiểu", role: .cancel) {}
+            } message: {
+                Text("Hãy đóng màn hình này và kết nối DVT trước. GPS thật chưa thay đổi.")
             }
         }
     }
@@ -723,6 +737,12 @@ struct SettingsView: View {
                 }
 
                 Section(header: Text("Thông tin ứng dụng")) {
+                    NavigationLink {
+                        DiagnosticsView()
+                    } label: {
+                        Label("Mở màn hình chẩn đoán", systemImage: "stethoscope")
+                    }
+
                     Button {
                         showingOnboarding = true
                     } label: {

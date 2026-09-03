@@ -17,3 +17,8 @@ Vendor/idevice/*.dylib
 
 # He thong
 .DS_Store
+
+# Rust FFI: khong commit build artifact hay vendor deps (276 MB)
+Vendor/idevice/ffi/target/
+Vendor/idevice/ffi/vendor/
+Vendor/idevice/ffi/.cargo/
