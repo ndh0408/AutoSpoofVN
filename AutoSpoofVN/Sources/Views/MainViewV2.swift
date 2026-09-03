@@ -9,6 +9,7 @@ struct MainViewV2: View {
     @EnvironmentObject var routine: RoutineManager
     @EnvironmentObject var flight: FlightManager
     @StateObject private var coordinator = SimulationCoordinator.shared
+    @StateObject private var srManager = ShadowrocketManager.shared
     @StateObject private var deviceManager = DeviceManager.shared
     @StateObject private var historyManager = HistoryManager.shared
 
@@ -97,6 +98,17 @@ struct MainViewV2: View {
         }
         .onChange(of: coordinator.currentCoordinate.latitude) { _, _ in
             updateTrailAndCamera()
+        }
+        // Shadowrocket setup banner
+        .overlay(alignment: .top) {
+            if srManager.showSetupBanner {
+                ShadowrocketBanner(manager: srManager) {
+                    showShadowrocket = true
+                }
+                .transition(.move(edge: .top).combined(with: .opacity))
+                .padding(.top, 60)
+                .padding(.horizontal, AppSpacing.lg)
+            }
         }
         .sheet(isPresented: $showRouteStudio) { RouteStudioView() }
         .sheet(isPresented: $showScenarioStudio) { ScenarioStudioView() }
