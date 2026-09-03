@@ -204,11 +204,8 @@ struct ScheduleRow: View {
     }
 }
 
-private extension Array {
-    subscript(safe index: Int) -> Element? {
-        indices.contains(index) ? self[index] : nil
-    }
-}
+// subscript(safe:) chuyen ve Engine/Route/RouteSimulator.swift (module-wide) de tranh
+// "invalid redeclaration" khi hai file cung khai bao private extension Array trung chu ky.
 
 struct ScheduleInfoRow: View {
     let time: String

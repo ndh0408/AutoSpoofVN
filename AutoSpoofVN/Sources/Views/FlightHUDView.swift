@@ -35,7 +35,7 @@ struct FlightHUDView: View {
 
                 // Telemetry grid
                 HStack(spacing: AppSpacing.lg) {
-                    FlightMetric(label: "Altitude", value: String(format: "%.0f", sim.currentAltitudeMeters), unit: "m")
+                    FlightMetric(label: "Altitude", value: String(format: "%.0f", sim.altitudeMeters), unit: "m")
                     FlightMetric(label: "Speed", value: String(format: "%.0f", sim.currentSpeedKmh), unit: "km/h")
                     FlightMetric(label: "Còn lại", value: String(format: "%.0f", sim.remainingDistanceKm), unit: "km")
                     FlightMetric(label: "Heading", value: String(format: "%.0f°", coordinator.telemetry.headingDegrees), unit: coordinator.telemetry.cardinalDirection)
@@ -88,15 +88,17 @@ struct FlightHUDView: View {
         }
     }
 
+    // Ten case that trong FlightPhase (Models/Types.swift) khac ten FlightHUDView goc dinh
+    // dung (checkin/boarding/climb/cruise/landing/arrival kieu section 40 cua spec) - anh xa
+    // sang ten case that dang co, khong doi FlightPhase vi FlightManager.swift dang dung ten cu.
     private func phaseColor(_ phase: FlightPhase) -> Color {
         switch phase {
-        case .checkin, .boarding: return .orange
+        case .taxiToAirport, .airportCheckin, .scheduled: return .orange
         case .taxi: return .yellow
-        case .takeoff, .climb: return .blue
-        case .cruise: return .green
-        case .descent, .landing: return .purple
-        case .arrival: return .green
-        default: return .secondary
+        case .takeoff: return .blue
+        case .cruising: return .green
+        case .descent: return .purple
+        case .landed, .taxiToHotel: return .green
         }
     }
 }

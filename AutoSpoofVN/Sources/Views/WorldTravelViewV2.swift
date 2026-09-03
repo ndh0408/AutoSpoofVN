@@ -1,4 +1,5 @@
 import SwiftUI
+import CoreLocation
 
 /// World Travel v2 — dùng AirportRepository, search, grouped by country.
 struct WorldTravelViewV2: View {
@@ -14,6 +15,13 @@ struct WorldTravelViewV2: View {
 
     private var filteredAirports: [Airport] {
         repo.search(query: searchText)
+    }
+
+    // Tach rieng + chu thich kieu ro rang: de nguyen `repo.byCountry.filter { ... }` lam
+    // inline trong ForEach lam trinh bien dich type-check qua lau ("unable to type-check
+    // this expression in reasonable time").
+    private var nonVietnameseCountries: [(String, [Airport])] {
+        repo.byCountry.filter { $0.0 != "Việt Nam" }
     }
 
     var body: some View {
@@ -32,7 +40,7 @@ struct WorldTravelViewV2: View {
                                 airportRow(airport)
                             }
                         }
-                        ForEach(repo.byCountry.filter { $0.0 != "Việt Nam" }, id: \.0) { country, airports in
+                        ForEach(nonVietnameseCountries, id: \.0) { country, airports in
                             Section(country) {
                                 ForEach(airports) { airport in
                                     airportRow(airport)
@@ -49,7 +57,7 @@ struct WorldTravelViewV2: View {
                     if !flight.worldDestinations.isEmpty {
                         Section {
                             Button {
-                                flight.startWorldOdyssey()
+                                flight.toggleAutoWorldOdyssey()
                                 coordinator.acquire(.flight)
                                 dismiss()
                             } label: {
@@ -86,7 +94,7 @@ struct WorldTravelViewV2: View {
             .sheet(isPresented: $showFlightPreview) {
                 if let origin = selectedOrigin, let dest = selectedDestination {
                     FlightPreviewSheet(origin: origin, destination: dest) {
-                        flight.startFlight(from: origin, to: dest)
+                        flight.startFlight(origin: origin, destination: dest)
                         coordinator.acquire(.flight)
                         dismiss()
                     }

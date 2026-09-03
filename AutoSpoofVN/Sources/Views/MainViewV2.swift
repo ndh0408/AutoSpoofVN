@@ -16,7 +16,17 @@ struct MainViewV2: View {
     @State private var cameraPosition: MapCameraPosition = .camera(
         MapCamera(centerCoordinate: CLLocationCoordinate2D(latitude: 21.0285, longitude: 105.8542), distance: 5000)
     )
-    @State private var mapStyle: MapStyle = .standard
+    // MapStyle (MapKit) khong conform Equatable nen khong switch/so sanh truc tiep duoc -
+    // dung enum rieng theo doi trang thai, suy ra MapStyle tu do.
+    private enum MapStyleKind: Equatable { case standard, imagery, hybrid }
+    @State private var mapStyleKind: MapStyleKind = .standard
+    private var mapStyle: MapStyle {
+        switch mapStyleKind {
+        case .standard: return .standard
+        case .imagery: return .imagery
+        case .hybrid: return .hybrid
+        }
+    }
     @State private var trail: [CLLocationCoordinate2D] = []
     @State private var followMode = true
 
@@ -201,10 +211,10 @@ struct MainViewV2: View {
                         updateCamera()
                     }
                     mapButton("map") {
-                        switch mapStyle {
-                        case .standard: mapStyle = .imagery
-                        case .imagery: mapStyle = .hybrid
-                        default: mapStyle = .standard
+                        switch mapStyleKind {
+                        case .standard: mapStyleKind = .imagery
+                        case .imagery: mapStyleKind = .hybrid
+                        case .hybrid: mapStyleKind = .standard
                         }
                     }
                     mapButton("cube") {

@@ -226,12 +226,15 @@ final class RouteStudioViewModel: ObservableObject {
         let start = waypoints.first!.coordinate.clCoordinate
         let end = waypoints.last!.coordinate.clCoordinate
 
-        let result = await RouteProvider.shared.route(
+        let result = await RouteProvider.shared.resolveRoute(
+            named: "Route Studio",
             from: start, to: end,
-            transportType: travelMode == .walking ? .walking : .automobile
+            transportType: travelMode == .walking ? .walking : .automobile,
+            speedKmh: travelMode.defaultSpeed.cruise,
+            sampleSpacingMeters: 25
         )
 
-        routeGeometry = result.plan.coordinates.map { $0.clCoordinate }
+        routeGeometry = result.plan.waypoints.map { $0.clCoordinate }
         totalDistanceMeters = result.distanceMeters
         estimatedSeconds = result.expectedTravelTime ?? (result.distanceMeters / (travelMode.defaultSpeed.cruise / 3.6))
         routeSource = result.source.displayName

@@ -45,7 +45,7 @@ final class DeviceManager: ObservableObject {
     }
 
     func disconnect() {
-        engine.disconnectDevice()
+        engine.disconnect()
         connectionState = .disconnected
         stopHeartbeat()
     }

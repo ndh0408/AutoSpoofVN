@@ -344,13 +344,34 @@ final class SpoofEngine: ObservableObject {
         connectionStatus = "Đã ngắt kết nối"
     }
 
-    private func sendLocationToDevice(_ coord: CLLocationCoordinate2D) {
+    /// Khong con `private`: `Coordinator/SimulationCoordinator.swift` goi truc tiep tu
+    /// ben ngoai lam cau noi sang FFI that (xem "MARK: - Legacy Bridge" ben do).
+    func sendLocationToDevice(_ coord: CLLocationCoordinate2D) {
         #if USE_IDEVICE_FFI
         ffiQueue.async { [weak self] in
             guard let handle = self?.deviceHandle else { return }
             _ = idevice_set_location(handle, coord.latitude, coord.longitude)
         }
         #endif
+    }
+
+    /// Xoa vi tri gui xuong thiet bi NGAY nhung KHONG chan nguon ghi tiep theo - dung khi
+    /// dung mot session de chuan bi bat dau session moi (khac `clearSimulation()` ben duoi,
+    /// cai do CHAN het cho toi khi nguoi dung chu dong bat lai).
+    func clearDeviceLocation() {
+        #if USE_IDEVICE_FFI
+        ffiQueue.async { [weak self] in
+            guard let handle = self?.deviceHandle else { return }
+            _ = idevice_clear_location(handle)
+        }
+        #endif
+    }
+
+    /// Alias tuong thich cho `Coordinator/SimulationCoordinator.swift` - hanh vi giong het
+    /// `clearSimulation()`: khoi phuc GPS that va CHAN moi nguon ghi tiep cho toi khi nguoi
+    /// dung chu dong bat lai.
+    func haltSimulation() {
+        clearSimulation()
     }
 
     // MARK: - Sinh WAV im lặng

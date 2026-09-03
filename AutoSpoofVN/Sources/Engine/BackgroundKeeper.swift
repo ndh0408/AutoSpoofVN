@@ -82,7 +82,10 @@ final class BackgroundKeeper: NSObject, ObservableObject {
     private func startAudio() {
         // Dispatch audio setup off main thread — AVAudioSession.setActive blocks
         // briefly và iOS 18 cảnh báo nếu gọi trên main thread.
-        let work = { [weak self] in
+        // Chu thich kieu ro rang: neu khong, `self?.configureAndPlayAudio()` suy ra closure
+        // tra ve `Void?` (khong phai `Void`), khien DispatchQueue.async(execute:) chon nham
+        // overload nhan DispatchWorkItem thay vi @escaping () -> Void.
+        let work: () -> Void = { [weak self] in
             self?.configureAndPlayAudio()
         }
         if Thread.isMainThread {

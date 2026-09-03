@@ -153,8 +153,7 @@ private extension Double {
     }
 }
 
-private extension Array {
-    subscript(safe index: Int) -> Element? {
-        indices.contains(index) ? self[index] : nil
-    }
-}
+// subscript(safe:) da co san, module-wide, trong Engine/RoutineManager.swift - khong khai
+// bao lai o day (hai "private extension Array" trung chu ky o hai file khac nhau bi Swift
+// bao "invalid redeclaration"; RoutineManager.swift dung ban khong-private nen dung chung
+// duoc cho ca file nay).

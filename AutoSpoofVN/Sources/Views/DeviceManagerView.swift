@@ -84,7 +84,7 @@ struct DeviceManagerView: View {
                     }
                     if pairing.isRunning {
                         Button("Huỷ ghép nối", role: .destructive) {
-                            pairing.cancelPairing()
+                            pairing.cancel()
                         }
                     } else {
                         Button("Bắt đầu ghép nối") {
