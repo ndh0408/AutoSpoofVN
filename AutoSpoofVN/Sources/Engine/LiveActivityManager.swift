@@ -2,7 +2,8 @@
 //  LiveActivityManager.swift
 //  AutoSpoofVN
 //
-//  Quan ly Live Activity va Dynamic Island cap nhat lien tuc theo GPS.
+//  Quan ly Live Activity va Dynamic Island — đọc từ cả SpoofEngine (legacy)
+//  VÀ SimulationCoordinator (v2) để cover mọi nguồn GPS.
 //
 
 import ActivityKit
@@ -23,11 +24,13 @@ final class LiveActivityManager: ObservableObject {
     func startOrUpdateActivity() {
         guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
 
+        let coordinator = SimulationCoordinator.shared
         let engine = SpoofEngine.shared
         let routine = RoutineManager.shared
         let flight = FlightManager.shared
 
-        let coord = engine.currentCoordinate
+        // Ưu tiên toạ độ từ Coordinator (v2), fallback SpoofEngine (legacy)
+        let coord = coordinator.currentCoordinate
         let coordText = String(format: "%.4f, %.4f", coord.latitude, coord.longitude)
 
         let stateName: String
@@ -42,12 +45,28 @@ final class LiveActivityManager: ObservableObject {
             speed = sim.currentSpeedKmh
             flightNo = sim.flightNumber
             flightProgress = sim.progressFraction
+        } else if coordinator.state.isActive {
+            stateName = coordinator.state.displayName
+            desc = coordinator.activeSource?.displayName ?? routine.statusDescription
+            speed = coordinator.telemetry.speedKmh
+            flightNo = nil
+            flightProgress = nil
         } else {
             stateName = routine.currentState.rawValue
             desc = routine.statusDescription
             speed = routine.currentSpeedKmh
             flightNo = nil
             flightProgress = nil
+        }
+
+        // Active source — ưu tiên coordinator
+        let sourceDisplay: String
+        if let coordSource = coordinator.activeSource {
+            sourceDisplay = coordSource.displayName
+        } else if let legacySource = engine.activeSource {
+            sourceDisplay = legacySource.displayName
+        } else {
+            sourceDisplay = "GPS Thật"
         }
 
         let contentState = SpoofActivityAttributes.ContentState(
@@ -57,8 +76,8 @@ final class LiveActivityManager: ObservableObject {
             coordinateText: coordText,
             flightNumber: flightNo,
             flightProgress: flightProgress,
-            activeSource: engine.activeSource?.displayName ?? "GPS Thật",
-            isHalted: engine.isHalted
+            activeSource: sourceDisplay,
+            isHalted: coordinator.isHalted || engine.isHalted
         )
 
         if let activity = currentActivity {
@@ -75,7 +94,7 @@ final class LiveActivityManager: ObservableObject {
                 )
                 self.currentActivity = activity
             } catch {
-                // Khong lam gian doan app neu nguoi dung tat Live Activity
+                AppLogger.ui.error("Live Activity start failed: \(error)")
             }
         }
     }
@@ -89,9 +108,12 @@ final class LiveActivityManager: ObservableObject {
     }
 
     private func observeStateChanges() {
-        Publishers.Merge4(
+        // Observe cả SpoofEngine (legacy) VÀ SimulationCoordinator (v2)
+        Publishers.MergeMany(
             SpoofEngine.shared.$currentCoordinate.map { _ in () }.eraseToAnyPublisher(),
             SpoofEngine.shared.$isSimulating.map { _ in () }.eraseToAnyPublisher(),
+            SimulationCoordinator.shared.$state.map { _ in () }.eraseToAnyPublisher(),
+            SimulationCoordinator.shared.$telemetry.map { _ in () }.eraseToAnyPublisher(),
             RoutineManager.shared.$currentState.map { _ in () }.eraseToAnyPublisher(),
             FlightManager.shared.$isFlying.map { _ in () }.eraseToAnyPublisher()
         )
