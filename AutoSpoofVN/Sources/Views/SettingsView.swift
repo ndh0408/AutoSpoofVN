@@ -6,6 +6,16 @@ struct SettingsView: View {
     @StateObject private var coordinator = SimulationCoordinator.shared
     @Environment(\.dismiss) private var dismiss
 
+    // Doc that tu bundle (MARKETING_VERSION/CURRENT_PROJECT_VERSION trong project.yml) thay
+    // vi ghi cung chuoi - truoc day ghi cung "2.0.0" nen lan bump ke tiep se bi le, man hinh
+    // Cai dat van hien so cu du app da cai ban moi.
+    private var appVersionText: String {
+        let info = Bundle.main.infoDictionary
+        let version = info?["CFBundleShortVersionString"] as? String ?? "?"
+        let build = info?["CFBundleVersion"] as? String ?? "?"
+        return "\(version) (\(build))"
+    }
+
     var body: some View {
         NavigationStack {
             Form {
@@ -110,7 +120,7 @@ struct SettingsView: View {
                     HStack {
                         Text("Phiên bản")
                         Spacer()
-                        Text("2.0.0")
+                        Text(appVersionText)
                             .foregroundStyle(AppColor.textSecondary)
                     }
                     HStack {
