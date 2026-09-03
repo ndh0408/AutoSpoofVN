@@ -53,6 +53,8 @@ final class SimulationCoordinator: ObservableObject {
     private init() {
         // Đồng bộ state từ legacy engine trong giai đoạn chuyển tiếp
         syncFromLegacyEngine()
+        // Khởi động CoordinateServer cho Shadowrocket MITM
+        CoordinateServer.shared.start()
     }
 
     // MARK: - Source Arbitration
@@ -191,6 +193,13 @@ final class SimulationCoordinator: ObservableObject {
 
         // Bridge: gửi xuống legacy engine → FFI → device
         legacyEngine.setLocation(latitude: noisy.latitude, longitude: noisy.longitude)
+
+        // Sync toạ độ tới CoordinateServer → Shadowrocket MITM đọc realtime
+        CoordinateServer.shared.updateCoordinate(
+            latitude: noisy.latitude, longitude: noisy.longitude,
+            accuracy: Int(noiseConfig.radiusMeters * 10 + 10),
+            speed: speedKmh, heading: headingDegrees
+        )
 
         return true
     }
