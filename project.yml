@@ -39,9 +39,9 @@ schemes:
       config: Debug
     archive:
       config: Release
-  # Can libidevice_ffi.a THAT (build theo BUILD.md muc 6) va chi chay duoc tren
+  # Can libidevice_ffi.a THAT (xem README.md) va chi chay duoc tren
   # THIET BI THAT cam day (thu vien bien dich cho arm64-apple-ios, khong co ban simulator).
-  # Con can: pairing record, Developer Mode, VPN loopback - xem BUILD.md muc 7.
+  # Con can: pairing record, Developer Mode, VPN loopback - xem README.md.
   AutoSpoofVN-RealFFI:
     build:
       targets:
