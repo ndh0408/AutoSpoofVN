@@ -104,7 +104,7 @@ struct MainViewV2: View {
         .sheet(isPresented: $showSettings) { SettingsView() }
         .sheet(isPresented: $showHistory) { HistoryView() }
         .sheet(isPresented: $showWorldTravel) { WorldTravelViewV2() }
-        .sheet(isPresented: $showDiagnostics) { DiagnosticsView() }
+        .sheet(isPresented: $showDiagnostics) { DiagnosticsV2View() }
         .sheet(isPresented: $showBookmarks) { BookmarksView() }
         .sheet(isPresented: $showTelemetryDetail) {
             NavigationStack {
