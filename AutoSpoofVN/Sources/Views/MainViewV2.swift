@@ -43,6 +43,7 @@ struct MainViewV2: View {
     @State private var showBookmarks = false
     @State private var showManualInput = false
     @State private var showTelemetryDetail = false
+    @State private var showBypassTroubleshoot = false
 
     // Manual input
     @State private var manualLat = "21.0285"
@@ -107,6 +108,7 @@ struct MainViewV2: View {
         .sheet(isPresented: $showDiagnostics) { DiagnosticsV2View() }
         .sheet(isPresented: $showShadowrocket) { ShadowrocketSetupView() }
         .sheet(isPresented: $showBookmarks) { BookmarksView() }
+        .sheet(isPresented: $showBypassTroubleshoot) { BypassTroubleshootView() }
         .sheet(isPresented: $showTelemetryDetail) {
             NavigationStack {
                 TelemetryDetailView(telemetry: coordinator.telemetry, coordinator: coordinator)
@@ -238,6 +240,7 @@ struct MainViewV2: View {
                     mapButton("bookmark") { showBookmarks = true }
                     mapButton("stethoscope") { showDiagnostics = true }
                     mapButton("bolt.horizontal") { showShadowrocket = true }
+                    mapButton("questionmark.circle") { showBypassTroubleshoot = true }
                 }
                 .padding(.trailing, AppSpacing.md)
                 .padding(.top, 100)

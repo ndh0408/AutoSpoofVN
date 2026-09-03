@@ -102,6 +102,32 @@ struct SettingsView: View {
                     Label("Giao diện", systemImage: "paintbrush")
                 }
 
+                // MARK: - Bypass
+                Section {
+                    NavigationLink {
+                        ShadowrocketSetupView()
+                    } label: {
+                        HStack {
+                            Label("Shadowrocket MITM", systemImage: "bolt.horizontal")
+                            Spacer()
+                            if CoordinateServer.shared.isRunning {
+                                Text("Đang chạy")
+                                    .font(AppFont.caption)
+                                    .foregroundStyle(.green)
+                            }
+                        }
+                    }
+                    NavigationLink {
+                        BypassTroubleshootView()
+                    } label: {
+                        Label("Xử lý sự cố bypass", systemImage: "questionmark.circle")
+                    }
+                } header: {
+                    Label("Bypass GPS Detection", systemImage: "shield")
+                } footer: {
+                    Text("Bypass isSimulatedBySoftware để Bump nhận GPS giả như GPS thật.")
+                }
+
                 // MARK: - Developer
                 Section {
                     Toggle("Hiện thông tin kỹ thuật", isOn: $settings.showDeveloperInfo)
