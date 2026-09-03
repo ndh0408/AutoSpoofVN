@@ -1,3 +1,4 @@
+import Combine
 import SwiftUI
 
 /// Entry point — v2 architecture.
@@ -12,6 +13,7 @@ struct AutoSpoofVNApp: App {
     @StateObject private var recovery = AppRecoveryManager.shared
     @StateObject private var deviceManager = DeviceManager.shared
     @AppStorage("autospoof_onboarding_completed") private var hasCompletedOnboarding = false
+    private var bootstrapCancellables = Set<AnyCancellable>()
 
     init() {
         MigrationManager.runIfNeeded()
@@ -74,6 +76,24 @@ struct AutoSpoofVNApp: App {
         if !engine.isLoopbackConnected && (engine.pairingData != nil || SelfPairingManager.shared.hasSavedPairing) {
             deviceManager.connect()
         }
+
+        // Auto-record history khi simulation bắt đầu
+        SimulationCoordinator.shared.$state
+            .receive(on: DispatchQueue.main)
+            .sink { state in
+                if state == .running {
+                    HistoryManager.shared.startRecording(
+                        source: SimulationCoordinator.shared.activeSource ?? .manual,
+                        travelMode: SimulationCoordinator.shared.session?.travelMode ?? .driving
+                    )
+                } else if state == .idle || state == .completed {
+                    _ = HistoryManager.shared.stopRecording()
+                }
+            }
+            .store(in: &self.bootstrapCancellables)
+
+        // Khởi động ConnectionRecovery
+        _ = ConnectionRecovery.shared
 
         AppLogger.simulation.info("Bootstrap complete")
     }
