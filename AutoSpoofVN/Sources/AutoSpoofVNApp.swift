@@ -95,6 +95,9 @@ struct AutoSpoofVNApp: App {
         // Khởi động ConnectionRecovery
         _ = ConnectionRecovery.shared
 
+        // Khởi động ShadowrocketManager — auto-detect, VPN monitor
+        _ = ShadowrocketManager.shared
+
         AppLogger.simulation.info("Bootstrap complete")
     }
 }
