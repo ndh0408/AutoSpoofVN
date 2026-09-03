@@ -7,6 +7,7 @@ struct MainView: View {
     @EnvironmentObject var engine: SpoofEngine
     @EnvironmentObject var routine: RoutineManager
     @EnvironmentObject var flight: FlightManager
+    @StateObject private var coordinator = SimulationCoordinator.shared
     @StateObject private var backgroundKeeper = BackgroundKeeper.shared
     @StateObject private var diagnosticsStore = DiagnosticsStore.shared
 
@@ -17,6 +18,9 @@ struct MainView: View {
     @State private var showingLocationsSheet: Bool = false
     @State private var showingSettingsSheet: Bool = false
     @State private var showingWorldTravelSheet: Bool = false
+    @State private var showingRouteStudio: Bool = false
+    @State private var showingScenarioStudio: Bool = false
+    @State private var showingHistory: Bool = false
     @State private var showingManualInput: Bool = false
     @State private var manualLat: String = "21.0285"
     @State private var manualLon: String = "105.8542"
@@ -29,6 +33,15 @@ struct MainView: View {
                 // MARK: - Ban do MapKit tuong tac
                 MapReader { proxy in
                     Map(position: $cameraPosition) {
+                        // Vet lo trinh mo phong dang chay
+                        if !coordinator.activeRouteCoordinates.isEmpty {
+                            MapPolyline(coordinates: coordinator.activeRouteCoordinates)
+                                .stroke(.blue, style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round))
+                        }
+                        if !coordinator.recentTracks.isEmpty {
+                            MapPolyline(coordinates: coordinator.recentTracks)
+                                .stroke(.green.opacity(0.6), style: StrokeStyle(lineWidth: 3, dash: [4, 4]))
+                        }
                         // Duong bay dai cung Great-Circle
                         if !flight.flightPathCoordinates.isEmpty {
                             MapPolyline(coordinates: flight.flightPathCoordinates)
@@ -278,16 +291,42 @@ struct MainView: View {
 
                     // Thanh nut cong cu thao tac
                     HStack(spacing: 8) {
-                        Button(action: { showingWorldTravelSheet = true }) {
-                            Label("Du lịch & Bay", systemImage: "airplane.circle.fill")
-                                .font(.footnote)
-                                .fontWeight(.semibold)
+                        Button(action: { showingRouteStudio = true }) {
+                            Label("Tuyến đường", systemImage: "point.topleft.down.curvedto.point.bottomright.up.fill")
+                                .font(.footnote.weight(.semibold))
                                 .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
                                 .padding(.vertical, 10)
+                                .padding(.horizontal, 10)
                                 .background(Color.blue)
                                 .cornerRadius(10)
                         }
+
+                        Button(action: { showingWorldTravelSheet = true }) {
+                            Label("Du lịch", systemImage: "airplane.circle.fill")
+                                .font(.footnote)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.white)
+                                .padding(.vertical, 10)
+                                .padding(.horizontal, 10)
+                                .background(Color.indigo)
+                                .cornerRadius(10)
+                        }
+
+                        Button(action: { showingScenarioStudio = true }) {
+                            Image(systemName: "slider.horizontal.3")
+                                .font(.footnote)
+                                .padding(.vertical, 10)
+                                .padding(.horizontal, 10)
+                        }
+                        .buttonStyle(.bordered)
+
+                        Button(action: { showingHistory = true }) {
+                            Image(systemName: "clock.arrow.circlepath")
+                                .font(.footnote)
+                                .padding(.vertical, 10)
+                                .padding(.horizontal, 10)
+                        }
+                        .buttonStyle(.bordered)
 
                         Button(action: { showingLocationsSheet = true }) {
                             Label("Địa điểm", systemImage: "mappin.and.ellipse")
@@ -345,6 +384,15 @@ struct MainView: View {
             .sheet(isPresented: $showingSettingsSheet) {
                 SettingsView()
                     .environmentObject(diagnosticsStore)
+            }
+            .sheet(isPresented: $showingRouteStudio) {
+                RouteStudioView()
+            }
+            .sheet(isPresented: $showingScenarioStudio) {
+                ScenarioStudioView()
+            }
+            .sheet(isPresented: $showingHistory) {
+                HistoryView()
             }
             .alert("Nhập toạ độ thủ công", isPresented: $showingManualInput) {
                 TextField("Vĩ độ (Latitude)", text: $manualLat)

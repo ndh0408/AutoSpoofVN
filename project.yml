@@ -53,15 +53,18 @@ targets:
           - "$(PROJECT_DIR)/Vendor/idevice"
         OTHER_LDFLAGS:
           - "$(inherited)"
-          - "-lidevice_ffi"
           - "-lc++"
           - "-lz"
         SWIFT_INCLUDE_PATHS: "$(PROJECT_DIR)/Vendor/idevice"
         HEADER_SEARCH_PATHS: "$(PROJECT_DIR)/Vendor/idevice"
-        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) USE_IDEVICE_FFI"
       configs:
+        # Chi cau hinh nay moi link thu vien that. Debug/Release la mock, chay duoc
+        # tren simulator x86_64 va tren may bat ky khong co libidevice_ffi.a.
         Debug-FFI:
           SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) USE_IDEVICE_FFI"
+          OTHER_LDFLAGS:
+            - "$(inherited)"
+            - "-lidevice_ffi"
 
   AutoSpoofVNTests:
     type: bundle.unit-test
@@ -75,6 +78,8 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.autospoof.vn.tests
         GENERATE_INFOPLIST_FILE: true
         TARGETED_DEVICE_FAMILY: "1"
+        SWIFT_INCLUDE_PATHS: "$(PROJECT_DIR)/Vendor/idevice"
+        HEADER_SEARCH_PATHS: "$(PROJECT_DIR)/Vendor/idevice"
 
   AutoSpoofWidgets:
     type: app-extension

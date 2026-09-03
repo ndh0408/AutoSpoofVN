@@ -265,6 +265,7 @@ final class SelfPairingManager: ObservableObject {
     }
 }
 
+#if USE_IDEVICE_FFI
 private let selfPairingReadyCallback: IdevicePairingReadyCallback = { context, serviceID, port, keys, values, count in
     guard let context, let serviceID else { return }
     let manager = Unmanaged<SelfPairingManager>.fromOpaque(context).takeUnretainedValue()
@@ -290,3 +291,4 @@ private let selfPairingPinCallback: IdevicePairingPinCallback = { pin, context i
         manager.handleReceivedPin(pinString)
     }
 }
+#endif

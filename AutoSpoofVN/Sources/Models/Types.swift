@@ -47,20 +47,20 @@ enum RoutineState: String, CaseIterable, Identifiable, Codable {
 }
 
 /// Cau truc toa do ho tro luu tru Codable va phep tinh cau tron
-struct CoordinateCodable: Codable, Equatable, Hashable {
-    var latitude: Double
-    var longitude: Double
+public struct CoordinateCodable: Codable, Equatable, Hashable {
+    public var latitude: Double
+    public var longitude: Double
 
-    var clCoordinate: CLLocationCoordinate2D {
+    public var clCoordinate: CLLocationCoordinate2D {
         CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
     }
 
-    init(latitude: Double, longitude: Double) {
+    public init(latitude: Double, longitude: Double) {
         self.latitude = latitude
         self.longitude = longitude
     }
 
-    init(_ coord: CLLocationCoordinate2D) {
+    public init(_ coord: CLLocationCoordinate2D) {
         self.latitude = coord.latitude
         self.longitude = coord.longitude
     }
