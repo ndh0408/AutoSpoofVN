@@ -1,68 +1,123 @@
 import SwiftUI
-import MapKit
 
-/// Banner hiển thị chi tiết khi đang trên chuyến bay hoặc tour du lịch
+/// Flight HUD v2 — đọc từ SimulationCoordinator, dùng design system,
+/// hiển thị đầy đủ telemetry chuyến bay.
 struct FlightHUDView: View {
     @EnvironmentObject var flight: FlightManager
-    @EnvironmentObject var engine: SpoofEngine
+    @StateObject private var coordinator = SimulationCoordinator.shared
 
     var body: some View {
         if flight.isFlying, let sim = flight.activeFlight {
-            VStack(spacing: 6) {
+            VStack(spacing: AppSpacing.sm) {
+                // Header: flight number + route + phase
                 HStack {
-                    Label(sim.flightNumber, systemImage: "airplane.departure")
-                        .font(.caption)
-                        .fontWeight(.bold)
-                        .foregroundColor(.blue)
+                    HStack(spacing: AppSpacing.xs) {
+                        Image(systemName: "airplane.departure")
+                            .font(.caption)
+                        Text(sim.flightNumber)
+                            .font(AppFont.footnote.weight(.bold))
+                    }
+                    .foregroundStyle(AppColor.primary)
+
                     Spacer()
-                    Text("\(sim.origin.code) ➔ \(sim.destination.code)")
-                        .font(.caption)
-                        .fontWeight(.bold)
+
+                    Text("\(sim.origin.code) → \(sim.destination.code)")
+                        .font(AppFont.footnote.weight(.bold))
+
                     Spacer()
-                    Text(sim.phase.rawValue)
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
+
+                    StatusBadge(sim.phase.rawValue, color: phaseColor(sim.phase))
                 }
 
+                // Progress bar
                 ProgressView(value: sim.progressFraction)
-                    .tint(.blue)
+                    .tint(AppColor.primary)
 
+                // Telemetry grid
+                HStack(spacing: AppSpacing.lg) {
+                    FlightMetric(label: "Altitude", value: String(format: "%.0f", sim.currentAltitudeMeters), unit: "m")
+                    FlightMetric(label: "Speed", value: String(format: "%.0f", sim.currentSpeedKmh), unit: "km/h")
+                    FlightMetric(label: "Còn lại", value: String(format: "%.0f", sim.remainingDistanceKm), unit: "km")
+                    FlightMetric(label: "Heading", value: String(format: "%.0f°", coordinator.telemetry.headingDegrees), unit: coordinator.telemetry.cardinalDirection)
+                }
+
+                // Controls
                 HStack {
-                    Text("Còn \(Int(sim.remainingDistanceKm)) km")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
+                    if sim.progressFraction > 0 {
+                        Text(String(format: "%.0f%%", sim.progressFraction * 100))
+                            .font(AppFont.mono)
+                            .foregroundStyle(AppColor.textSecondary)
+                    }
+
                     Spacer()
+
+                    // Time warp
                     Menu {
-                        Button("1x (Thời gian thật)") { flight.flightTimeWarpMultiplier = 1.0 }
-                        Button("5x (Gấp 5 lần)") { flight.flightTimeWarpMultiplier = 5.0 }
-                        Button("10x (Gấp 10 lần)") { flight.flightTimeWarpMultiplier = 10.0 }
-                        Button("30x (Gấp 30 lần)") { flight.flightTimeWarpMultiplier = 30.0 }
-                        Button("60x (Gấp 60 lần)") { flight.flightTimeWarpMultiplier = 60.0 }
-                        Button("120x (Siêu tốc)") { flight.flightTimeWarpMultiplier = 120.0 }
+                        Button("1x") { flight.flightTimeWarpMultiplier = 1.0 }
+                        Button("5x") { flight.flightTimeWarpMultiplier = 5.0 }
+                        Button("10x") { flight.flightTimeWarpMultiplier = 10.0 }
+                        Button("30x") { flight.flightTimeWarpMultiplier = 30.0 }
+                        Button("60x") { flight.flightTimeWarpMultiplier = 60.0 }
+                        Button("120x") { flight.flightTimeWarpMultiplier = 120.0 }
                     } label: {
-                        HStack(spacing: 2) {
+                        HStack(spacing: AppSpacing.xxs) {
                             Image(systemName: "forward.fill")
                             Text("\(Int(flight.flightTimeWarpMultiplier))x")
                         }
-                        .font(.caption2)
-                        .fontWeight(.bold)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(Color.blue.opacity(0.15))
-                        .cornerRadius(6)
+                        .font(AppFont.caption.weight(.bold))
+                        .padding(.horizontal, AppSpacing.sm)
+                        .padding(.vertical, AppSpacing.xs)
+                        .background(AppColor.primary.opacity(0.12))
+                        .clipShape(RoundedRectangle(cornerRadius: AppRadius.sm))
                     }
 
-                    Button(role: .destructive, action: { flight.stopFlight() }) {
+                    Button(role: .destructive) {
+                        flight.stopFlight()
+                        coordinator.release(.flight)
+                    } label: {
                         Text("Huỷ bay")
-                            .font(.caption2)
-                            .foregroundColor(.red)
+                            .font(AppFont.caption.weight(.medium))
+                            .foregroundStyle(AppColor.danger)
                     }
                 }
             }
-            .padding(10)
+            .padding(AppSpacing.md)
             .background(.ultraThinMaterial)
-            .cornerRadius(12)
-            .padding(.horizontal, 16)
+            .clipShape(RoundedRectangle(cornerRadius: AppRadius.lg))
+            .padding(.horizontal, AppSpacing.lg)
+        }
+    }
+
+    private func phaseColor(_ phase: FlightPhase) -> Color {
+        switch phase {
+        case .checkin, .boarding: return .orange
+        case .taxi: return .yellow
+        case .takeoff, .climb: return .blue
+        case .cruise: return .green
+        case .descent, .landing: return .purple
+        case .arrival: return .green
+        default: return .secondary
+        }
+    }
+}
+
+struct FlightMetric: View {
+    let label: String
+    let value: String
+    let unit: String
+
+    var body: some View {
+        VStack(spacing: 1) {
+            Text(label)
+                .font(.system(size: 9))
+                .foregroundStyle(AppColor.textTertiary)
+            HStack(alignment: .firstTextBaseline, spacing: 1) {
+                Text(value)
+                    .font(AppFont.mono.weight(.medium))
+                Text(unit)
+                    .font(.system(size: 8))
+                    .foregroundStyle(AppColor.textSecondary)
+            }
         }
     }
 }
