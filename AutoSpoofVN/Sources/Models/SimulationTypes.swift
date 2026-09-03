@@ -270,7 +270,9 @@ enum DeviceConnectionState: Equatable {
         case .disconnected: return "iphone.slash"
         case .connecting:   return "iphone.radiowaves.left.and.right"
         case .connected:    return "iphone"
-        case .error:        return "exclamationmark.iphone"
+        // "exclamationmark.iphone" khong ton tai trong SF Symbols - Xcode bao "No symbol
+        // named 'exclamationmark.iphone' found in system symbol set" luc runtime.
+        case .error:        return "exclamationmark.triangle.fill"
         }
     }
 

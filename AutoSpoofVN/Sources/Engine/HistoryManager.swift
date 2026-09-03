@@ -36,6 +36,7 @@ final class HistoryManager: ObservableObject {
         }
     }
 
+    @discardableResult
     func stopRecording() -> SimulationRecord? {
         sampleTimer?.invalidate()
         sampleTimer = nil

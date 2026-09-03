@@ -31,7 +31,11 @@ public protocol DeviceTransport: AnyObject {
 }
 
 /// Real Hardware DVT Transport interacting with Rust staticlib FFI on a dedicated serial queue.
-public final class DVTDeviceTransport: DeviceTransport {
+///
+/// `@unchecked Sendable`: moi truy cap `handle`/state deu di qua dung mot `queue` tuan tu
+/// (serial DispatchQueue) - tu dong dong bo hoa that su, chi la trinh bien dich khong chung
+/// minh duoc dieu do qua kieu du lieu nen phai tu khang dinh.
+public final class DVTDeviceTransport: DeviceTransport, @unchecked Sendable {
     public private(set) var transportType: DeviceTransportType = .dvtLoopback
     public private(set) var isConnected: Bool = false
     public private(set) var lastError: String? = nil
