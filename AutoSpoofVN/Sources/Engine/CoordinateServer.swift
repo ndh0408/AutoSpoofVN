@@ -1,6 +1,65 @@
 import Foundation
 import Network
 
+/// Cong HTTP cua CoordinateServer.
+///
+/// Khai bao o tam file (nonisolated) vi callback cua NWListener/NWConnection chay tren
+/// hang doi network chu khong tren main actor — mot `let` cua class @MainActor khong
+/// doc duoc tu do.
+private let coordinateServerPort: UInt16 = 8765
+
+/// Anh chup toa do dung chung giua main actor va hang doi network.
+///
+/// `CoordinateServer` la `@MainActor` (no la `ObservableObject` cho SwiftUI), nhung
+/// `newConnectionHandler` va completion cua `NWConnection.receive` duoc goi tren `queue`
+/// — mot context nonisolated. Doc thang stored property cua main actor tu do vua khong
+/// bien dich duoc, vua la data race that (toa do bi ghi tu main actor moi lan
+/// SimulationCoordinator.submit chay). Hop nay giu ban sao co khoa rieng nen ca hai
+/// phia deu doc/ghi an toan.
+private final class CoordinateSnapshotBox: @unchecked Sendable {
+    struct Snapshot {
+        var latitude: Double = 21.0285
+        var longitude: Double = 105.8542
+        var accuracy: Int = 39
+        var speed: Double = 0
+        var heading: Double = 0
+    }
+
+    private let lock = NSLock()
+    private var value = Snapshot()
+    private var requests = 0
+
+    var snapshot: Snapshot {
+        lock.lock()
+        defer { lock.unlock() }
+        return value
+    }
+
+    /// So request da phuc vu. `/status` doc tu hang doi network nen phai qua khoa,
+    /// con `CoordinateServer.requestCount` (@Published) la ban sao cho SwiftUI.
+    var requestCount: Int {
+        lock.lock()
+        defer { lock.unlock() }
+        return requests
+    }
+
+    /// Tang bo dem va tra ve gia tri moi.
+    @discardableResult
+    func incrementRequests() -> Int {
+        lock.lock()
+        defer { lock.unlock() }
+        requests += 1
+        return requests
+    }
+
+    func update(latitude: Double, longitude: Double, accuracy: Int, speed: Double, heading: Double) {
+        lock.lock()
+        value = Snapshot(latitude: latitude, longitude: longitude,
+                         accuracy: accuracy, speed: speed, heading: heading)
+        lock.unlock()
+    }
+}
+
 /// HTTP server cục bộ trên iPhone — phục vụ toạ độ giả realtime cho Shadowrocket MITM.
 ///
 /// Luồng:
@@ -23,15 +82,12 @@ final class CoordinateServer: ObservableObject {
     @Published private(set) var requestCount = 0
 
     private var listener: NWListener?
-    private let port: UInt16 = 8765
+    /// Cong dang phuc vu — UI/log doc duoc tu bat ky context nao.
+    nonisolated var port: UInt16 { coordinateServerPort }
     private let queue = DispatchQueue(label: "com.autospoof.vn.coordserver", qos: .userInitiated)
 
-    // Toạ độ hiện tại — cập nhật bởi SimulationCoordinator
-    private var latitude: Double = 21.0285
-    private var longitude: Double = 105.8542
-    private var accuracy: Int = 39
-    private var speed: Double = 0
-    private var heading: Double = 0
+    /// Toạ độ hiện tại — cập nhật bởi SimulationCoordinator, doc boi hang doi network.
+    private let box = CoordinateSnapshotBox()
 
     private init() {}
 
@@ -44,13 +100,13 @@ final class CoordinateServer: ObservableObject {
             let params = NWParameters.tcp
             params.allowLocalEndpointReuse = true
 
-            let listener = try NWListener(using: params, on: NWEndpoint.Port(integerLiteral: port))
+            let listener = try NWListener(using: params, on: NWEndpoint.Port(integerLiteral: coordinateServerPort))
             listener.stateUpdateHandler = { [weak self] state in
                 Task { @MainActor in
                     switch state {
                     case .ready:
                         self?.isRunning = true
-                        AppLogger.device.info("CoordinateServer listening on port \(self?.port ?? 0)")
+                        AppLogger.device.info("CoordinateServer listening on port \(coordinateServerPort)")
                     case .failed(let error):
                         self?.isRunning = false
                         AppLogger.device.error("CoordinateServer failed: \(error)")
@@ -79,16 +135,14 @@ final class CoordinateServer: ObservableObject {
 
     /// Gọi bởi SimulationCoordinator mỗi khi toạ độ thay đổi.
     func updateCoordinate(latitude: Double, longitude: Double, accuracy: Int = 39, speed: Double = 0, heading: Double = 0) {
-        self.latitude = latitude
-        self.longitude = longitude
-        self.accuracy = accuracy
-        self.speed = speed
-        self.heading = heading
+        box.update(latitude: latitude, longitude: longitude,
+                   accuracy: accuracy, speed: speed, heading: heading)
     }
 
     // MARK: - HTTP Handler
 
-    private func handleConnection(_ connection: NWConnection) {
+    /// Chay tren `queue`, khong phai main actor.
+    private nonisolated func handleConnection(_ connection: NWConnection) {
         connection.start(queue: queue)
         connection.receive(minimumIncompleteLength: 1, maximumLength: 4096) { [weak self] data, _, _, _ in
             guard let self, let data, let request = String(data: data, encoding: .utf8) else {
@@ -96,19 +150,20 @@ final class CoordinateServer: ObservableObject {
                 return
             }
 
+            let snapshot = self.box.snapshot
             let response: String
 
             if request.contains("GET /coord") {
                 // Trả toạ độ JSON
-                response = self.coordResponse()
+                response = self.coordResponse(snapshot)
             } else if request.contains("GET /js") || request.contains("GET /location-spoofer.js") {
                 // Trả JS script với toạ độ baked in
-                response = self.jsResponse()
+                response = self.jsResponse(snapshot)
             } else if request.contains("GET /module") || request.contains("GET /autospoof.sgmodule") {
                 // Trả Shadowrocket module
                 response = self.moduleResponse()
             } else if request.contains("GET /status") {
-                response = self.statusResponse()
+                response = self.statusResponse(snapshot)
             } else {
                 response = self.httpResponse(200, contentType: "text/plain", body: "AutoSpoofVN CoordinateServer")
             }
@@ -118,29 +173,30 @@ final class CoordinateServer: ObservableObject {
                 connection.cancel()
             })
 
+            let served = self.box.incrementRequests()
             Task { @MainActor in
-                self.requestCount += 1
+                self.requestCount = served
             }
         }
     }
 
     // MARK: - Responses
 
-    private func coordResponse() -> String {
+    private nonisolated func coordResponse(_ s: CoordinateSnapshotBox.Snapshot) -> String {
         let json = """
-        {"lat":\(latitude),"lon":\(longitude),"acc":\(accuracy),"spd":\(speed),"hdg":\(heading),"ts":\(Int(Date().timeIntervalSince1970))}
+        {"lat":\(s.latitude),"lon":\(s.longitude),"acc":\(s.accuracy),"spd":\(s.speed),"hdg":\(s.heading),"ts":\(Int(Date().timeIntervalSince1970))}
         """
         return httpResponse(200, contentType: "application/json", body: json)
     }
 
-    private func jsResponse() -> String {
+    private nonisolated func jsResponse(_ s: CoordinateSnapshotBox.Snapshot) -> String {
         let js = """
         // AutoSpoofVN Dynamic Location Script
-        // Toạ độ: \(latitude), \(longitude) @ \(Date())
+        // Toạ độ: \(s.latitude), \(s.longitude) @ \(Date())
         const SCALE = 1e8;
-        const TARGET_LAT = Math.round(\(latitude) * SCALE);
-        const TARGET_LON = Math.round(\(longitude) * SCALE);
-        const ACCURACY = \(accuracy) * 1000;
+        const TARGET_LAT = Math.round(\(s.latitude) * SCALE);
+        const TARGET_LON = Math.round(\(s.longitude) * SCALE);
+        const ACCURACY = \(s.accuracy) * 1000;
 
         function run() {
             const body = $response.body;
@@ -176,13 +232,13 @@ final class CoordinateServer: ObservableObject {
         return httpResponse(200, contentType: "application/javascript", body: js)
     }
 
-    private func moduleResponse() -> String {
+    private nonisolated func moduleResponse() -> String {
         let module = """
         #!name=AutoSpoofVN Live
         #!desc=GPS spoof realtime từ AutoSpoofVN app
 
         [Script]
-        AutoSpoofVN = type=http-response,pattern=^https?:\\/\\/(?:gs-loc(?:-cn)?\\.apple\\.com|gsp-ssl\\.ls\\.apple\\.com|bluedot\\.is\\.autonavi\\.com(?:\\.gds\\.alibabadns\\.com)?)\\/clls\\/wloc,requires-body=1,binary-body-mode=1,max-size=0,timeout=30,script-path=http://127.0.0.1:\(port)/location-spoofer.js
+        AutoSpoofVN = type=http-response,pattern=^https?:\\/\\/(?:gs-loc(?:-cn)?\\.apple\\.com|gsp-ssl\\.ls\\.apple\\.com|bluedot\\.is\\.autonavi\\.com(?:\\.gds\\.alibabadns\\.com)?)\\/clls\\/wloc,requires-body=1,binary-body-mode=1,max-size=0,timeout=30,script-path=http://127.0.0.1:\(coordinateServerPort)/location-spoofer.js
 
         [MITM]
         hostname = %APPEND% gs-loc.apple.com, gs-loc-cn.apple.com, gsp-ssl.ls.apple.com, bluedot.is.autonavi.com, bluedot.is.autonavi.com.gds.alibabadns.com
@@ -190,14 +246,14 @@ final class CoordinateServer: ObservableObject {
         return httpResponse(200, contentType: "text/plain", body: module)
     }
 
-    private func statusResponse() -> String {
+    private nonisolated func statusResponse(_ s: CoordinateSnapshotBox.Snapshot) -> String {
         let json = """
-        {"running":true,"lat":\(latitude),"lon":\(longitude),"requests":\(requestCount),"port":\(port)}
+        {"running":true,"lat":\(s.latitude),"lon":\(s.longitude),"requests":\(box.requestCount),"port":\(coordinateServerPort)}
         """
         return httpResponse(200, contentType: "application/json", body: json)
     }
 
-    private func httpResponse(_ code: Int, contentType: String, body: String) -> String {
+    private nonisolated func httpResponse(_ code: Int, contentType: String, body: String) -> String {
         let status = code == 200 ? "OK" : "Error"
         return """
         HTTP/1.1 \(code) \(status)\r

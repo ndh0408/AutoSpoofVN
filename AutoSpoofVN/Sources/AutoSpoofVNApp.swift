@@ -31,7 +31,7 @@ struct AutoSpoofVNApp: App {
         WindowGroup {
             Group {
                 if hasCompletedOnboarding {
-                    MainViewV2()
+                    RootTabView()
                 } else {
                     OnboardingViewV2()
                 }

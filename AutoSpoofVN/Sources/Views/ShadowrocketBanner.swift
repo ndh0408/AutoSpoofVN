@@ -18,17 +18,24 @@ struct ShadowrocketBanner: View {
                 .foregroundStyle(iconColor)
                 .frame(width: 32)
 
-            VStack(alignment: .leading, spacing: AppSpacing.xxs) {
-                Text(title)
-                    .font(AppFont.callout.weight(.semibold))
-                    .foregroundStyle(AppColor.textPrimary)
-                Text(manager.statusMessage)
-                    .font(AppFont.caption)
-                    .foregroundStyle(AppColor.textSecondary)
-                    .lineLimit(2)
+            // Cham vao vung chu -> mo huong dan day du. Truoc day `onOpenSetup` duoc
+            // khai bao va truyen vao nhung khong noi nao trong banner goi den, nen
+            // duong vao ShadowrocketSetupView tu banner la duong chet.
+            Button(action: onOpenSetup) {
+                VStack(alignment: .leading, spacing: AppSpacing.xxs) {
+                    Text(title)
+                        .font(AppFont.callout.weight(.semibold))
+                        .foregroundStyle(AppColor.textPrimary)
+                    Text(manager.statusMessage)
+                        .font(AppFont.caption)
+                        .foregroundStyle(AppColor.textSecondary)
+                        .lineLimit(2)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
             }
-
-            Spacer()
+            .buttonStyle(.plain)
+            .accessibilityHint("Mở hướng dẫn thiết lập Shadowrocket đầy đủ")
 
             Button(action: primaryAction) {
                 Text(buttonTitle)

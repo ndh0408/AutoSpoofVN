@@ -37,7 +37,7 @@ struct BypassTroubleshootView: View {
 
     private var liveChecks: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
-            SectionHeader("Kiểm tra realtime")
+            CloakSectionHeader("Kiểm tra realtime")
 
             CheckItem(
                 title: "CoordinateServer chạy",
@@ -55,7 +55,7 @@ struct BypassTroubleshootView: View {
 
             CheckItem(
                 title: "DVT kết nối",
-                ok: coordinator.deviceState == .connected,
+                ok: coordinator.deviceState.isConnected,
                 okText: "Thiết bị iOS kết nối thành công",
                 failText: "Thiết bị chưa kết nối — cắm cáp và kết nối trong Device Manager"
             )
@@ -66,7 +66,7 @@ struct BypassTroubleshootView: View {
 
     private var commonIssues: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
-            SectionHeader("Lỗi thường gặp")
+            CloakSectionHeader("Lỗi thường gặp")
 
             IssueCard(
                 issue: "Shadowrocket không intercept",
@@ -104,7 +104,7 @@ struct BypassTroubleshootView: View {
 
     private var technicalDetail: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
-            SectionHeader("Chi tiết kỹ thuật")
+            CloakSectionHeader("Chi tiết kỹ thuật")
 
             AppCard {
                 VStack(alignment: .leading, spacing: AppSpacing.sm) {
@@ -147,7 +147,7 @@ struct BypassTroubleshootView: View {
 
 // MARK: - Supporting Views
 
-private struct SectionHeader: View {
+private struct CloakSectionHeader: View {
     let text: String
     init(_ text: String) { self.text = text }
     var body: some View {

@@ -43,9 +43,25 @@ final class SimulationTests: XCTestCase {
     }
 
     func testSmoothHeadingNoJump() async {
-        // 350° → 10° should not go through 180°
+        // 350° → 10° should not go through 180°.
+        // Nua duong theo chieu ngan la 350 + 20*0.5 = 360, chuan hoa ve 0. So sanh
+        // truc tiep voi 340 la sai: no tu choi dung ket qua dung ngay cho wraparound.
+        // Phai do khoang cach GOC toi 0/360 thay vi so sanh gia tri tho.
         let result = await MotionEngine.smoothHeading(from: 350, to: 10, factor: 0.5)
-        XCTAssertGreaterThan(result, 340) // should stay near 360/0
+        XCTAssertTrue((0..<360).contains(result), "heading phai duoc chuan hoa ve [0,360)")
+        let distanceFromZero = min(result, 360 - result)
+        XCTAssertLessThan(distanceFromZero, 20, "phai o gan 0/360, khong duoc vong qua 180")
+    }
+
+    func testSmoothHeadingTakesShortestArc() async {
+        // 10° → 350° cung phai di nguoc chieu kim dong ho qua 0, khong qua 180.
+        let result = await MotionEngine.smoothHeading(from: 10, to: 350, factor: 0.5)
+        let distanceFromZero = min(result, 360 - result)
+        XCTAssertLessThan(distanceFromZero, 20)
+
+        // Truong hop khong wrap: 90° → 180° o factor 0.5 phai ra dung 135°.
+        let midway = await MotionEngine.smoothHeading(from: 90, to: 180, factor: 0.5)
+        XCTAssertEqual(midway, 135, accuracy: 0.001)
     }
 
     // MARK: - Speed Profile

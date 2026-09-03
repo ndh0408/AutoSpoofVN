@@ -118,6 +118,9 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.autospoof.vn.tests
+        # Bat buoc khai bao: khong co dong nay PRODUCT_NAME rong, test bundle build ra
+        # "AutoSpoofVN.app/PlugIns/.xctest" va Xcode bao "Multiple commands produce".
+        PRODUCT_NAME: AutoSpoofVNTests
         GENERATE_INFOPLIST_FILE: true
         TARGETED_DEVICE_FAMILY: "1"
         SWIFT_INCLUDE_PATHS: "$(PROJECT_DIR)/Vendor/idevice"

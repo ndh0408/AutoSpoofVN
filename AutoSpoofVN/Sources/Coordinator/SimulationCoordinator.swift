@@ -323,7 +323,7 @@ final class SimulationCoordinator: ObservableObject {
             .compactMap { $0 }
             .sink { [weak self] sim in
                 self?.telemetry.speedKmh = sim.currentSpeedKmh
-                self?.telemetry.altitudeMeters = sim.currentAltitudeMeters
+                self?.telemetry.altitudeMeters = sim.altitudeMeters
             }
             .store(in: &cancellables)
 
