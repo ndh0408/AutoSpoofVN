@@ -1,8 +1,54 @@
 # AutoSpoofVN
 
-**GPS Simulation Studio cho iOS** — mô phỏng vị trí GPS trực tiếp trên iPhone, không cần jailbreak, không cần máy tính kết nối liên tục.
+**GPS Simulation Studio cho iOS** — mô phỏng vị trí GPS trực tiếp trên iPhone với khả năng bypass phát hiện GPS giả.
 
-Mở bất kỳ app bản đồ nào — Grab, Google Maps, Zalo, Bumble, Tinder, Pokémon GO — và vị trí hiển thị đúng toạ độ bạn chọn. Đi bộ, chạy xe, bay quốc tế — tất cả đều mô phỏng được.
+Mở bất kỳ app nào — **Bump**, Grab, Google Maps, Zalo, Tinder, Pokémon GO — vị trí hiển thị đúng toạ độ bạn chọn. Đi bộ, chạy xe, bay quốc tế — tất cả mô phỏng được. Với Shadowrocket integration, `isSimulatedBySoftware = false` — các app kiểm tra GPS giả như Bump đều nhận.
+
+---
+
+## Bypass GPS Detection (Mới v2.0)
+
+### Vấn đề
+iOS 15+ cung cấp `CLLocationSourceInformation.isSimulatedBySoftware` cho app kiểm tra GPS giả. DVT LocationSimulation (cách truyền thống) luôn set cờ này = `true`. Các app như **Bump** kiểm tra cờ này và từ chối vị trí giả.
+
+### Giải pháp: Shadowrocket MITM
+```
+iPhone scan WiFi access points
+    ↓
+Gửi danh sách BSSID tới gs-loc.apple.com (HTTPS)
+    ↓
+Shadowrocket chặn response (MITM)
+    ↓
+Rewrite toạ độ → toạ độ giả
+    ↓
+iPhone nghĩ mình ở toạ độ giả qua "WiFi positioning"
+    ↓
+isSimulatedBySoftware = false ✓
+    ↓
+Bump nhận ✓
+```
+
+### Tích hợp tự động
+AutoSpoofVN tích hợp Shadowrocket gần như hoàn toàn tự động:
+
+1. **Auto-detect** — app tự nhận biết Shadowrocket có cài không
+2. **Banner thông minh** — hiện hướng dẫn setup nếu chưa sẵn sàng
+3. **One-tap import** — bấm một nút để import MITM module vào Shadowrocket
+4. **CoordinateServer** — HTTP server port 8765 sync toạ độ realtime
+5. **Auto-trigger VPN** — khi bắt đầu mô phỏng, app tự mở Shadowrocket bật VPN
+
+### Yêu cầu bypass
+- **Shadowrocket** ($2.99 trên App Store) — proxy app hỗ trợ MITM
+- HTTPS Decryption bật + Trust CA certificate
+- Airplane mode trick lần đầu (buộc iOS dùng WiFi positioning)
+
+### Hạn chế bypass
+| Tình huống | Hoạt động? | Lý do |
+|------------|-----------|-------|
+| Trong nhà / GPS yếu | ✅ Có | iOS dùng WiFi positioning → bị MITM |
+| Ngoài trời, GPS mạnh | ⚠️ Có thể không | GPS hardware chiếm quyền |
+| Sau airplane trick | ✅ Có | GPS cache xoá, WiFi chiếm quyền |
+| Không WiFi | ❌ Không | MITM cần WiFi positioning |
 
 ---
 
@@ -17,10 +63,10 @@ Mở bất kỳ app bản đồ nào — Grab, Google Maps, Zalo, Bumble, Tinder
 - **GPS jitter tương quan** — nhiễu GPS giống thật, không phải random noise
 
 ### Chuyến bay quốc tế
-- **14+ sân bay** — HAN, SGN, DAD, BKK, SIN, ICN, NRT, CDG, LHR, DXB, JFK, LAX, SYD...
+- **38 sân bay** — HAN, SGN, DAD, BKK, SIN, ICN, NRT, CDG, LHR, DXB, JFK, LAX, SYD...
 - **World Odyssey** — tự động bay vòng quanh thế giới, tham quan từng thành phố
 - **Giai đoạn bay đầy đủ** — check-in, boarding, taxi, takeoff, cruise, landing, arrival
-- **Telemetry** — altitude, ground speed, vertical speed, heading, ETA, progress
+- **Telemetry** — altitude, ground speed, heading, ETA, progress
 
 ### Chu trình 24/7
 - **Routine tự động** — đi làm, nghỉ trưa, về nhà, đi dạo theo lịch
@@ -29,326 +75,165 @@ Mở bất kỳ app bản đồ nào — Grab, Google Maps, Zalo, Bumble, Tinder
 
 ### Kết nối thiết bị
 - **Tự động ghép nối RPPairing** — không cần máy tính, không cần cable
-- **DVT Transport thật** — kết nối qua Developer Tools protocol của Apple
-- **LocalDevVPN loopback** — giao tiếp qua 10.7.0.1, không cần mạng ngoài
+- **DVT Transport** — kết nối qua Developer Tools protocol của Apple
 - **Heartbeat** — duy trì kết nối, tự reconnect khi đứt
 
 ### Chạy nền
 - **Audio keep-alive** — phát audio im lặng giữ app sống
-- **Location background** — CLLocationManager để iOS đánh thức app
 - **Live Activity** — hiển thị trạng thái trên Dynamic Island và Lock Screen
-
-### Kiến trúc v2.0
-- **SimulationCoordinator** — một nguồn sự thật duy nhất cho toàn bộ mô phỏng
-- **MotionEngine** — chuyển động mượt với speed profile cho từng phương tiện
-- **HeadingEngine** — heading mượt, xử lý dateline
-- **RouteSimulator** — mô phỏng tuyến đường 10Hz
-- **PersistenceManager** — lưu trữ routes, scenarios, bookmarks, settings, GPX
-- **Design System** — tokens + components chuẩn Apple-native
 
 ---
 
-## Kiến trúc
+## Kiến trúc v2.0
 
 ```
-                    ┌─────────────────────┐
-                    │       SwiftUI       │
-                    └──────────┬──────────┘
-                               │
-                    ┌──────────┴──────────┐
-                    │ SimulationCoordinator│  ← MỘT nguồn sự thật
-                    └──────────┬──────────┘
-                               │
-          ┌────────────────────┼────────────────────┐
-          ▼                    ▼                    ▼
-    RouteSimulator      RoutineManager       FlightManager
-          │                    │                    │
-          └────────────────────┼────────────────────┘
-                               ▼
-                       ┌───────────────┐
-                       │  MotionEngine │
-                       └───────┬───────┘
-                               ▼
-                       ┌───────────────┐
-                       │ SpoofEngine   │  ← FFI bridge
-                       └───────┬───────┘
-                               ▼
-                    ┌─────────────────────┐
-                    │ DeviceTransport     │
-                    ├─────────────────────┤
-                    │ DVT / RPPairing FFI │
-                    │ (Rust → staticlib)  │
-                    └─────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                        SwiftUI Views                         │
+│  MainViewV2 │ RouteStudio │ WorldTravel │ RoutineStudio     │
+│  FlightHUD  │ ScenarioStudio │ Settings │ ShadowrocketSetup │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+┌──────────────────────────┴──────────────────────────────────┐
+│                   SimulationCoordinator                      │
+│            MỘT nguồn sự thật cho toàn bộ mô phỏng          │
+│   Source Priority: Manual(100) > Scenario(80) > Flight(60)  │
+│                  > Route(50) > Routine(40) > Replay(20)     │
+└─────┬──────────┬──────────┬──────────┬──────────┬───────────┘
+      │          │          │          │          │
+      ▼          ▼          ▼          ▼          ▼
+ RouteSimulator  FlightMgr  RoutineMgr  ScenarioEng  HistoryMgr
+      │          │          │          │          │
+      └──────────┴──────────┴──────────┴──────────┘
+                           │
+              ┌────────────┼────────────┐
+              ▼            ▼            ▼
+        SpoofEngine   CoordinateServer  LiveActivity
+        (FFI bridge)   (port 8765)      (Dynamic Island)
+              │            │
+              ▼            ▼
+        DeviceTransport  Shadowrocket MITM
+        DVT/RPPairing    → isSimulated = false
+              │            │
+              ▼            ▼
+           iPhone GPS    Bump / Apps ✓
 ```
 
 ### Luồng toạ độ
-
 ```
-Nguồn (Manual / Route / Routine / Flight / Scenario / Replay)
+Nguồn (Route/Flight/Routine/Manual)
     ↓
-SimulationCoordinator.submit()     ← arbitrate source priority
+SimulationCoordinator.submit()
     ↓
-GPS Noise (correlated jitter)      ← nhiễu giống GPS thật
+MotionEngine (speed profile: accel → cruise → decel)
     ↓
-SpoofEngine.setLocation()
+HeadingEngine (smooth heading, dateline-safe)
     ↓
-FFI Queue (serial)                 ← thread-safe, không block UI
+GPS Noise (jitter tương quan, bán kính configurable)
     ↓
-idevice_set_location()             ← Rust FFI → DVT → iPhone GPS
+SpoofEngine.setLocation() → DVT → iPhone GPS
+    ↓
+CoordinateServer.updateCoordinate() → Shadowrocket MITM
+    ↓
+Bump nhận vị trí giả, isSimulatedBySoftware = false ✓
 ```
-
-### Source Priority
-
-```
-Manual      = 100  (luôn thắng)
-Scenario    = 80
-Flight      = 60
-Route       = 50
-Routine     = 40
-Replay      = 20
-```
-
-Chỉ MỘT source hoạt động tại một thời điểm. Source ưu tiên cao hơn tự động thay thế source thấp hơn.
 
 ---
 
 ## Yêu cầu
 
-| Yêu cầu | Chi tiết |
-|----------|----------|
-| **iPhone** | iOS 17.4 trở lên |
-| **Developer Mode** | Bật trong Settings → Privacy & Security → Developer Mode |
-| **Build** | macOS, Xcode 16+, Rust toolchain |
-| **Chạy** | Không cần máy tính sau khi cài app |
+| Thành phần | Chi tiết |
+|------------|---------|
+| macOS | Monterey 12+ (để build) |
+| Xcode | 16.0+ |
+| iPhone | iOS 17.4+ với Developer Mode bật |
+| Rust | stable (cho FFI library) |
+| XcodeGen | `brew install xcodegen` |
+| Shadowrocket | $2.99 App Store (cho bypass detection) |
 
 ---
 
 ## Build
 
-### 1. Cài đặt công cụ
-
-```bash
-# Xcode Command Line Tools
-xcode-select --install
-
-# Homebrew (nếu chưa có)
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-# XcodeGen — sinh Xcode project từ project.yml
-brew install xcodegen
-
-# Rust
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source ~/.cargo/env
-rustup target add aarch64-apple-ios
-```
-
-### 2. Clone repository
+### 1. Clone và build FFI
 
 ```bash
 git clone https://github.com/ndh0408/AutoSpoofVN.git
 cd AutoSpoofVN
-```
 
-### 3. Build thư viện Rust FFI
-
-```bash
+# Build Rust FFI cho iPhone
 cd Vendor/idevice/ffi
-
-# Build cho iPhone thật (arm64)
-cargo build --release --target aarch64-apple-ios
-
-# Copy thư viện vào đúng vị trí
-cp target/aarch64-apple-ios/release/libidevice_ffi.a ../
-
-# Verify
-file ../libidevice_ffi.a
-# → current ar archive random library
-```
-
-**Nếu gặp lỗi linker / SDK:**
-
-```bash
+rustup target add aarch64-apple-ios
 export SDKROOT=$(xcrun --sdk iphoneos --show-sdk-path)
-export CC=$(xcrun --find clang)
 cargo build --release --target aarch64-apple-ios
+
+# Copy thư viện
+cp target/aarch64-apple-ios/release/libidevice_ffi.a ../
+cd ../../..
 ```
 
-### 4. Sinh Xcode project
+### 2. Sinh project và build
 
 ```bash
-cd ../../..  # về thư mục gốc AutoSpoofVN
 xcodegen generate
-```
-
-### 5. Mở và build
-
-```bash
 open AutoSpoofVN.xcodeproj
 ```
 
 Trong Xcode:
-1. Chọn **Team** trong Signing & Capabilities (Apple ID miễn phí hoặc Developer account)
-2. Chọn device iPhone thật (không chạy trên Simulator)
-3. Build config: **Debug** hoặc **Debug-FFI** (cả hai đều bật FFI)
-4. **Cmd+R** để build và chạy
-
-### 6. Build IPA để chia sẻ
-
-```bash
-# Archive
-xcodebuild archive \
-  -project AutoSpoofVN.xcodeproj \
-  -scheme AutoSpoofVN \
-  -destination "generic/platform=iOS" \
-  -archivePath build/AutoSpoofVN.xcarchive
-
-# Export IPA
-xcodebuild -exportArchive \
-  -archivePath build/AutoSpoofVN.xcarchive \
-  -exportPath build/ \
-  -exportOptionsPlist ExportOptions.plist
-```
-
-Hoặc trong Xcode: **Product → Archive → Distribute App**.
+- Chọn Team (Signing & Capabilities)
+- Chọn scheme `AutoSpoofVN-RealFFI` (có FFI thật) hoặc `AutoSpoofVN-Mock` (dev/UI)
+- Build & Run trên iPhone thật
 
 ---
 
-## Cài đặt trên iPhone
+## Cài đặt Shadowrocket (Bypass GPS Detection)
 
-### Cách 1: Xcode trực tiếp
-Cắm iPhone → Cmd+R trong Xcode. Đơn giản nhất khi có Mac.
+### Lần đầu (one-time setup)
 
-### Cách 2: Sideload IPA
-Dùng một trong các tool sau:
-- **AltStore** — miễn phí, ký lại mỗi 7 ngày
-- **Sideloadly** — miễn phí, tương tự AltStore
-- **TrollStore** — không giới hạn thời gian (cần iOS phù hợp)
+1. **Mua Shadowrocket** ($2.99) trên App Store
+2. **Mở AutoSpoofVN** → banner sẽ hiện "Import module"
+3. **Bấm Import** → Shadowrocket mở → module tự import
+4. **Trong Shadowrocket:**
+   - Settings → HTTPS Decryption → ON → Generate Certificate → Install
+   - Trên iPhone: Settings → General → About → Certificate Trust Settings → bật CA
+5. **Bật VPN** trong Shadowrocket
 
-### Cách 3: Enterprise / TestFlight
-Nếu có Apple Developer account ($99/năm), dùng TestFlight hoặc Enterprise distribution.
+### Airplane Mode Trick (buộc WiFi positioning)
+
+```
+1. Bật Airplane Mode
+2. Tắt Location Services (Settings → Privacy → Location Services → OFF)
+3. Restart iPhone
+4. Tắt Airplane Mode
+5. Bật WiFi
+6. Bật Shadowrocket VPN
+7. Bật Location Services
+8. Mở AutoSpoofVN → bắt đầu mô phỏng
+```
+
+### Lần sau
+
+Chỉ cần bật Shadowrocket VPN → mở AutoSpoofVN → fake GPS. App tự sync toạ độ.
 
 ---
 
 ## Sử dụng
 
-### Lần đầu mở app
-
-1. **Onboarding** — hướng dẫn cài đặt nhanh
-2. **Bật Developer Mode** — Settings → Privacy & Security → Developer Mode → ON → Restart
-3. **Ghép nối** — app tự phát hiện thiết bị qua Bonjour, hiện mã PIN, bạn nhập → xong
-4. **Sẵn sàng** — bắt đầu mô phỏng
-
 ### Đặt vị trí thủ công
-
-- Chạm bản đồ → vị trí được đặt ngay
-- Hoặc nhập toạ độ trực tiếp
+- Chạm bản đồ → toạ độ được đặt ngay
+- Nhập toạ độ qua search bar
 
 ### Chạy tuyến đường
-
-1. Chạm điểm bắt đầu trên bản đồ
-2. Chạm điểm kết thúc
-3. App tính tuyến đường qua Apple Maps
-4. Chọn phương tiện (xe máy, ô tô, đi bộ...)
-5. Bấm Start — mô phỏng chạy mượt dọc tuyến
+- Route Studio → đặt waypoints → tính tuyến → Start
+- Chọn phương tiện (đi bộ / xe máy / ô tô)
+- Import/export GPX
 
 ### Chuyến bay quốc tế
-
-1. Chọn sân bay xuất phát (VD: HAN - Nội Bài)
-2. Chọn sân bay đích (VD: NRT - Narita, Tokyo)
-3. Bấm Start — mô phỏng đầy đủ check-in → taxi → takeoff → cruise → landing
+- World Travel → chọn sân bay → Start Flight
+- Hoặc bật World Odyssey để bay tự động vòng quanh thế giới
 
 ### Chu trình 24/7
-
-Bật Routine → app tự di chuyển theo lịch:
-- 07:30 Nhà → Công ty
-- 12:00 Công ty → Quán cà phê
-- 13:00 Quán cà phê → Công ty
-- 18:00 Công ty → Nhà
-- Đêm: ngủ tại nhà (GPS cố định + jitter nhẹ)
-
----
-
-## RPPairing — Ghép nối tự động
-
-AutoSpoofVN sử dụng RPPairing (Remote Pairing) để kết nối DVT trực tiếp trên thiết bị, **không cần máy tính kết nối liên tục**.
-
-### Cách hoạt động
-
-```
-App khởi động
-    ↓
-Phát Bonjour service trên mạng cục bộ
-    ↓
-iPhone phát hiện → hiện popup "Pair with AutoSpoofVN"
-    ↓
-Người dùng nhấn Pair → nhập PIN
-    ↓
-RPPairing handshake (TLS-PSK)
-    ↓
-Mở tunnel DVT
-    ↓
-LocationSimulationClient sẵn sàng
-    ↓
-GPS mô phỏng hoạt động
-```
-
-### Yêu cầu RPPairing
-
-- iPhone iOS 17.4+
-- Developer Mode đã bật
-- Quyền Local Network đã cấp cho app
-
-### Troubleshooting pairing
-
-| Vấn đề | Giải pháp |
-|--------|-----------|
-| Không thấy popup pair | Kiểm tra Developer Mode đã bật |
-| Timeout | Kiểm tra quyền Local Network trong Settings → AutoSpoofVN |
-| PIN không xuất hiện | Restart app, thử lại |
-| Kết nối DVT thất bại | Kiểm tra LocalDevVPN (10.7.0.1) |
-
----
-
-## DVT — Developer Tools Protocol
-
-DVT là cách Apple cho phép Xcode giao tiếp với iPhone để debug, profile, và **mô phỏng vị trí**. AutoSpoofVN sử dụng chính protocol này.
-
-### Chuỗi kết nối
-
-```
-TcpProvider (10.7.0.1:62078, pairing file)
-    ↓
-CoreDeviceProxy (lockdownd, CDTunnel handshake)
-    ↓
-Software Tunnel (TCP stack qua tunnel)
-    ↓
-RSD Handshake (Remote Service Discovery)
-    ↓
-RemoteServerClient (com.apple.instruments.dtservicehub)
-    ↓
-LocationSimulationClient (kênh DTX, set/clear toạ độ)
-```
-
-### FFI Bridge
-
-App gọi Rust library (`libidevice_ffi.a`) qua C FFI:
-
-```c
-// Mở phiên
-IdeviceHandle handle = idevice_connect_dvt(host, port, pairing_data, len);
-
-// Đặt GPS
-idevice_set_location(handle, 21.0285, 105.8542);  // Hoàn Kiếm
-
-// Xoá mô phỏng → về GPS thật
-idevice_clear_location(handle);
-
-// Đóng phiên
-idevice_disconnect(handle);
-```
-
-Mọi lời gọi FFI chạy trên serial queue riêng (`com.autospoof.vn.ffi`), không block main thread.
+- Routine Studio → đặt home/work/cafe
+- Bật Auto Routine → di chuyển theo lịch cả ngày
 
 ---
 
@@ -356,157 +241,101 @@ Mọi lời gọi FFI chạy trên serial queue riêng (`com.autospoof.vn.ffi`),
 
 ```
 AutoSpoofVN/
-├── Resources/
-│   ├── AutoSpoofVN.entitlements
-│   └── Info.plist
 ├── Sources/
-│   ├── AutoSpoofVNApp.swift              — App entry point
+│   ├── AutoSpoofVNApp.swift           ← @main entry point
 │   ├── Coordinator/
-│   │   └── SimulationCoordinator.swift    — Bộ não trung tâm
+│   │   └── SimulationCoordinator.swift ← nguồn sự thật duy nhất
 │   ├── Design/
-│   │   └── AppDesign.swift                — Design tokens + components
+│   │   ├── AppDesign.swift             ← design tokens + components
+│   │   └── Accessibility.swift         ← VoiceOver, Dynamic Type
 │   ├── Engine/
-│   │   ├── BackgroundKeeper.swift         — Audio + Location keep-alive
-│   │   ├── FlightManager.swift            — Chuyến bay + World Odyssey
-│   │   ├── LiveActivityManager.swift      — Dynamic Island + Lock Screen
-│   │   ├── Motion/
-│   │   │   ├── MotionEngine.swift         — Chuyển động mượt
-│   │   │   └── HeadingEngine.swift        — Heading mượt
-│   │   ├── Route/
-│   │   │   └── RouteSimulator.swift       — Mô phỏng tuyến đường
-│   │   ├── RouteProvider.swift            — Apple Maps + fallback routing
-│   │   ├── RoutineManager.swift           — Chu trình 24/7
-│   │   ├── SelfPairingManager.swift       — RPPairing tự động
-│   │   └── SpoofEngine.swift              — FFI bridge + GPS delivery
+│   │   ├── SpoofEngine.swift           ← FFI bridge tới device
+│   │   ├── CoordinateServer.swift      ← HTTP server port 8765
+│   │   ├── ShadowrocketManager.swift   ← auto-detect, setup, VPN monitor
+│   │   ├── FlightManager.swift         ← mô phỏng bay quốc tế
+│   │   ├── RoutineManager.swift        ← chu trình 24/7
+│   │   ├── RouteProvider.swift         ← Apple Maps routing + fallback
+│   │   ├── Route/RouteSimulator.swift  ← mô phỏng route 10Hz
+│   │   ├── Scenario/ScenarioEngine.swift ← automation builder
+│   │   ├── Motion/MotionEngine.swift   ← speed profiles
+│   │   ├── Motion/HeadingEngine.swift  ← smooth heading
+│   │   ├── HistoryManager.swift        ← recording + replay
+│   │   ├── AirportRepository.swift     ← 38 airports worldwide
+│   │   ├── LiveActivityManager.swift   ← Dynamic Island
+│   │   ├── BackgroundKeeper.swift      ← audio keep-alive
+│   │   ├── SelfPairingManager.swift    ← auto RPPairing
+│   │   ├── DeviceTransport.swift       ← DVT/RPPairing transport
+│   │   ├── Device/DeviceManager.swift  ← device info, heartbeat
+│   │   └── Device/ConnectionRecovery.swift ← auto-reconnect
 │   ├── Models/
-│   │   ├── ActivityAttributes.swift       — Live Activity data
-│   │   ├── SimulationSession.swift        — Session, Route, Scenario models
-│   │   ├── SimulationTypes.swift          — State machine, enums, configs
-│   │   └── Types.swift                    — Legacy types (Airport, Bookmark...)
+│   │   ├── Types.swift                 ← core types (Airport, FlightPhase, etc)
+│   │   ├── SimulationTypes.swift       ← state machine, speed profiles
+│   │   ├── SimulationSession.swift     ← session, route, scenario models
+│   │   └── FlightTypes.swift           ← DestinationInfo
 │   ├── Persistence/
-│   │   └── PersistenceManager.swift       — File storage + GPX
+│   │   ├── PersistenceManager.swift    ← Codable storage + GPX
+│   │   └── MigrationManager.swift      ← data migration
 │   └── Views/
-│       ├── DiagnosticsView.swift          — Chẩn đoán hệ thống
-│       ├── FlightHUDView.swift            — HUD chuyến bay
-│       ├── MainView.swift                 — Dashboard chính
-│       ├── OnboardingView.swift           — Hướng dẫn lần đầu
-│       └── WorldTravelView.swift          — Du lịch thế giới
-├── AutoSpoofVNTests/
-│   ├── EngineTests.swift
-│   └── RouteProviderTests.swift
-├── AutoSpoofWidgets/                      — Live Activity widget extension
-├── Vendor/
-│   └── idevice/
-│       ├── ffi/
-│       │   ├── src/
-│       │   │   ├── lib.rs                 — Rust FFI: DVT session management
-│       │   │   └── remote_pairing.rs      — Rust FFI: RPPairing protocol
-│       │   ├── Cargo.toml
-│       │   └── Cargo.lock
-│       ├── idevice.h                      — C header cho Swift
-│       ├── idevice_stub.c                 — Stub cho development (không gửi GPS)
-│       └── module.modulemap
-├── project.yml                            — XcodeGen project definition
-├── BUILD.md                               — Build instructions chi tiết
-└── ROADMAP.md                             — Kế hoạch phát triển
+│       ├── MainViewV2.swift            ← dashboard (264 lines)
+│       ├── ShadowrocketSetupView.swift ← bypass setup (tabs, hero)
+│       ├── ShadowrocketBanner.swift    ← auto-detect banner
+│       ├── LocationCloakGuideView.swift ← troubleshoot bypass
+│       ├── RouteStudioView.swift       ← route editor
+│       ├── WorldTravelViewV2.swift     ← flights + airports
+│       ├── FlightHUDView.swift         ← flight telemetry
+│       ├── RoutineStudioView.swift     ← routine editor
+│       ├── ScenarioStudioView.swift    ← automation builder
+│       ├── BookmarksView.swift         ← saved locations
+│       ├── HistoryView.swift           ← replay
+│       ├── DeviceManagerView.swift     ← pairing + diagnostics
+│       ├── SettingsView.swift          ← settings + bypass section
+│       ├── DiagnosticsV2View.swift     ← self-diagnostic
+│       ├── OnboardingViewV2.swift      ← first-run flow
+│       └── DashboardComponents.swift   ← telemetry panel
+├── Resources/
+│   ├── Info.plist
+│   ├── en.lproj/Localizable.strings
+│   └── vi.lproj/Localizable.strings
+├── Proxy/
+│   ├── autospoof-location.sgmodule    ← Shadowrocket module
+│   ├── autospoof-location.surge.sgmodule ← Surge module
+│   ├── location-spoofer.js           ← MITM script
+│   └── README.md                     ← proxy setup guide
+├── Tweak/LocationCloak/              ← jailbreak option (backup)
+├── Vendor/idevice/                   ← Rust FFI library
+└── project.yml                       ← XcodeGen project definition
 ```
 
 ---
 
-## Cài đặt app (Settings)
-
-### Mô phỏng
-| Setting | Mô tả | Mặc định |
-|---------|--------|----------|
-| GPS Noise | Nhiễu GPS tương quan | 3m |
-| Update Rate | Tần suất gửi GPS xuống thiết bị | 1 Hz |
-| Simulation Tick | Tần suất tính toán nội bộ | 10 Hz |
-| Speed Smoothing | Làm mượt tốc độ | Bật |
-| Heading Smoothing | Làm mượt hướng | Bật |
-
-### Bản đồ
-| Setting | Mô tả | Mặc định |
-|---------|--------|----------|
-| Map Style | Standard / Satellite / Hybrid | Standard |
-| Follow Mode | Bản đồ theo vị trí hiện tại | Bật |
-| 3D | Hiển thị 3D | Tắt |
-| Trail | Vẽ vết di chuyển | Bật |
-
-### Thiết bị
-| Setting | Mô tả | Mặc định |
-|---------|--------|----------|
-| Auto Reconnect | Tự kết nối lại khi đứt | Bật |
-| Heartbeat | Khoảng cách gửi heartbeat | 20s |
-
----
-
-## Chẩn đoán (Diagnostics)
-
-App có trang chẩn đoán chi tiết:
-
-```
-Thiết bị      — Connected / UDID / Model / iOS version
-Transport     — DVT / RPPairing / latency / last error
-Mô phỏng      — state / source / tick rate / update rate
-Chạy nền      — audio keeper / location / background task
-Live Activity — authorization / running / last update
-Tuyến đường    — provider / cache / distance / segments
-```
-
----
-
-## Hạn chế đã biết
-
-| Hạn chế | Chi tiết |
-|---------|----------|
-| **Background không vĩnh viễn** | iOS có thể thu hồi app sau thời gian dài ở nền. Audio keep-alive giúp kéo dài nhưng không bảo đảm 100% |
-| **Developer Mode bắt buộc** | iPhone phải bật Developer Mode. Không có cách tránh |
-| **Sideload 7 ngày** | IPA ký bằng Apple ID miễn phí hết hạn sau 7 ngày. Dùng TrollStore hoặc Enterprise cert để tránh |
-| **Altitude giả** | DVT protocol hỗ trợ latitude/longitude. Altitude không truyền được qua LocationSimulation |
-| **Không vượt qua anti-cheat** | App mô phỏng GPS ở cấp hệ thống nhưng một số game/app có thể phát hiện qua sensor fusion (accelerometer + gyroscope không khớp với GPS) |
-
----
-
-## Câu hỏi thường gặp
+## FAQ
 
 ### App có cần jailbreak không?
-Không. Dùng DVT protocol chính thức của Apple, chỉ cần Developer Mode.
+Không. Chạy với free Apple account (Developer Mode). Bypass detection cần Shadowrocket ($3).
 
-### Tôi có cần giữ máy tính kết nối không?
-Không. Sau khi cài app lên iPhone, mọi thứ chạy trên thiết bị. RPPairing tự ghép nối không cần Mac.
+### Bump có nhận vị trí giả không?
+Có — khi dùng Shadowrocket MITM. `isSimulatedBySoftware = false` vì iOS coi đây là WiFi positioning thật.
 
-### Build IPA rồi gửi cho bạn bè được không?
-Được. IPA chứa sẵn thư viện Rust FFI. Người nhận chỉ cần cài IPA và bật Developer Mode. App tự pair lần đầu mở.
+### Cần giữ máy tính kết nối không?
+Không. Sau khi build và cài lên iPhone, app chạy độc lập.
 
-### Bump / Tinder / Grab có nhận vị trí giả không?
-Có. GPS mô phỏng qua DVT hoạt động ở cấp hệ thống — mọi app đọc CLLocationManager đều nhận toạ độ giả.
+### Có cần paid Apple Developer account không?
+Không bắt buộc. Free account build được app. Paid ($99/năm) chỉ cần nếu muốn VPN tunnel trong app (thay Shadowrocket).
 
-### Pokémon GO có hoạt động không?
-GPS sẽ đổi, nhưng Niantic kiểm tra thêm accelerometer/gyroscope. Di chuyển quá nhanh hoặc teleport sẽ bị phát hiện. Dùng speed profile Walking (4.5 km/h) và GPS jitter để giảm nghi ngờ.
+### Tại sao cần Shadowrocket?
+DVT LocationSimulation (cách thông thường) set `isSimulatedBySoftware = true`. Shadowrocket MITM thay đổi WiFi positioning response — iOS không set cờ simulated cho WiFi positioning.
 
 ### App có gửi dữ liệu ra ngoài không?
-Không. Toàn bộ xử lý trên thiết bị. Không có server, không có analytics, không có tracking.
-
----
-
-## Đóng góp
-
-1. Fork repository
-2. Tạo branch: `git checkout -b feat/ten-tinh-nang`
-3. Commit: `git commit -m "feat: mo ta ngan"`
-4. Push: `git push origin feat/ten-tinh-nang`
-5. Mở Pull Request
+Không. Mọi xử lý trên device. CoordinateServer chỉ listen trên 127.0.0.1 (localhost).
 
 ---
 
 ## License
 
-Private project. All rights reserved.
-
----
+MIT
 
 ## Credit
 
-- [idevice](https://github.com/jkcoxson/idevice) — Rust crate giao tiếp iOS devices (jkcoxson)
-- Apple MapKit — Routing và bản đồ
-- Apple ActivityKit — Live Activity và Dynamic Island
+- [acheong08/ios-location-spoofer](https://github.com/acheong08/ios-location-spoofer) — VPN MITM approach reference
+- [mekos2772/ios-location-spoofer](https://github.com/mekos2772/ios-location-spoofer) — Shadowrocket/Surge module reference
+- [Apple CoreLocation Experiments](https://github.com/acheong08/apple-corelocation-experiments) — WiFi positioning protocol research
