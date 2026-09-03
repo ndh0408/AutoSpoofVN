@@ -40,8 +40,8 @@ targets:
         TARGETED_DEVICE_FAMILY: "1"   # chi iPhone (preset iOS cua XcodeGen mac dinh 1,2 gay warning orientation)
         PRODUCT_BUNDLE_IDENTIFIER: com.autospoof.vn
         PRODUCT_NAME: AutoSpoofVN
-        MARKETING_VERSION: "1.0.0"
-        CURRENT_PROJECT_VERSION: "1"
+        MARKETING_VERSION: "2.0.0"
+        CURRENT_PROJECT_VERSION: "2"
         INFOPLIST_FILE: AutoSpoofVN/Resources/Info.plist
         CODE_SIGN_ENTITLEMENTS: AutoSpoofVN/Resources/AutoSpoofVN.entitlements
         CODE_SIGN_STYLE: Automatic

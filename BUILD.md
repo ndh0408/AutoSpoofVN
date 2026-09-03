@@ -10,7 +10,7 @@ Dự án có hai chế độ, chọn bằng `-configuration`:
 | Config | Link `libidevice_ffi` | Cờ Swift | Kết quả |
 | --- | --- | --- | --- |
 | `Debug` / `Release` | Không | (không) | Build xanh ở bất kỳ máy nào. GPS thật **không** đổi. |
-| `Debug-FFI` | Có | `USE_IDEVICE_FFI` | Cần `Vendor/idevice/libidevice_ffi.a`. Chưa có file này. |
+| `Debug-FFI` | Có | `USE_IDEVICE_FFI` | Cần `Vendor/idevice/libidevice_ffi.a`. Từ 2026-09-03 đây là thư viện Rust **thật** (build tại mục 6), không còn là stub — đã build lại và `** BUILD SUCCEEDED **` trên tahoe. |
 
 Chế độ mặc định là **mô phỏng**. Toàn bộ giao diện, lịch trình 24/7 và mô phỏng chuyến bay
 chạy được, chỉ có bước gửi toạ độ xuống thiết bị là không có thật.
@@ -153,7 +153,23 @@ tar -xf rust-std-1.98.0-aarch64-apple-ios.tar.xz
 
 ## 7. Việc chưa làm được
 
-- Chưa chạy thử trên thiết bị thật. Kể cả khi có `libidevice_ffi.a`, để đổi được GPS
-  còn cần: pairing record sinh từ máy tính một lần, VPN loopback đang bật, Developer Mode
-  bật trong Settings, và Developer Disk Image đã mount (DDI mất sau mỗi lần khởi động máy).
-- Chưa có chữ ký để cài lên máy thật, chưa có AppIcon, chưa có test tự động.
+- Cập nhật 2026-09-03: `libidevice_ffi.a` **thật** đã build xong trên tahoe (lệnh ở mục 6,
+  offline bằng `vendor/` đã tải sẵn, ~1 phút 14s, chỉ 2 warning vô hại) và link thành công
+  vào `Debug-FFI` (`** BUILD SUCCEEDED **`). File nhị phân không commit vào git (`.gitignore`
+  loại `Vendor/idevice/*.a`) — máy build nào cũng phải tự dựng lại theo mục 6.
+- Test tự động: đã có (`AutoSpoofVNTests/SimulationStudioTests.swift`), 25/25 test pass trên
+  simulator `iPhone 17` (Xcode 26.5).
+- Chưa chạy thử trên thiết bị thật. Kể cả khi có `libidevice_ffi.a` thật, để đổi được GPS
+  còn cần, tự tay trên máy có Xcode + thiết bị cắm dây:
+  1. Sinh **pairing record** một lần từ máy tính (không làm được qua SSH — cần thiết bị vật lý
+     cắm vào máy đó và xác nhận "Trust" trên màn hình iPhone).
+  2. Bật **Developer Mode** trong Settings > Privacy & Security trên iPhone (yêu cầu khởi động
+     lại máy sau khi bật).
+  3. Mount **Developer Disk Image (DDI)** — Xcode tự mount khi thấy thiết bị Developer Mode đã
+     bật và đã trust; DDI mất sau mỗi lần khởi động lại iPhone, phải mount lại.
+  4. Bật **VPN loopback** (LocalDevVPN) để app gọi được `10.7.0.1:62078`/`:49152`.
+  5. **Chữ ký (code signing)**: cần Apple ID/Team ID thật của bạn khai vào `DEVELOPMENT_TEAM`
+     trong `project.yml`, hoặc set qua Xcode UI — hiện đang để trống (`CODE_SIGN_STYLE: Automatic`
+     nhưng `DEVELOPMENT_TEAM: ""`).
+  6. Chưa có AppIcon.
+  Các bước 1–4 cần thao tác tay trên máy Mac + iPhone thật, agent không làm thay được qua SSH.
