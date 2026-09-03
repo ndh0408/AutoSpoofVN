@@ -222,6 +222,6 @@ extension BackgroundKeeper: CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         // Không tắt isLocationUpdating: lỗi tạm thời (mất tín hiệu) là bình thường và
         // CoreLocation sẽ tự thử lại.
-        print("[BackgroundKeeper] CoreLocation lỗi: \(error.localizedDescription)")
+        AppLogger.background.info("[BackgroundKeeper] CoreLocation lỗi: \(error.localizedDescription)")
     }
 }
