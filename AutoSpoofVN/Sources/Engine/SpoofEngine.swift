@@ -325,7 +325,7 @@ final class SpoofEngine: ObservableObject {
             _ = idevice_clear_location(handle)
         }
         #endif
-        print("[SpoofEngine] Đã xoá mô phỏng toạ độ, khôi phục GPS thật.")
+        AppLogger.simulation.info(" Đã xoá mô phỏng toạ độ, khôi phục GPS thật.")
     }
 
     /// Ngắt kết nối DVT.
