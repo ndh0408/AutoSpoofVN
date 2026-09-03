@@ -1,0 +1,19 @@
+# Xcode
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+DerivedData/
+build/
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# XcodeGen sinh ra
+AutoSpoofVN.xcodeproj/
+
+# Thu vien FFI bien dich san (khong commit binary)
+Vendor/idevice/*.a
+Vendor/idevice/*.dylib
+
+# He thong
+.DS_Store
