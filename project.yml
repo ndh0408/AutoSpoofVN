@@ -15,6 +15,50 @@ settings:
     SWIFT_VERSION: "5.0"
     TARGETED_DEVICE_FAMILY: "1"   # chi iPhone: MainView khoa doc, khai bao 1,2 gay warning orientation iPad
     IPHONEOS_DEPLOYMENT_TARGET: "17.4"
+    # Dat o day (project-wide) de app va widget extension LUON cung version - Apple bat buoc
+    # CFBundleVersion cua app extension phai khop voi app cha, khac se bi tu choi khi archive.
+    # scripts/bump_version.sh chi can sua 1 cho nay.
+    MARKETING_VERSION: "2.0.0"
+    CURRENT_PROJECT_VERSION: "2"
+schemes:
+  # Chay tren simulator hoac may that deu duoc. GPS KHONG doi that - dung de xem giao dien,
+  # thu route/scenario/routine/lich su. Day la scheme mac dinh khi mo project.
+  AutoSpoofVN-Mock:
+    build:
+      targets:
+        AutoSpoofVN: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - AutoSpoofVNTests
+    profile:
+      config: Debug
+    analyze:
+      config: Debug
+    archive:
+      config: Release
+  # Can libidevice_ffi.a THAT (build theo BUILD.md muc 6) va chi chay duoc tren
+  # THIET BI THAT cam day (thu vien bien dich cho arm64-apple-ios, khong co ban simulator).
+  # Con can: pairing record, Developer Mode, VPN loopback - xem BUILD.md muc 7.
+  AutoSpoofVN-RealFFI:
+    build:
+      targets:
+        AutoSpoofVN: all
+    run:
+      config: Debug-FFI
+    test:
+      config: Debug-FFI
+      targets:
+        - AutoSpoofVNTests
+    profile:
+      config: Debug-FFI
+    analyze:
+      config: Debug-FFI
+    archive:
+      config: Release
+
 targets:
   AutoSpoofVN:
     type: application
@@ -40,8 +84,6 @@ targets:
         TARGETED_DEVICE_FAMILY: "1"   # chi iPhone (preset iOS cua XcodeGen mac dinh 1,2 gay warning orientation)
         PRODUCT_BUNDLE_IDENTIFIER: com.autospoof.vn
         PRODUCT_NAME: AutoSpoofVN
-        MARKETING_VERSION: "2.0.0"
-        CURRENT_PROJECT_VERSION: "2"
         INFOPLIST_FILE: AutoSpoofVN/Resources/Info.plist
         CODE_SIGN_ENTITLEMENTS: AutoSpoofVN/Resources/AutoSpoofVN.entitlements
         CODE_SIGN_STYLE: Automatic
