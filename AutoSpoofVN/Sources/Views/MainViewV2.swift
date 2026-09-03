@@ -92,7 +92,7 @@ struct MainViewV2: View {
         .sheet(isPresented: $showDeviceManager) { DeviceManagerView() }
         .sheet(isPresented: $showSettings) { SettingsView() }
         .sheet(isPresented: $showHistory) { HistoryView() }
-        .sheet(isPresented: $showWorldTravel) { WorldTravelView() }
+        .sheet(isPresented: $showWorldTravel) { WorldTravelViewV2() }
         .sheet(isPresented: $showDiagnostics) { DiagnosticsView() }
         .sheet(isPresented: $showBookmarks) { BookmarksView() }
         .sheet(isPresented: $showTelemetryDetail) {
