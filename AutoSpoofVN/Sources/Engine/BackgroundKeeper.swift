@@ -72,12 +72,27 @@ final class BackgroundKeeper: NSObject, ObservableObject {
         locationManager.stopUpdatingLocation()
         locationManager.allowsBackgroundLocationUpdates = false
         isLocationUpdating = false
-        try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
+        DispatchQueue.global(qos: .userInitiated).async {
+            try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
+        }
     }
 
     // MARK: - Audio
 
     private func startAudio() {
+        // Dispatch audio setup off main thread — AVAudioSession.setActive blocks
+        // briefly và iOS 18 cảnh báo nếu gọi trên main thread.
+        let work = { [weak self] in
+            self?.configureAndPlayAudio()
+        }
+        if Thread.isMainThread {
+            DispatchQueue.global(qos: .userInitiated).async(execute: work)
+        } else {
+            work()
+        }
+    }
+
+    private func configureAndPlayAudio() {
         do {
             let session = AVAudioSession.sharedInstance()
             // .mixWithOthers để không cướp audio của app khác; đổi lại phiên dễ bị thu hồi hơn,
