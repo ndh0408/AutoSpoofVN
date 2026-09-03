@@ -6,10 +6,8 @@ options:
   xcodeVersion: "16.0"
   createIntermediateGroups: true
 configs:
-  # Debug/Release: build "mock" - KHONG link libidevice_ffi, chay duoc ngay tren may bat ky.
   Debug: debug
   Release: release
-  # Debug-FFI: chi dung KHI DA co Vendor/idevice/libidevice_ffi.a cho aarch64-apple-ios.
   Debug-FFI: debug
 settings:
   base:
@@ -25,6 +23,7 @@ targets:
       - path: AutoSpoofVN
         excludes:
           - "**/Info.plist"
+          - AutoSpoofWidgets
       - path: Vendor/idevice/module.modulemap
         buildPhase: none
       - path: Vendor/idevice/idevice.h
@@ -33,6 +32,9 @@ targets:
         buildPhase: none
       - path: Vendor/idevice/ffi
         buildPhase: none
+    dependencies:
+      - target: AutoSpoofWidgets
+        embed: true
     settings:
       base:
         TARGETED_DEVICE_FAMILY: "1"   # chi iPhone (preset iOS cua XcodeGen mac dinh 1,2 gay warning orientation)
@@ -51,18 +53,15 @@ targets:
           - "$(PROJECT_DIR)/Vendor/idevice"
         OTHER_LDFLAGS:
           - "$(inherited)"
+          - "-lidevice_ffi"
           - "-lc++"
           - "-lz"
         SWIFT_INCLUDE_PATHS: "$(PROJECT_DIR)/Vendor/idevice"
         HEADER_SEARCH_PATHS: "$(PROJECT_DIR)/Vendor/idevice"
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) USE_IDEVICE_FFI"
       configs:
-        # Bat cau noi FFI that. Yeu cau Vendor/idevice/libidevice_ffi.a phai ton tai,
-        # neu khong buoc link se bao: ld: library 'idevice_ffi' not found.
         Debug-FFI:
           SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) USE_IDEVICE_FFI"
-          OTHER_LDFLAGS:
-            - "$(inherited)"
-            - "-lidevice_ffi"
 
   AutoSpoofVNTests:
     type: bundle.unit-test
@@ -76,3 +75,19 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.autospoof.vn.tests
         GENERATE_INFOPLIST_FILE: true
         TARGETED_DEVICE_FAMILY: "1"
+
+  AutoSpoofWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: AutoSpoofWidgets
+      - path: AutoSpoofVN/Sources/Models/ActivityAttributes.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.autospoof.vn.widgets
+        PRODUCT_NAME: AutoSpoofWidgets
+        INFOPLIST_FILE: AutoSpoofWidgets/Info.plist
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+        GENERATE_INFOPLIST_FILE: false
+        SWIFT_VERSION: "5.0"

@@ -150,10 +150,10 @@ struct OnboardingView: View {
 
                         OnboardingCheckRow(
                             number: 4,
-                            title: "Đã nạp pairing file",
-                            detail: engine.pairingSummary,
+                            title: "Đã ghép nối thiết bị",
+                            detail: hasPairingData ? engine.pairingSummary : "Chưa ghép nối. Có thể tự ghép nối trực tiếp trên iPhone hoặc chọn file dự phòng.",
                             state: hasPairingData ? .complete : .incomplete,
-                            actionTitle: "Chọn file",
+                            actionTitle: "Ghép nối",
                             action: { showingPairingSetup = true }
                         )
 

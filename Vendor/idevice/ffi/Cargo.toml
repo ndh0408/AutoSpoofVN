@@ -10,7 +10,8 @@ crate-type = ["staticlib"]
 [dependencies]
 idevice = { version = "0.1.65", default-features = false, features = [
   "aws-lc", "tcp", "core_device_proxy", "tunnel_tcp_stack", "rsd", "xpc",
-  "dvt", "location_simulation", "heartbeat", "mobile_image_mounter", "pair", "tss"
+  "dvt", "location_simulation", "heartbeat", "mobile_image_mounter", "pair",
+  "remote_pairing", "tss"
 ] }
 tokio = { version = "1", features = ["rt", "rt-multi-thread", "net", "io-util", "time", "sync", "macros"] }
 

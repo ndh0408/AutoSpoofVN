@@ -61,6 +61,9 @@ final class SpoofEngine: ObservableObject {
     /// Mô tả ngắn về pairing record đang nạp, để hiển thị trên UI.
     var pairingSummary: String {
         guard let d = pairingData, !d.isEmpty else { return "Chưa nạp pairing file" }
+        if d.starts(with: Array("<?xml".utf8)) && (String(data: d, encoding: .utf8)?.contains("public_key") == true) {
+            return "Đã ghép nối RPPairing trên máy (\(d.count) byte)"
+        }
         let kind = d.starts(with: Array("bplist".utf8)) ? "binary plist" : "plist văn bản"
         return "Đã nạp \(d.count) byte (\(kind))"
     }
@@ -103,6 +106,8 @@ final class SpoofEngine: ObservableObject {
                let text = String(data: saved, encoding: .utf8) {
                 self.pairingPlist = text
             }
+        } else if let sandboxData = try? Data(contentsOf: SelfPairingManager.pairingFileURL), !sandboxData.isEmpty {
+            self.pairingData = sandboxData
         } else if let legacy = UserDefaults.standard.string(forKey: "autospoof_pairing_plist") {
             // Di trú từ bản cũ từng lưu dạng chuỗi.
             self.pairingPlist = legacy
@@ -262,9 +267,14 @@ final class SpoofEngine: ObservableObject {
         ffiQueue.async { [weak self] in
             guard let self = self else { return }
             #if USE_IDEVICE_FFI
+            let isRPPairing = (try? PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any])?["public_key"] != nil
             let handle: UnsafeMutableRawPointer? = data.withUnsafeBytes { raw in
                 guard let base = raw.bindMemory(to: UInt8.self).baseAddress else { return nil }
-                return idevice_connect_dvt("10.7.0.1", 62078, base, raw.count)
+                if isRPPairing {
+                    return idevice_connect_dvt_remote("10.7.0.1", 49152, base, raw.count, "000000")
+                } else {
+                    return idevice_connect_dvt("10.7.0.1", 62078, base, raw.count)
+                }
             }
             self.deviceHandle = handle
             // Đọc lý do thất bại NGAY, trước bất kỳ lời gọi FFI nào khác:
@@ -274,7 +284,9 @@ final class SpoofEngine: ObservableObject {
                 if handle != nil {
                     self.isLoopbackConnected = true
                     self.lastFFIError = nil
-                    self.connectionStatus = "Đã kết nối DVT Loopback (10.7.0.1)"
+                    self.connectionStatus = isRPPairing
+                        ? "Đã kết nối DVT thật qua RPPairing (10.7.0.1:49152)"
+                        : "Đã kết nối DVT Loopback (10.7.0.1:62078)"
                 } else {
                     self.isLoopbackConnected = false
                     self.lastFFIError = reason
@@ -283,8 +295,9 @@ final class SpoofEngine: ObservableObject {
             }
             #else
             DispatchQueue.main.async {
-                self.isLoopbackConnected = true
-                self.connectionStatus = "Chế độ MÔ PHỎNG (chưa có libidevice_ffi) - GPS thật KHÔNG đổi"
+                self.isLoopbackConnected = false
+                self.lastFFIError = "Bản build thiếu thư viện Rust FFI"
+                self.connectionStatus = "Chưa kết nối: bản build chưa có libidevice_ffi.a"
             }
             #endif
         }

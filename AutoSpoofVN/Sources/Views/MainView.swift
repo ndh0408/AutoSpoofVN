@@ -164,7 +164,7 @@ struct MainView: View {
                         HStack {
                             Image(systemName: "link.badge.plus")
                                 .foregroundColor(.orange)
-                            Text("Chưa kết nối DVT: chạm bản đồ chưa thể đổi GPS.")
+                            Text("Chưa kết nối DVT thật: hãy bật LocalDevVPN hoặc tự ghép nối.")
                                 .font(.caption2)
                             Spacer()
                         }
@@ -176,9 +176,9 @@ struct MainView: View {
                     }
                     #else
                     HStack {
-                        Image(systemName: "testtube.2")
-                            .foregroundColor(.orange)
-                        Text("CHẾ ĐỘ MÔ PHỎNG — GPS thật không đổi.")
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundColor(.red)
+                        Text("Bản build thiếu FFI thật: chưa thể đổi GPS hệ thống.")
                             .font(.caption2)
                             .fontWeight(.bold)
                         Spacer()
@@ -389,6 +389,7 @@ struct MainView: View {
 struct PairingSetupView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var engine: SpoofEngine
+    @StateObject private var selfPairing = SelfPairingManager.shared
     @State private var showingFileImporter = false
     @State private var textInput = ""
     @State private var pairingData: Data?
@@ -421,6 +422,66 @@ struct PairingSetupView: View {
                         Label(error, systemImage: "exclamationmark.triangle.fill")
                             .font(.caption)
                             .foregroundColor(.red)
+                    }
+                }
+
+                Section(header: Text("Tự động ghép nối trên iPhone (Khuyên dùng)")) {
+                    Text("1. Bật **LocalDevVPN** trên thiết bị.")
+                    Text("2. Bấm nút bên dưới để phát dịch vụ ghép nối.")
+                    Text("3. Mở **Cài đặt > Quyền riêng tư & Bảo mật > Chế độ Nhà phát triển**, chọn **Pair with AutoSpoofVN** và nhập mã PIN.")
+
+                    switch selfPairing.phase {
+                    case .idle:
+                        Button {
+                            selfPairing.startAutoPairing()
+                        } label: {
+                            Label("Bắt đầu tự ghép nối trên iPhone", systemImage: "sparkles")
+                                .font(.headline)
+                        }
+                    case .requestingPermission:
+                        ProgressView("Đang yêu cầu quyền Mạng cục bộ...")
+                    case .advertising:
+                        VStack(alignment: .leading, spacing: 6) {
+                            HStack {
+                                ProgressView()
+                                Text("Đang chờ iPhone kết nối...")
+                                    .font(.subheadline)
+                            }
+                            Text("Vào Settings > Privacy & Security > Developer Mode > Pair with AutoSpoofVN.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Button("Huỷ", role: .cancel) {
+                                selfPairing.cancel()
+                            }
+                            .font(.caption)
+                        }
+                    case .showPin(let pin):
+                        VStack(spacing: 8) {
+                            Text("Nhập mã này vào mục Pair with AutoSpoofVN:")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Text(pin)
+                                .font(.system(size: 34, weight: .bold, design: .monospaced))
+                                .padding(.vertical, 4)
+                                .padding(.horizontal, 16)
+                                .background(.thinMaterial)
+                                .cornerRadius(8)
+                            ProgressView("Đang xác thực...")
+                        }
+                    case .connectingTunnel:
+                        ProgressView("Ghép nối thành công, đang mở tunnel DVT...")
+                    case .success(let name, _, _):
+                        Label("Đã ghép nối xong với " + name, systemImage: "checkmark.circle.fill")
+                            .foregroundColor(.green)
+                    case .failed(let message):
+                        VStack(alignment: .leading, spacing: 6) {
+                            Label(message, systemImage: "exclamationmark.triangle.fill")
+                                .foregroundColor(.red)
+                                .font(.caption)
+                            Button("Thử lại") {
+                                selfPairing.startAutoPairing()
+                            }
+                        }
                     }
                 }
 

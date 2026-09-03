@@ -20,6 +20,8 @@
 	<string>1.0.0</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSLocationWhenInUseUsageDescription</key>
@@ -27,7 +29,17 @@
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Cần quyền vị trí để duy trì mô phỏng di chuyển ngầm tự nhiên.</string>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>Cần truy cập mạng cục bộ để kết nối với dịch vụ mô phỏng vị trí DVT trên thiết bị.</string>
+	<string>Cần truy cập mạng cục bộ để tự động ghép nối và kết nối mô phỏng vị trí DVT trên thiết bị.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_remotepairing-pairable-host._tcp</string>
+		<string>_remotepairing-manual-pairing._tcp</string>
+		<string>_autospoofprobe._tcp</string>
+	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>$(PRODUCT_BUNDLE_IDENTIFIER).pairing</string>
+	</array>
 	<!-- audio: phat WAV im lang de giu tien trinh song.
 	     location: CLLocationManager voi allowsBackgroundLocationUpdates trong
 	     BackgroundKeeper - vua hop thuc hoa khai bao nay, vua la co che duy nhat

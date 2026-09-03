@@ -29,10 +29,44 @@ extern "C" {
  * Toạ độ mô phỏng chỉ tồn tại chừng nào phiên còn mở. Gọi idevice_disconnect() là
  * thiết bị tự trả lại GPS thật.
  *
- * ABI version 2.
+ * ABI version 3.
  */
 
 typedef void* IdeviceHandle;
+
+typedef void (*IdevicePairingReadyCallback)(void* context,
+                                            const char* service_id,
+                                            uint16_t port,
+                                            const char* const* txt_keys,
+                                            const char* const* txt_values,
+                                            size_t txt_count);
+typedef void (*IdevicePairingPinCallback)(const char* pin, void* context);
+
+typedef struct {
+    char* error;
+    char* device_name;
+    char* device_model;
+    char* device_udid;
+    char* pairing_file_path;
+} IdevicePairingResult;
+
+/**
+ * Chạy listener RPPairing trên chính iPhone. Swift quảng bá thông tin được trả
+ * qua ready_callback bằng NetService; người dùng chọn "Pair with AutoSpoofVN"
+ * trong Developer Mode và nhập PIN từ pin_callback.
+ */
+int32_t idevice_pairing_host_run(const char* bind_address,
+                                 const char* host_name,
+                                 const char* model,
+                                 const char* output_path,
+                                 uint32_t timeout_seconds,
+                                 IdevicePairingReadyCallback ready_callback,
+                                 IdevicePairingPinCallback pin_callback,
+                                 void* context,
+                                 IdevicePairingResult* output);
+
+/** Giải phóng các chuỗi trong IdevicePairingResult. */
+void idevice_pairing_result_free(IdevicePairingResult* result);
 
 /**
  * Mở phiên mô phỏng vị trí.
@@ -52,6 +86,16 @@ IdeviceHandle idevice_connect_dvt(const char* host,
                                   const uint8_t* pairing_data,
                                   size_t pairing_len);
 
+/**
+ * Mở phiên DVT qua RPPairing iOS 27, không cần lockdown pairing record từ máy tính.
+ * Cổng mặc định của LocalDevVPN là 49152; PIN chỉ dùng nếu thiết bị yêu cầu pair lại.
+ */
+IdeviceHandle idevice_connect_dvt_remote(const char* host,
+                                         uint16_t pairing_port,
+                                         const uint8_t* pairing_data,
+                                         size_t pairing_len,
+                                         const char* pin);
+
 /** Đặt toạ độ mô phỏng. Trả về false nếu thất bại; xem idevice_last_error(). */
 bool idevice_set_location(IdeviceHandle handle, double latitude, double longitude);
 
@@ -68,7 +112,7 @@ void idevice_disconnect(IdeviceHandle handle);
  */
 const char* idevice_last_error(void);
 
-/** Phiên bản ABI của thư viện đang link. Hiện là 2. */
+/** Phiên bản ABI của thư viện đang link. Hiện là 3. */
 int idevice_ffi_abi_version(void);
 
 #ifdef __cplusplus

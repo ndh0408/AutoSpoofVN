@@ -41,17 +41,19 @@ use idevice::{IdeviceError, ReadWrite};
 
 use tokio::sync::mpsc;
 
+mod remote_pairing;
+
 // ---------------------------------------------------------------- lỗi gần nhất
 
 static LAST_ERROR: Mutex<Option<CString>> = Mutex::new(None);
 
-fn set_last_error(msg: impl Into<String>) {
+pub(crate) fn set_last_error(msg: impl Into<String>) {
     if let Ok(mut slot) = LAST_ERROR.lock() {
         *slot = CString::new(msg.into()).ok();
     }
 }
 
-fn clear_last_error() {
+pub(crate) fn clear_last_error() {
     if let Ok(mut slot) = LAST_ERROR.lock() {
         *slot = None;
     }
@@ -72,7 +74,7 @@ pub extern "C" fn idevice_last_error() -> *const c_char {
 
 type Reply = stdmpsc::Sender<Result<(), String>>;
 
-enum Cmd {
+pub(crate) enum Cmd {
     Set(f64, f64, Reply),
     Clear(Reply),
 }
@@ -132,9 +134,25 @@ async fn session_task(
         Ok(a) => a,
         Err(e) => bail!(format!("không dựng được software tunnel: {e}")),
     };
-    let mut handle = adapter.to_async_handle();
+    let handle = adapter.to_async_handle();
+    serve_location_session(handle, rsd_port, ready, rx).await;
+}
 
-    // Chặng 4: bắt tay RemoteServiceDiscovery
+/// Dùng chung phần RSD -> dtservicehub -> LocationSimulation cho cả đường
+/// lockdown cũ và đường RPPairing tự động trên iOS 27.
+pub(crate) async fn serve_location_session(
+    mut handle: idevice::tcp::handle::AdapterHandle,
+    rsd_port: u16,
+    ready: stdmpsc::Sender<Result<(), String>>,
+    mut rx: mpsc::Receiver<Cmd>,
+) {
+    macro_rules! bail {
+        ($msg:expr) => {{
+            let _ = ready.send(Err($msg));
+            return;
+        }};
+    }
+
     let rsd_stream = match handle.connect_to_service_port(rsd_port).await {
         Ok(s) => s,
         Err(e) => bail!(format!("không nối được tới cổng RSD {rsd_port}: {e}")),
@@ -144,46 +162,42 @@ async fn session_task(
         Err(e) => bail!(format!("bắt tay RSD thất bại: {e}")),
     };
 
-    // Chặng 5: dtservicehub. Chỉ được quảng bá khi Developer Disk Image đã mount.
     let mut remote: RemoteServerClient<Box<dyn ReadWrite>> =
         match handshake.connect(&mut handle).await {
             Ok(r) => r,
             Err(IdeviceError::ServiceNotFound) => bail!(
                 "thiết bị không quảng bá com.apple.instruments.dtservicehub. Thường là do \
                  chưa mount Developer Disk Image, hoặc chưa bật Developer Mode trong \
-                 Settings > Privacy & Security. DDI mất sau mỗi lần khởi động lại máy."
+                 Settings > Privacy & Security."
                     .to_string()
             ),
             Err(e) => bail!(format!("không mở được dtservicehub: {e}")),
         };
 
-    // Chặng 6: kênh DTX cho mô phỏng vị trí
     let mut loc = match LocationSimulationClient::new(&mut remote).await {
         Ok(l) => l,
         Err(e) => bail!(format!("không mở được kênh LocationSimulation: {e}")),
     };
 
     let _ = ready.send(Ok(()));
-
     while let Some(cmd) = rx.recv().await {
         match cmd {
             Cmd::Set(lat, lon, reply) => {
-                let r = loc
+                let result = loc
                     .set(lat, lon)
                     .await
                     .map_err(|e| format!("đặt toạ độ thất bại: {e}"));
-                let _ = reply.send(r);
+                let _ = reply.send(result);
             }
             Cmd::Clear(reply) => {
-                let r = loc
+                let result = loc
                     .clear()
                     .await
                     .map_err(|e| format!("xoá mô phỏng thất bại: {e}"));
-                let _ = reply.send(r);
+                let _ = reply.send(result);
             }
         }
     }
-    // Kênh lệnh đóng: rời hàm, mọi tầng được thả, thiết bị tự trả lại GPS thật.
 }
 
 // ---------------------------------------------------------------- API C
@@ -340,5 +354,5 @@ pub unsafe extern "C" fn idevice_disconnect(handle: *mut Session) {
 /// Phiên bản ABI. Tăng khi chữ ký các hàm trên thay đổi.
 #[unsafe(no_mangle)]
 pub extern "C" fn idevice_ffi_abi_version() -> c_int {
-    2
+    3
 }
