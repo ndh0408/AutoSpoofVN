@@ -1,0 +1,67 @@
+/* Simulation */
+"simulation.running" = "Simulating";
+"simulation.paused" = "Paused";
+"simulation.idle" = "Ready";
+"simulation.preparing" = "Preparing";
+"simulation.stopping" = "Stopping";
+"simulation.completed" = "Completed";
+
+/* Device */
+"device.connected" = "Connected";
+"device.disconnected" = "Disconnected";
+"device.connecting" = "Connecting...";
+"device.pairing" = "Pairing";
+
+/* Route */
+"route.distance" = "Distance";
+"route.eta" = "ETA";
+"route.source" = "Route Source";
+"route.source.mapkit" = "Apple Maps";
+"route.source.fallback" = "Straight Line";
+
+/* Travel Mode */
+"travel.walking" = "Walking";
+"travel.cycling" = "Cycling";
+"travel.motorcycle" = "Motorcycle";
+"travel.driving" = "Driving";
+"travel.train" = "Train";
+"travel.flight" = "Flight";
+
+/* Actions */
+"action.start" = "Start";
+"action.stop" = "Stop";
+"action.pause" = "Pause";
+"action.resume" = "Resume";
+"action.retry" = "Retry";
+"action.save" = "Save";
+"action.delete" = "Delete";
+"action.cancel" = "Cancel";
+"action.close" = "Close";
+"action.diagnostics" = "Diagnostics";
+
+/* Empty States */
+"empty.routes" = "No routes yet";
+"empty.routes.message" = "Create your first route to start simulating.";
+"empty.scenarios" = "No scenarios yet";
+"empty.history" = "No history yet";
+"empty.bookmarks" = "No bookmarks yet";
+"empty.device" = "No device connected";
+
+/* Errors */
+"error.connection_lost" = "Cannot send location to device.";
+"error.pairing_failed" = "Pairing failed";
+"error.route_failed" = "Route calculation failed";
+
+/* Recovery */
+"recovery.title" = "Unfinished simulation detected";
+"recovery.resume" = "Resume";
+"recovery.discard" = "Discard";
+"recovery.details" = "View details";
+
+/* Settings */
+"settings.simulation" = "Simulation";
+"settings.map" = "Map";
+"settings.device" = "Device";
+"settings.background" = "Background";
+"settings.appearance" = "Appearance";
+"settings.developer" = "Developer";
