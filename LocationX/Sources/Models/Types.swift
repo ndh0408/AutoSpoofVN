@@ -191,6 +191,11 @@ struct FlightSimulation: Identifiable, Codable {
     var remainingDistanceKm: Double
     var estimatedMinutesRemaining: Double
     var altitudeMeters: Double
+    /// Huong bay hien tai (do).
+    ///
+    /// Co gia tri mac dinh nen memberwise init cu van dung duoc, va file JSON cu (neu co)
+    /// van giai ma duoc.
+    var headingDegrees: Double = 0
 }
 
 /// Tuyen duong di chuyen dinh san

@@ -450,6 +450,8 @@ final class SimulationCoordinator: ObservableObject {
             .sink { [weak self] sim in
                 self?.telemetry.speedKmh = sim.currentSpeedKmh
                 self?.telemetry.altitudeMeters = sim.altitudeMeters
+                // Bac ca huong bay — thieu dong nay thi moi man hinh hien "0 B" khi bay.
+                self?.telemetry.headingDegrees = sim.headingDegrees
             }
             .store(in: &cancellables)
 

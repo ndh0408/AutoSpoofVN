@@ -72,6 +72,12 @@ targets:
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks"
 
+      configs:
+        # Ban Release dung entitlements KHONG co `get-task-allow`. Giu co do trong ban
+        # archive la bi App Store tu choi.
+        Release:
+          CODE_SIGN_ENTITLEMENTS: LocationX/Resources/LocationX.Release.entitlements
+
   LocationXTests:
     type: bundle.unit-test
     platform: iOS

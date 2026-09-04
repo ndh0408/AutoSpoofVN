@@ -1,7 +1,21 @@
 import SwiftUI
 
 /// Diagnostics 2.0 — dashboard chẩn đoán toàn diện + self-diagnostic.
+/// So luong ban ghi da luu.
+///
+/// Doc MOT LAN khi man hinh xuat hien. Truoc day bon dong nay goi thang
+/// `PersistenceManager.shared.loadX()` NGAY TRONG `body`, nghia la moi lan SwiftUI dung
+/// lai view la bon lan giai ma JSON dong bo tren main thread — ma `history.json` co the
+/// nang hang chuc MB vi moi ban ghi nhung toi 5000 diem phat lai.
+private struct StorageCounts {
+    var routes = 0
+    var scenarios = 0
+    var bookmarks = 0
+    var history = 0
+}
+
 struct DiagnosticsV2View: View {
+    @State private var storageCounts = StorageCounts()
     @StateObject private var coordinator = SimulationCoordinator.shared
     @StateObject private var device = DeviceManager.shared
     @StateObject private var keeper = BackgroundKeeper.shared
@@ -97,10 +111,10 @@ struct DiagnosticsV2View: View {
 
                 // Route
                 Section {
-                    DiagField("Routes saved", value: "\(PersistenceManager.shared.loadRoutes().count)")
-                    DiagField("Scenarios", value: "\(PersistenceManager.shared.loadScenarios().count)")
-                    DiagField("Bookmarks", value: "\(PersistenceManager.shared.loadBookmarks().count)")
-                    DiagField("History", value: "\(PersistenceManager.shared.loadHistory().count)")
+                    DiagField("Routes saved", value: "\(storageCounts.routes)")
+                    DiagField("Scenarios", value: "\(storageCounts.scenarios)")
+                    DiagField("Bookmarks", value: "\(storageCounts.bookmarks)")
+                    DiagField("History", value: "\(storageCounts.history)")
                 } header: { Label(L("diagnostics.data"), systemImage: "internaldrive") }
 
                 // Export
@@ -108,6 +122,18 @@ struct DiagnosticsV2View: View {
                     Button("Export diagnostics (JSON)") { exportDiagnosticsJSON() }
                     Button("Export diagnostics (CSV)") { exportDiagnosticsCSV() }
                 } header: { Label(L("diagnostics.export"), systemImage: "square.and.arrow.up") }
+            }
+            .task {
+                // Doc ngoai main thread roi moi gan vao state.
+                let counts = await Task.detached(priority: .utility) {
+                    StorageCounts(
+                        routes: PersistenceManager.shared.loadRoutes().count,
+                        scenarios: PersistenceManager.shared.loadScenarios().count,
+                        bookmarks: PersistenceManager.shared.loadBookmarks().count,
+                        history: PersistenceManager.shared.loadHistory().count
+                    )
+                }.value
+                storageCounts = counts
             }
             .navigationTitle(L("diagnostics.title"))
             .navigationBarTitleDisplayMode(.inline)

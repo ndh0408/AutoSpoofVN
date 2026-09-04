@@ -2,6 +2,14 @@ import SwiftUI
 
 /// Quản lý thiết bị — kết nối, chẩn đoán, thông tin chi tiết.
 struct DeviceManagerView: View {
+    /// Ban chan doan, chup MOT LAN khi man hinh xuat hien.
+    ///
+    /// Truoc day `device.generateDiagnostics()` duoc goi ngay trong `body`, ma ham do
+    /// kiem tra su ton tai file (`SelfPairingManager.hasSavedPairing`) va doc
+    /// `BackgroundKeeper.shared` — nghia la I/O dong bo tren main thread o MOI lan dung
+    /// lai view, va cac gia tri do van khong tu cap nhat vi view khong quan sat chung.
+    @State private var diagnostics = DeviceManager.shared.generateDiagnostics()
+
     @StateObject private var device = DeviceManager.shared
     @StateObject private var pairing = SelfPairingManager.shared
     @Environment(\.dismiss) private var dismiss
@@ -97,7 +105,7 @@ struct DeviceManagerView: View {
 
                 // Diagnostics
                 Section {
-                    let diag = device.generateDiagnostics()
+                    let diag = diagnostics
                     DiagRow(L("settings.device"), ok: diag.deviceConnected)
                     DiagRow("Pairing", ok: diag.pairingAvailable)
                     DiagRow("Background", ok: diag.backgroundRunning)
@@ -106,6 +114,7 @@ struct DeviceManagerView: View {
                     Label(L("device.quick_diagnostics"), systemImage: "stethoscope")
                 }
             }
+            .task { diagnostics = device.generateDiagnostics() }
             .navigationTitle(L("settings.device"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

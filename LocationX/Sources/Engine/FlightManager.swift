@@ -297,6 +297,17 @@ final class FlightManager: ObservableObject {
                 fraction: newProgress
             )
 
+            // Huong bay: goc phuong vi tu vi tri truoc toi vi tri moi.
+            //
+            // Truoc day khong ai tinh gia tri nay. FlightManager ghi toa do thang qua
+            // SpoofEngine, ma cau noi `syncFromLegacyEngine` chi bac toa do/toc do/do cao
+            // — nen `telemetry.headingDegrees` vinh vien bang 0 va moi giao dien deu hien
+            // huong "0 B" trong suot chuyen bay.
+            let previous = SpoofEngine.shared.currentCoordinate
+            if MotionEngine.haversineDistance(from: previous, to: curCoord) > 1 {
+                flight.headingDegrees = MotionEngine.bearing(from: previous, to: curCoord)
+            }
+
             _ = SpoofEngine.shared.submit(latitude: curCoord.latitude, longitude: curCoord.longitude, from: .flight)
 
             flight.progressFraction = newProgress

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+	  KHONG co `get-task-allow` o day.
+
+	  `get-task-allow=true` cho phep debugger gan vao tien trinh — can cho ban Debug,
+	  nhung App Store TU CHOI ban archive co co nay. Truoc day chi co mot file entitlements
+	  duy nhat duoc gan cho MOI config (ke ca Release), nen moi ban archive deu se bi tu choi.
+	-->
+</dict>
+</plist>
