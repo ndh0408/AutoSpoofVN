@@ -44,6 +44,8 @@ final class SimulationCoordinator: ObservableObject {
     private var jitterOffsetNorth: Double = 0
     private var jitterOffsetEast: Double = 0
     private var deviceUpdateTimer: Timer?
+    /// Nhịp gửi lại toạ độ xuống thiết bị (giây). Đổi được từ Cài đặt.
+    private var deviceUpdateInterval: TimeInterval = 20
     private var cancellables = Set<AnyCancellable>()
     /// Chặn đệ quy: `RouteSimulator.stop()` gọi ngược `stopSession()`, mà `stopSession()`
     /// lại gọi `RouteSimulator.stop()` để dừng thật sự.
@@ -351,10 +353,21 @@ final class SimulationCoordinator: ObservableObject {
 
     // MARK: - Device Update Timer
 
+    /// Đặt nhịp gửi lại toạ độ xuống thiết bị. Áp ngay nếu timer đang chạy.
+    ///
+    /// Trước đây con số 20 giây bị viết cứng, nên tuỳ chọn "tần số cập nhật thiết bị"
+    /// trong Cài đặt hoàn toàn không có tác dụng.
+    func setDeviceUpdateInterval(_ seconds: TimeInterval) {
+        let clamped = min(60, max(0.2, seconds))
+        guard clamped != deviceUpdateInterval else { return }
+        deviceUpdateInterval = clamped
+        if deviceUpdateTimer != nil { startDeviceUpdateTimer() }
+    }
+
     private func startDeviceUpdateTimer() {
         stopDeviceUpdateTimer()
-        // Heartbeat: gửi lại coordinate mỗi 20s để DVT không drop session
-        let timer = Timer(timeInterval: 20, repeats: true) { [weak self] _ in
+        // Gửi lại coordinate định kỳ để DVT không coi phiên là đã chết.
+        let timer = Timer(timeInterval: deviceUpdateInterval, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 guard let self, self.state == .running else { return }
                 self.legacyEngine.sendLocationToDevice(self.currentCoordinate)

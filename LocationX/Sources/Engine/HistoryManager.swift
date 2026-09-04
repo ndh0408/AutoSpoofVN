@@ -12,6 +12,15 @@ final class HistoryManager: ObservableObject {
     private var activeRecordId: UUID?
     private var recordingBuffer: [TimestampedCoordinate] = []
     private var recordingStart: Date?
+    /// Nguồn và phương tiện được ghi lại lúc BẮT ĐẦU.
+    ///
+    /// `stopRecording()` từng đọc `coordinator.activeSource` tại thời điểm dừng — nhưng
+    /// lúc đó `stopSession()` đã nhả nguồn và xoá session, nên mọi dòng lịch sử đều bị
+    /// gán "Thủ công", `travelMode` luôn là "Ô tô" và `routeName` luôn rỗng.
+    private var recordingSource: SimulationSource = .manual
+    private var recordingTravelMode: TravelMode = .driving
+    private var recordingRouteName: String?
+    private var recordingSessionId: UUID?
     private var sampleTimer: Timer?
     private let maxBufferSize = 5000
     private let sampleInterval: TimeInterval = 2.0 // sample mỗi 2s
@@ -28,6 +37,12 @@ final class HistoryManager: ObservableObject {
         recordingBuffer = []
         recordingStart = Date()
         isRecording = true
+        // Chụp lại bối cảnh NGAY BÂY GIỜ, khi nguồn còn đang giữ quyền.
+        recordingSource = source
+        recordingTravelMode = travelMode
+        let coordinator = SimulationCoordinator.shared
+        recordingRouteName = coordinator.session?.routeName
+        recordingSessionId = coordinator.session?.id
 
         sampleTimer = Timer.scheduledTimer(withTimeInterval: sampleInterval, repeats: true) { [weak self] _ in
             Task { @MainActor in
@@ -50,7 +65,6 @@ final class HistoryManager: ObservableObject {
             return nil
         }
 
-        let coordinator = SimulationCoordinator.shared
         let first = recordingBuffer.first!
         let last = recordingBuffer.last!
 
@@ -65,16 +79,16 @@ final class HistoryManager: ObservableObject {
 
         let record = SimulationRecord(
             id: id,
-            sessionId: coordinator.session?.id ?? UUID(),
-            source: coordinator.activeSource ?? .manual,
+            sessionId: recordingSessionId ?? UUID(),
+            source: recordingSource,
             startedAt: start,
             endedAt: Date(),
             startCoordinate: first.coordinate,
             endCoordinate: last.coordinate,
             distanceMeters: totalDistance,
             durationSeconds: Date().timeIntervalSince(start),
-            travelMode: coordinator.session?.travelMode ?? .driving,
-            routeName: coordinator.session?.routeName,
+            travelMode: recordingTravelMode,
+            routeName: recordingRouteName,
             replayData: recordingBuffer
         )
 

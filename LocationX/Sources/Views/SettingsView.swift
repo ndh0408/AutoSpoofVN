@@ -2,7 +2,13 @@ import SwiftUI
 
 /// Cài đặt toàn diện — simulation, map, device, background, appearance, developer.
 struct SettingsView: View {
-    @State private var settings = PersistenceManager.shared.loadSettings()
+    /// Đọc và ghi thẳng vào kho cài đặt dùng chung.
+    ///
+    /// Trước đây màn hình này nạp `AppSettings` vào một `@State` cục bộ và chỉ ghi xuống
+    /// UserDefaults khi bấm Lưu — mà không hệ thống nào đọc lại. Người dùng chỉnh xong,
+    /// thấy "đã lưu", rồi không có gì thay đổi. Giờ mọi thay đổi áp NGAY qua
+    /// `AppSettingsStore.apply()`.
+    @ObservedObject private var store = AppSettingsStore.shared
     @StateObject private var coordinator = SimulationCoordinator.shared
     @Environment(\.dismiss) private var dismiss
 
@@ -21,7 +27,7 @@ struct SettingsView: View {
             Form {
                 // MARK: - Simulation
                 Section {
-                    Picker(L("settings.gps_noise"), selection: $settings.noiseConfig.radiusMeters) {
+                    Picker(L("settings.gps_noise"), selection: $store.settings.noiseConfig.radiusMeters) {
                         Text(L("common.off")).tag(0.0)
                         Text("1m").tag(1.0)
                         Text("3m").tag(3.0)
@@ -29,9 +35,9 @@ struct SettingsView: View {
                         Text("10m").tag(10.0)
                         Text("20m").tag(20.0)
                     }
-                    Toggle(L("settings.correlated_drift"), isOn: $settings.noiseConfig.drift)
+                    Toggle(L("settings.correlated_drift"), isOn: $store.settings.noiseConfig.drift)
 
-                    Picker(L("settings.default_travel_mode"), selection: $settings.defaultTravelMode) {
+                    Picker(L("settings.default_travel_mode"), selection: $store.settings.defaultTravelMode) {
                         ForEach(TravelMode.allCases) { mode in
                             Label(mode.displayName, systemImage: mode.icon).tag(mode)
                         }
@@ -40,45 +46,45 @@ struct SettingsView: View {
                     HStack {
                         Text(L("settings.device_update_rate"))
                         Spacer()
-                        Text("\(String(format: "%.0f", settings.deviceUpdateRateHz)) Hz")
+                        Text("\(String(format: "%.0f", store.settings.deviceUpdateRateHz)) Hz")
                             .foregroundStyle(AppColor.textSecondary)
                     }
-                    Slider(value: $settings.deviceUpdateRateHz, in: 0.5...5, step: 0.5)
+                    Slider(value: $store.settings.deviceUpdateRateHz, in: 0.5...5, step: 0.5)
                 } header: {
                     Label(L("settings.simulation"), systemImage: "location.fill")
                 }
 
                 // MARK: - Map
                 Section {
-                    Picker(L("settings.map_style"), selection: $settings.mapStyle) {
+                    Picker(L("settings.map_style"), selection: $store.settings.mapStyle) {
                         Text(L("settings.map_style.standard")).tag("standard")
                         Text(L("settings.map_style.satellite")).tag("satellite")
                         Text(L("settings.map_style.hybrid")).tag("hybrid")
                     }
-                    Toggle(L("settings.follow_location"), isOn: $settings.mapFollowMode)
-                    Toggle("3D", isOn: $settings.map3DEnabled)
-                    Toggle(L("settings.trail"), isOn: $settings.trailEnabled)
+                    Toggle(L("settings.follow_location"), isOn: $store.settings.mapFollowMode)
+                    Toggle("3D", isOn: $store.settings.map3DEnabled)
+                    Toggle(L("settings.trail"), isOn: $store.settings.trailEnabled)
                 } header: {
                     Label(L("settings.map"), systemImage: "map")
                 }
 
                 // MARK: - Device
                 Section {
-                    Toggle(L("settings.auto_reconnect"), isOn: $settings.autoReconnect)
+                    Toggle(L("settings.auto_reconnect"), isOn: $store.settings.autoReconnect)
                     HStack {
                         Text("Heartbeat")
                         Spacer()
-                        Text("\(Int(settings.heartbeatIntervalSeconds))s")
+                        Text("\(Int(store.settings.heartbeatIntervalSeconds))s")
                             .foregroundStyle(AppColor.textSecondary)
                     }
-                    Slider(value: $settings.heartbeatIntervalSeconds, in: 10...60, step: 5)
+                    Slider(value: $store.settings.heartbeatIntervalSeconds, in: 10...60, step: 5)
                 } header: {
                     Label(L("settings.device"), systemImage: "iphone")
                 }
 
                 // MARK: - Background
                 Section {
-                    Toggle(L("settings.background_keep_alive"), isOn: $settings.backgroundKeepAlive)
+                    Toggle(L("settings.background_keep_alive"), isOn: $store.settings.backgroundKeepAlive)
                     HStack {
                         Text(L("common.status"))
                         Spacer()
@@ -93,7 +99,7 @@ struct SettingsView: View {
 
                 // MARK: - Appearance
                 Section {
-                    Picker(L("settings.appearance"), selection: $settings.appearance) {
+                    Picker(L("settings.appearance"), selection: $store.settings.appearance) {
                         Text(L("settings.appearance.system")).tag("system")
                         Text(L("settings.appearance.light")).tag("light")
                         Text(L("settings.appearance.dark")).tag("dark")
@@ -130,7 +136,7 @@ struct SettingsView: View {
 
                 // MARK: - Developer
                 Section {
-                    Toggle(L("settings.show_technical_info"), isOn: $settings.showDeveloperInfo)
+                    Toggle(L("settings.show_technical_info"), isOn: $store.settings.showDeveloperInfo)
                     NavigationLink(L("settings.system_diagnostics")) {
                         DiagnosticsV2View()
                     }
@@ -167,12 +173,12 @@ struct SettingsView: View {
                     Button(L("action.close")) { dismiss() }
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(L("action.save")) {
-                        PersistenceManager.shared.saveSettings(settings)
-                        coordinator.noiseConfig = settings.noiseConfig
-                        dismiss()
-                    }
-                    .fontWeight(.semibold)
+                    // Không còn nút "Lưu": mọi thay đổi có hiệu lực NGAY khi chạm, đúng quy
+                    // ước của Cài đặt trên iOS. Giữ nút Lưu ở đây sẽ ngụ ý sai rằng chưa
+                    // bấm thì chưa áp dụng — mà đó chính là ấn tượng sai trước đây, khi
+                    // nút Lưu chỉ ghi xuống UserDefaults và không hệ thống nào đọc lại.
+                    Button(L("action.done")) { dismiss() }
+                        .fontWeight(.semibold)
                 }
             }
         }

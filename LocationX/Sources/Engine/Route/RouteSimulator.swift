@@ -46,8 +46,16 @@ final class RouteSimulator: ObservableObject {
     private var headingEngine = HeadingEngine()
     private let coordinator = SimulationCoordinator.shared
 
-    /// Tick rate — mô phỏng chạy ở tần số này.
-    private let tickInterval: TimeInterval = 0.1  // 10 Hz
+    /// Tick rate — mô phỏng chạy ở tần số này. Mặc định 10 Hz, đổi được từ Cài đặt.
+    private var tickInterval: TimeInterval = 0.1
+
+    /// Đặt tần số tick. Có hiệu lực từ vòng lặp kế tiếp.
+    ///
+    /// Trước đây 0.1 s bị viết cứng nên tuỳ chọn "tần số mô phỏng" trong Cài đặt là công
+    /// tắc giả.
+    func setTickInterval(_ seconds: TimeInterval) {
+        tickInterval = min(1.0, max(0.02, seconds))
+    }
 
     private init() {}
 

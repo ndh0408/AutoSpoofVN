@@ -21,6 +21,7 @@ struct LocationXApp: App {
     @StateObject private var coordinator = SimulationCoordinator.shared
     @StateObject private var recovery = AppRecoveryManager.shared
     @StateObject private var deviceManager = DeviceManager.shared
+    @StateObject private var appSettings = AppSettingsStore.shared
     @AppStorage("locationx_onboarding_completed") private var hasCompletedOnboarding = false
 
     init() {
@@ -38,6 +39,9 @@ struct LocationXApp: App {
             }
             // Đổi ngôn ngữ trong Cài đặt là dựng lại toàn bộ cây view ngay lập tức.
             .localized()
+            // Tuỳ chọn Giao diện (sáng/tối/theo hệ thống) — trước đây được lưu nhưng
+            // `preferredColorScheme` không xuất hiện ở đâu trong toàn bộ mã nguồn.
+            .preferredColorScheme(appSettings.preferredColorScheme)
             .environmentObject(engine)
             .environmentObject(routineManager)
             .environmentObject(flightManager)
@@ -80,6 +84,9 @@ struct LocationXApp: App {
     /// Khởi động tất cả subsystem sau onboarding.
     private func bootstrap() {
         SelfPairingManager.shared.registerBackgroundTask()
+        // Áp cài đặt người dùng TRƯỚC khi khởi động các hệ thống con, để chúng bắt đầu
+        // với đúng nhịp và đúng trạng thái bật/tắt.
+        AppSettingsStore.shared.apply()
         engine.startBackgroundKeepAlive()
         liveActivity.startOrUpdateActivity()
         deviceManager.startHeartbeat()

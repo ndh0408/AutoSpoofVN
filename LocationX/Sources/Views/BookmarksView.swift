@@ -73,7 +73,14 @@ struct BookmarksView: View {
                                 }
                             }
                             .onDelete { indices in
-                                bookmarks.remove(atOffsets: indices)
+                                // Xoá theo ID, KHÔNG theo chỉ số.
+                                //
+                                // `indices` là chỉ số trong `filtered` (đã lọc theo nhóm và
+                                // ô tìm kiếm), còn `bookmarks` là mảng gốc chưa lọc. Áp
+                                // thẳng chỉ số của mảng này lên mảng kia sẽ xoá NHẦM mục
+                                // mỗi khi có bộ lọc hoặc từ khoá tìm kiếm đang bật.
+                                let doomed = Set(indices.compactMap { filtered[safe: $0]?.id })
+                                bookmarks.removeAll { doomed.contains($0.id) }
                                 PersistenceManager.shared.saveBookmarks(bookmarks)
                             }
                         }

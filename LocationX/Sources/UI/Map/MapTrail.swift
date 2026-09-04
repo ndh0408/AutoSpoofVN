@@ -15,8 +15,10 @@ final class MapTrail {
     /// Khoang cach toi thieu giua hai diem lien tiep (met).
     /// 4 m lon hon bien do nhieu mac dinh (3 m) nen dung yen se khong sinh diem moi.
     private let minimumSpacingMeters: CLLocationDistance
-    /// Tran so diem. Cham tran thi giam mau con mot nua.
-    private let maximumPoints: Int
+    /// Tran so diem. Cham tran thi giam mau con mot nua. Doi duoc tu Cai dat.
+    var maximumPoints: Int
+    /// Nguoi dung co bat vet duong khong. Tat thi khong tich luy diem nao.
+    var isEnabled: Bool = true
 
     init(minimumSpacingMeters: CLLocationDistance = 4, maximumPoints: Int = 1000) {
         self.minimumSpacingMeters = minimumSpacingMeters
@@ -26,6 +28,7 @@ final class MapTrail {
     /// Them mot toa do. Tra ve `true` neu vet duong that su thay doi.
     @discardableResult
     func append(_ coordinate: CLLocationCoordinate2D) -> Bool {
+        guard isEnabled else { return false }
         guard CLLocationCoordinate2DIsValid(coordinate) else { return false }
 
         if let last = points.last {

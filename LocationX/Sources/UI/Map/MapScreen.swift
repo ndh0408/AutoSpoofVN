@@ -23,6 +23,7 @@ struct MapScreen: View {
 
     @ObservedObject private var coordinator = SimulationCoordinator.shared
     @ObservedObject private var shadowrocket = ShadowrocketManager.shared
+    @ObservedObject private var appSettings = AppSettingsStore.shared
 
     // Trang thai thuan UI
     @State private var camera: MapCameraPosition = .camera(
@@ -94,8 +95,20 @@ struct MapScreen: View {
             if followMode { recenter() }
         }
         .onAppear {
+            // Áp tuỳ chọn bản đồ do người dùng đặt. Trước đây toàn bộ nhóm cài đặt "Bản đồ"
+            // được lưu nhưng không màn hình nào đọc, nên chúng không có tác dụng gì.
+            let s = appSettings.settings
+            trail.maximumPoints = max(50, s.trailMaxPoints)
+            trail.isEnabled = s.trailEnabled
+            styleKind = MapStyleKind(rawValue: s.mapStyle) ?? .standard
+            followMode = s.mapFollowMode
+            isPitched = s.map3DEnabled
             trail.append(coordinator.currentCoordinate)
         }
+        // Ghi ngược lựa chọn của người dùng để lần mở sau giữ nguyên.
+        .onChange(of: styleKind) { _, new in appSettings.settings.mapStyle = new.rawValue }
+        .onChange(of: followMode) { _, new in appSettings.settings.mapFollowMode = new }
+        .onChange(of: isPitched) { _, new in appSettings.settings.map3DEnabled = new }
         .confirmationDialog(L("map.override.title"),
                             isPresented: overrideDialogBinding,
                             titleVisibility: .visible) {
@@ -113,7 +126,7 @@ struct MapScreen: View {
         MapReader { proxy in
             Map(position: $camera, interactionModes: .all) {
                 // Vet duong da di.
-                if trail.isDrawable {
+                if trail.isDrawable, trail.isEnabled {
                     MapPolyline(coordinates: trail.points)
                         .stroke(AppColor.mapTrail.opacity(0.55),
                                 style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round))
