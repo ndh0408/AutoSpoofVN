@@ -185,13 +185,15 @@ LocationX/
 │   │   ├── Map/           Màn hình bản đồ
 │   │   ├── Routes/        Tuyến đường
 │   │   ├── Flight/        Chuyến bay
-│   │   └── Settings/      Cài đặt
+│   │   ├── Routine/       Chu trình 24/7
+│   │   ├── Onboarding/    Màn chào lần đầu
+│   │   └── Settings/      Cài đặt, Chẩn đoán, Shadowrocket
 │   └── Views/           Màn hình chưa thiết kế lại
 ├── Resources/           Info.plist, Assets, vi.lproj, en.lproj
 LocationXWidgets/        Live Activity, Dynamic Island
 LocationXTests/          Kiểm thử đơn vị
 Proxy/                   Module MITM và script protobuf
-docs/UI_AUDIT.md         Kiểm kê tính năng và rủi ro trước khi thiết kế lại
+docs/UI_AUDIT.md         Kiểm kê tính năng — ảnh chụp TRƯỚC khi thiết kế lại
 ```
 
 ### Nguyên tắc kiến trúc
@@ -206,6 +208,14 @@ Thủ công 100 > Kịch bản 80 > Chuyến bay 60 > Tuyến 50 > Chu trình 40
 Tầng giao diện **quan sát** trạng thái này, không giữ bản sao. Nhiễu GPS chỉ được áp đúng một lần,
 ở thời điểm gửi ra thiết bị — vị trí nội bộ luôn là vị trí thật, nếu không nhiễu sẽ tích luỹ thành
 trôi vị trí.
+
+Chỉ có **một** đường đưa toạ độ ra khỏi app: `CoordinateServer` phục vụ toạ độ tại
+`127.0.0.1:8765`, Shadowrocket đọc từ đó. Không còn đường DVT/FFI — toàn bộ lớp ghép nối
+thiết bị đã được gỡ bỏ cùng thư viện FFI.
+
+Nhãn "đã kết nối" trên thanh trạng thái đòi đủ bốn điều kiện: máy chủ đang chạy,
+Shadowrocket đã cài, module đã nhập, VPN đang bật. Báo xanh trong khi toạ độ không tới
+được ứng dụng nào là kiểu sai tệ nhất mà app này có thể mắc.
 
 ---
 

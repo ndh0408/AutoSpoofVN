@@ -1,5 +1,15 @@
 # AutoSpoofVN — UI/UX Redesign Audit (Phase 1)
 
+> **Ảnh chụp lịch sử.** Tài liệu này mô tả mã nguồn *trước* đợt thiết kế lại và không
+> được cập nhật theo mã hiện tại. Giữ nguyên là có chủ ý: công dụng của nó là danh sách
+> đối chiếu cho cam kết "không mất tính năng nào".
+>
+> Những hệ thống nó nhắc tới mà nay đã **bị xóa**: `DeviceManager`, `SelfPairingManager`,
+> `ConnectionRecovery`, `DeviceTransport`, `DeviceManagerView`, `SettingsView`,
+> `OnboardingViewV2`, `DiagnosticsV2View`, và toàn bộ đường DVT/FFI — chúng biến mất cùng
+> thư viện FFI theo yêu cầu của người dùng. Các mục liên quan ở bảng dưới không còn là
+> tính năng phải giữ.
+
 Sinh tu 10 agent doc song song toan bo repo. Moi muc deu co tham chieu `file:line`.
 Day la **ban kiem ke truoc khi thiet ke lai** — hop dong zero-feature-loss.
 
