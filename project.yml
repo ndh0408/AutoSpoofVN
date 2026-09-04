@@ -1,6 +1,6 @@
-name: AutoSpoofVN
+name: LocationX
 options:
-  bundleIdPrefix: com.autospoof
+  bundleIdPrefix: com.nguyenduchuy
   deploymentTarget:
     iOS: "17.4"
   xcodeVersion: "16.0"
@@ -8,12 +8,12 @@ options:
 configs:
   Debug: debug
   Release: release
-  Debug-FFI: debug
 settings:
   base:
     DEVELOPMENT_TEAM: ""
     SWIFT_VERSION: "5.0"
-    TARGETED_DEVICE_FAMILY: "1"   # chi iPhone: MainView khoa doc, khai bao 1,2 gay warning orientation iPad
+    # Chi iPhone: giao dien khoa doc, khai bao them iPad gay canh bao orientation.
+    TARGETED_DEVICE_FAMILY: "1"
     IPHONEOS_DEPLOYMENT_TARGET: "17.4"
     # Dat o day (project-wide) de app va widget extension LUON cung version - Apple bat buoc
     # CFBundleVersion cua app extension phai khop voi app cha, khac se bi tu choi khi archive.
@@ -21,122 +21,84 @@ settings:
     MARKETING_VERSION: "2.0.0"
     CURRENT_PROJECT_VERSION: "2"
 schemes:
-  # Chay tren simulator hoac may that deu duoc. GPS KHONG doi that - dung de xem giao dien,
-  # thu route/scenario/routine/lich su. Day la scheme mac dinh khi mo project.
-  AutoSpoofVN-Mock:
+  # Scheme duy nhat. Chay tren simulator hoac may that deu duoc.
+  #
+  # Viec gia lap vi tri di theo duong Shadowrocket: app chay CoordinateServer o
+  # 127.0.0.1:8765, module MITM cua Shadowrocket doc toa do tu do va ghi de response
+  # cua Apple Location Service. Khong con phu thuoc libidevice_ffi.a nua.
+  LocationX:
     build:
       targets:
-        AutoSpoofVN: all
+        LocationX: all
     run:
       config: Debug
     test:
       config: Debug
       targets:
-        - AutoSpoofVNTests
+        - LocationXTests
     profile:
       config: Debug
     analyze:
       config: Debug
-    archive:
-      config: Release
-  # Can libidevice_ffi.a THAT (xem README.md) va chi chay duoc tren
-  # THIET BI THAT cam day (thu vien bien dich cho arm64-apple-ios, khong co ban simulator).
-  # Con can: pairing record, Developer Mode, VPN loopback - xem README.md.
-  AutoSpoofVN-RealFFI:
-    build:
-      targets:
-        AutoSpoofVN: all
-    run:
-      config: Debug-FFI
-    test:
-      config: Debug-FFI
-      targets:
-        - AutoSpoofVNTests
-    profile:
-      config: Debug-FFI
-    analyze:
-      config: Debug-FFI
     archive:
       config: Release
 
 targets:
-  AutoSpoofVN:
+  LocationX:
     type: application
     platform: iOS
     sources:
-      - path: AutoSpoofVN
+      - path: LocationX
         excludes:
           - "**/Info.plist"
-          - AutoSpoofWidgets
-      - path: Vendor/idevice/module.modulemap
-        buildPhase: none
-      - path: Vendor/idevice/idevice.h
-        buildPhase: none
-      - path: Vendor/idevice/idevice_stub.c
-        buildPhase: none
-      - path: Vendor/idevice/ffi
-        buildPhase: none
+          - LocationXWidgets
+      # Script MITM duoc dong goi thanh tai nguyen de CoordinateServer phuc vu ban
+      # realtime. Mot nguon su that duy nhat voi ban tren GitHub.
+      - path: Proxy/location-spoofer.js
+        buildPhase: resources
     dependencies:
-      - target: AutoSpoofWidgets
+      - target: LocationXWidgets
         embed: true
     settings:
       base:
-        TARGETED_DEVICE_FAMILY: "1"   # chi iPhone (preset iOS cua XcodeGen mac dinh 1,2 gay warning orientation)
-        PRODUCT_BUNDLE_IDENTIFIER: com.autospoof.vn
-        PRODUCT_NAME: AutoSpoofVN
-        INFOPLIST_FILE: AutoSpoofVN/Resources/Info.plist
-        CODE_SIGN_ENTITLEMENTS: AutoSpoofVN/Resources/AutoSpoofVN.entitlements
+        TARGETED_DEVICE_FAMILY: "1"
+        PRODUCT_BUNDLE_IDENTIFIER: com.nguyenduchuy.locationx
+        PRODUCT_NAME: LocationX
+        INFOPLIST_FILE: LocationX/Resources/Info.plist
+        CODE_SIGN_ENTITLEMENTS: LocationX/Resources/LocationX.entitlements
         CODE_SIGN_STYLE: Automatic
-        ENABLE_BITCODE: NO
         GENERATE_INFOPLIST_FILE: false
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks"
-        LIBRARY_SEARCH_PATHS:
-          - "$(inherited)"
-          - "$(PROJECT_DIR)/Vendor/idevice"
-        OTHER_LDFLAGS:
-          - "$(inherited)"
-          - "-lc++"
-          - "-lz"
-        SWIFT_INCLUDE_PATHS: "$(PROJECT_DIR)/Vendor/idevice"
-        HEADER_SEARCH_PATHS: "$(PROJECT_DIR)/Vendor/idevice"
-      configs:
-        # Chi cau hinh nay moi link thu vien that. Debug/Release la mock, chay duoc
-        # tren simulator x86_64 va tren may bat ky khong co libidevice_ffi.a.
-        Debug-FFI:
-          SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) USE_IDEVICE_FFI"
-          OTHER_LDFLAGS:
-            - "$(inherited)"
-            - "-lidevice_ffi"
 
-  AutoSpoofVNTests:
+  LocationXTests:
     type: bundle.unit-test
     platform: iOS
     sources:
-      - path: AutoSpoofVNTests
+      - path: LocationXTests
     dependencies:
-      - target: AutoSpoofVN
+      - target: LocationX
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.autospoof.vn.tests
+        PRODUCT_BUNDLE_IDENTIFIER: com.nguyenduchuy.locationx.tests
         # Bat buoc khai bao: khong co dong nay PRODUCT_NAME rong, test bundle build ra
-        # "AutoSpoofVN.app/PlugIns/.xctest" va Xcode bao "Multiple commands produce".
-        PRODUCT_NAME: AutoSpoofVNTests
+        # "LocationX.app/PlugIns/.xctest" va Xcode bao "Multiple commands produce".
+        PRODUCT_NAME: LocationXTests
         GENERATE_INFOPLIST_FILE: true
         TARGETED_DEVICE_FAMILY: "1"
-        SWIFT_INCLUDE_PATHS: "$(PROJECT_DIR)/Vendor/idevice"
-        HEADER_SEARCH_PATHS: "$(PROJECT_DIR)/Vendor/idevice"
 
-  AutoSpoofWidgets:
+  LocationXWidgets:
     type: app-extension
     platform: iOS
     sources:
-      - path: AutoSpoofWidgets
-      - path: AutoSpoofVN/Sources/Models/ActivityAttributes.swift
+      - path: LocationXWidgets
+      - path: LocationX/Sources/Models/ActivityAttributes.swift
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.autospoof.vn.widgets
-        PRODUCT_NAME: AutoSpoofWidgets
-        INFOPLIST_FILE: AutoSpoofWidgets/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.nguyenduchuy.locationx.widgets
+        PRODUCT_NAME: LocationXWidgets
+        INFOPLIST_FILE: LocationXWidgets/Info.plist
         TARGETED_DEVICE_FAMILY: "1"
         CODE_SIGN_STYLE: Automatic
         GENERATE_INFOPLIST_FILE: false

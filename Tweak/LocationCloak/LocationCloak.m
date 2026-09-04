@@ -1,6 +1,6 @@
 //
 //  LocationCloak.m
-//  AutoSpoofVN — System-wide CoreLocation hook
+//  LocationX — System-wide CoreLocation hook
 //
 //  Mục đích: Strip cờ isSimulatedBySoftware khỏi CLLocationSourceInformation.
 //  Khi DVT LocationSimulation gửi toạ độ giả, locationd gắn cờ này = true.

@@ -4,7 +4,7 @@ Tweak strip cờ `isSimulatedBySoftware` khỏi CoreLocation — làm cho GPS m�
 
 ## Vấn đề
 
-Khi AutoSpoofVN (hoặc Xcode) gửi toạ độ giả qua DVT LocationSimulation:
+Khi LocationX (hoặc Xcode) gửi toạ độ giả qua DVT LocationSimulation:
 
 ```
 locationd daemon → gắn isSimulatedBySoftware = true
@@ -81,7 +81,7 @@ Console log khi dylib load:
 
 - iOS 15+ (CLLocationSourceInformation có từ iOS 15)
 - TrollStore HOẶC jailbreak (Substrate/ElleKit/Dopamine)
-- AutoSpoofVN đang chạy và gửi GPS qua DVT
+- LocationX đang chạy và gửi GPS qua DVT
 
 ## Lưu ý
 

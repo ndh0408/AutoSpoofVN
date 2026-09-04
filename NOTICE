@@ -1,0 +1,24 @@
+LocationX
+Copyright 2026 Nguyễn Đức Huy
+
+This product includes software developed by Nguyễn Đức Huy.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+---
+
+Third-party components
+
+idevice (Rust FFI bridge, Vendor/idevice/)
+    Used to speak Apple's DVT protocol over a loopback tunnel.
+    See Vendor/idevice/ for its own license terms.

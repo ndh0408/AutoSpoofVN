@@ -1,4 +1,4 @@
-# AutoSpoofVN — Proxy Location Module
+# LocationX — Proxy Location Module
 
 Module MITM cho Shadowrocket/Surge/Loon — thay đổi WiFi positioning response từ Apple, bypass `isSimulatedBySoftware`.
 
@@ -25,7 +25,7 @@ iPhone scan WiFi → gửi BSSID list tới gs-loc.apple.com
 Shadowrocket → Config → Modules → Add Module → nhập URL:
 
 ```
-https://raw.githubusercontent.com/ndh0408/AutoSpoofVN/main/Proxy/autospoof-location.sgmodule
+https://raw.githubusercontent.com/ndh0408/LocationX/main/Proxy/locationx.sgmodule
 ```
 
 ### 2. Bật MITM
@@ -106,6 +106,6 @@ M�� Apple Maps hoặc Google Maps — vị trí hiện tại phải là toạ đ
 
 | File | Dùng cho |
 |------|---------|
-| `autospoof-location.sgmodule` | Shadowrocket |
-| `autospoof-location.surge.sgmodule` | Surge |
+| `locationx.sgmodule` | Shadowrocket |
+| `locationx.surge.sgmodule` | Surge |
 | `location-spoofer.js` | Script MITM (dùng chung) |
