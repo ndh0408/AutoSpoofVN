@@ -1,0 +1,23 @@
+name: Đề xuất tính năng
+description: Gợi ý một ý tưởng
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Vấn đề bạn đang gặp
+      description: Mô tả tình huống thực tế, đừng chỉ mô tả giải pháp.
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Bạn muốn điều gì xảy ra
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Cách khác bạn đã cân nhắc

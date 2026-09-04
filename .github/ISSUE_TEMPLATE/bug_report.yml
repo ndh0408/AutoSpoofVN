@@ -1,0 +1,62 @@
+name: Báo lỗi
+description: Báo cáo hành vi sai
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Trước khi gửi: phần lớn báo cáo "spoof không chạy" là do **chứng chỉ Shadowrocket
+        chưa được tin cậy đầy đủ** trong *Cài đặt → Cài đặt chung → Giới thiệu → Cài đặt tin cậy
+        chứng chỉ*, hoặc do thiết bị đang định vị bằng GPS vệ tinh thay vì WiFi.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: Chuyện gì xảy ra
+      description: Bạn mong đợi gì, và thực tế xảy ra gì?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Các bước tái hiện
+      placeholder: |
+        1. Mở tab Tuyến đường
+        2. ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: path
+    attributes:
+      label: Đường spoof đang dùng
+      options:
+        - Shadowrocket - module nội bộ (127.0.0.1:8765)
+        - Shadowrocket - module từ GitHub
+        - Surge / Loon / Stash
+        - Chưa thiết lập / không rõ
+    validations:
+      required: true
+
+  - type: input
+    id: ios
+    attributes:
+      label: Phiên bản iOS và mẫu máy
+      placeholder: "iOS 18.2, iPhone 15 Pro"
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Phiên bản LocationX
+      description: Xem ở Cài đặt → Ứng dụng
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Ảnh chụp màn hình hoặc log
+      description: Kèm ảnh màn hình Chẩn đoán nếu có.

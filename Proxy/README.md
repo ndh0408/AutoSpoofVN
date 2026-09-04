@@ -18,6 +18,37 @@ iPhone scan WiFi → gửi BSSID list tới gs-loc.apple.com
                     Bump nhận bình thường ✓
 ```
 
+
+## Giao thức thật (quan trọng)
+
+Response của `gs-loc.apple.com/clls/wloc` là **protobuf**, không phải mảng struct nhị phân cố định.
+Message `Location`:
+
+| Trường | Tên | Kiểu | Đơn vị |
+|---:|---|---|---|
+| 1 | `latitude` | int64 varint | 1e-8 độ |
+| 2 | `longitude` | int64 varint | 1e-8 độ |
+| 3 | `horizontal_accuracy` | int64 varint | — |
+| 5 | `altitude` | int64 varint | — |
+| 6 | `vertical_accuracy` | int64 varint | — |
+
+Cấu trúc này lấy từ [acheong08/apple-corelocation-experiments](https://github.com/acheong08/apple-corelocation-experiments).
+
+### Vì sao không ghi đè tại chỗ được
+
+Varint dài từ 1 đến 10 byte tuỳ giá trị. Đổi toạ độ là đổi số byte, nên:
+
+- mọi trường phía sau bị lệch,
+- `length` của các message bao ngoài trở nên sai,
+- CoreLocation coi cả response là hỏng và vứt đi.
+
+Một bản script cũ từng quét các cặp `int32` big-endian rồi ghi đè trực tiếp. Cách đó sai cả kiểu dữ
+liệu lẫn cách mã hoá, nên chưa bao giờ có tác dụng.
+
+`location-spoofer.js` hiện tại giải mã cả cây message, sửa trường, rồi **mã hoá lại từ trong ra
+ngoài** để mọi độ dài được tính lại. Nếu không nhận ra `Location` nào, nó **trả nguyên response** —
+trả về dữ liệu đã đụng chạm nửa vời còn tệ hơn không làm gì, vì người dùng sẽ mất luôn định vị.
+
 ## Cài đặt Shadowrocket
 
 ### 1. Import module
@@ -77,7 +108,7 @@ Thứ tự này xoá GPS cache và buộc iOS dùng WiFi positioning qua server 
 
 ### 5. Verify
 
-M�� Apple Maps hoặc Google Maps — vị trí hiện tại phải là toạ độ giả.
+Mở Apple Maps hoặc Google Maps — vị trí hiện tại phải là toạ độ giả.
 
 ## Hạn chế
 

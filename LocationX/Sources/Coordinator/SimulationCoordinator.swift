@@ -62,8 +62,21 @@ final class SimulationCoordinator: ObservableObject {
     private init() {
         // Đồng bộ state từ legacy engine trong giai đoạn chuyển tiếp
         syncFromLegacyEngine()
-        // Khởi động CoordinateServer cho Shadowrocket MITM
-        CoordinateServer.shared.start()
+        // Khởi động CoordinateServer cho Shadowrocket MITM.
+        //
+        // Bỏ qua khi đang chạy kiểm thử: mỗi lần chạy test lại mở cổng 8765, mà tiến trình
+        // của lần chạy trước có thể còn giữ cổng — khi đó test runner treo trước khi kết
+        // nối được ("The test runner hung before establishing connection").
+        if !Self.isRunningUnitTests {
+            CoordinateServer.shared.start()
+        }
+    }
+
+    /// Có đang chạy trong môi trường XCTest không.
+    ///
+    /// Dùng để tránh mở tài nguyên hệ thống (cổng mạng, timer nền) trong kiểm thử đơn vị.
+    nonisolated static var isRunningUnitTests: Bool {
+        NSClassFromString("XCTestCase") != nil
     }
 
     // MARK: - Source Arbitration

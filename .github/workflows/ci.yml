@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build & Test
+    runs-on: macos-15
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -switch /Applications/Xcode_16.app
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate project
+        run: xcodegen generate
+
+      # Simulator co san thay doi theo image cua runner, nen chon runtime iOS moi nhat
+      # thay vi go cung ten may.
+      - name: Pick a simulator
+        id: sim
+        run: |
+          UDID=$(xcrun simctl list devices available --json \
+            | python3 -c "import json,sys;d=json.load(sys.stdin)['devices'];\
+rt=sorted([k for k in d if 'iOS' in k])[-1];\
+print(next(x['udid'] for x in d[rt] if 'iPhone' in x['name']))")
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+          echo "Dung simulator $UDID"
+
+      - name: Build & test
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project LocationX.xcodeproj \
+            -scheme LocationX \
+            -configuration Debug \
+            -destination "id=${{ steps.sim.outputs.udid }}" \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            test | xcbeautify || xcodebuild \
+            -project LocationX.xcodeproj \
+            -scheme LocationX \
+            -configuration Debug \
+            -destination "id=${{ steps.sim.outputs.udid }}" \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            test
+
+  proxy-script:
+    name: Kiem tra script MITM
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Script chay trong sandbox JS cua Shadowrocket, khong co bundler nao kiem tra ho.
+      # It nhat phai bao dam no phan tich cu phap duoc.
+      - name: Kiem tra cu phap
+        run: node --check Proxy/location-spoofer.js
