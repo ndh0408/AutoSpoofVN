@@ -149,6 +149,7 @@
 "diagnostics.item.shadowrocket" = "Shadowrocket";
 "diagnostics.item.simulation" = "Simulation";
 "diagnostics.item.vpn" = "VPN";
+"diagnostics.last_error" = "Last error";
 "diagnostics.last_path" = "Last path";
 "diagnostics.last_request" = "Last request";
 "diagnostics.location_updates" = "Location updates";

@@ -86,6 +86,13 @@ final class CoordinateServer: ObservableObject {
     /// Thời điểm nhận request gần nhất, để biết pipeline còn "tươi" hay đã chết.
     @Published private(set) var lastRequestAt: Date?
 
+    /// Lý do gắn cổng thất bại gần nhất, để màn Chẩn đoán nói được vì sao.
+    @Published private(set) var lastError: String?
+
+    private var retryTask: Task<Void, Never>?
+    private var retryCount = 0
+    private static let maxRetries = 6
+
     private var listener: NWListener?
     /// Cong dang phuc vu — UI/log doc duoc tu bat ky context nao.
     nonisolated var port: UInt16 { coordinateServerPort }
@@ -99,7 +106,21 @@ final class CoordinateServer: ObservableObject {
     // MARK: - Control
 
     func start() {
-        guard !isRunning else { return }
+        guard !isRunning, listener == nil else { return }
+        retryCount = 0
+        bind()
+    }
+
+    /// Thử gắn vào cổng, tự thử lại nếu hỏng.
+    ///
+    /// Cổng 8765 có thể đang bị chiếm ngay lúc khởi động — thường là phiên trước của
+    /// chính app chưa kịp đóng hẳn sau khi bị iOS thu hồi. Bản trước chỉ ghi log rồi bỏ
+    /// cuộc: máy chủ nằm im suốt phiên, Shadowrocket không lấy được toạ độ nào, và cách
+    /// duy nhất để thoát là tắt hẳn app rồi mở lại — mà không chỗ nào nói cho người
+    /// dùng biết điều đó.
+    private func bind() {
+        listener?.cancel()
+        listener = nil
 
         do {
             let params = NWParameters.tcp
@@ -108,13 +129,20 @@ final class CoordinateServer: ObservableObject {
             let listener = try NWListener(using: params, on: NWEndpoint.Port(integerLiteral: coordinateServerPort))
             listener.stateUpdateHandler = { [weak self] state in
                 Task { @MainActor in
+                    guard let self else { return }
                     switch state {
                     case .ready:
-                        self?.isRunning = true
+                        self.isRunning = true
+                        self.retryCount = 0
+                        self.lastError = nil
                         AppLogger.device.info("CoordinateServer listening on port \(coordinateServerPort)")
                     case .failed(let error):
-                        self?.isRunning = false
+                        self.isRunning = false
+                        self.lastError = error.localizedDescription
                         AppLogger.device.error("CoordinateServer failed: \(error)")
+                        self.scheduleRetry()
+                    case .cancelled:
+                        self.isRunning = false
                     default:
                         break
                     }
@@ -126,11 +154,42 @@ final class CoordinateServer: ObservableObject {
             listener.start(queue: queue)
             self.listener = listener
         } catch {
+            isRunning = false
+            lastError = error.localizedDescription
             AppLogger.device.error("CoordinateServer start error: \(error)")
+            scheduleRetry()
         }
     }
 
+    private func scheduleRetry() {
+        guard retryCount < Self.maxRetries else {
+            AppLogger.device.error("CoordinateServer bo cuoc sau \(Self.maxRetries) lan thu")
+            return
+        }
+        retryCount += 1
+        let delay = min(30, pow(2.0, Double(retryCount)))
+        retryTask?.cancel()
+        retryTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+            guard !Task.isCancelled else { return }
+            await MainActor.run { self?.bind() }
+        }
+    }
+
+    /// Gắn lại ngay lập tức, không đợi hết nhịp chờ.
+    ///
+    /// Dùng khi người dùng quay lại app: nếu họ vừa tắt thứ đang chiếm cổng, không có
+    /// lý do bắt họ chờ thêm.
+    func restartIfNeeded() {
+        guard !isRunning else { return }
+        retryTask?.cancel()
+        retryCount = 0
+        bind()
+    }
+
     func stop() {
+        retryTask?.cancel()
+        retryTask = nil
         listener?.cancel()
         listener = nil
         isRunning = false

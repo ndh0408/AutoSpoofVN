@@ -149,6 +149,7 @@
 "diagnostics.item.shadowrocket" = "Shadowrocket";
 "diagnostics.item.simulation" = "Mô phỏng";
 "diagnostics.item.vpn" = "VPN";
+"diagnostics.last_error" = "Lỗi gần nhất";
 "diagnostics.last_path" = "Đường dẫn gần nhất";
 "diagnostics.last_request" = "Lượt gần nhất";
 "diagnostics.location_updates" = "Cập nhật vị trí";

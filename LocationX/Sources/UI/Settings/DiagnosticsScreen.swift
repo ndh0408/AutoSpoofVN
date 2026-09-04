@@ -103,6 +103,9 @@ struct DiagnosticsScreen: View {
             DiagField(L("diagnostics.server_port"),
                       value: server.isRunning ? "127.0.0.1:\(server.port)" : L("common.off"),
                       isError: !server.isRunning)
+            if let err = server.lastError {
+                DiagField(L("diagnostics.last_error"), value: err, isError: true)
+            }
             DiagField(L("diagnostics.requests"), value: "\(server.requestCount)")
             DiagField(L("diagnostics.last_request"), value: lastRequestText)
             DiagField(L("diagnostics.last_path"), value: server.lastRequestedPath ?? "—")

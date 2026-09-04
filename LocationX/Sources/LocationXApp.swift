@@ -75,6 +75,7 @@ struct LocationXApp: App {
             // nên đây chính là lúc trạng thái cũ nhất.
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
                 ShadowrocketManager.shared.detectInstallation()
+                CoordinateServer.shared.restartIfNeeded()
             }
         }
     }
