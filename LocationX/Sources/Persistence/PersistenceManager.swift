@@ -23,6 +23,18 @@ final class PersistenceManager {
         load(from: routesURL) ?? []
     }
 
+    /// Ghi danh sách tuyến đã được mã hoá sẵn.
+    ///
+    /// Cho phép nơi gọi mã hoá trên main actor rồi chuyển `Data` (Sendable) sang hàng đợi
+    /// nền, thay vì đẩy `[SavedRoute]` qua ranh giới thread.
+    func saveRoutesData(_ data: Data) {
+        do {
+            try data.write(to: routesURL, options: .atomic)
+        } catch {
+            AppLogger.persist.error("Khong ghi duoc routes.json: \(error.localizedDescription)")
+        }
+    }
+
     // MARK: - Scenarios
 
     private var scenariosURL: URL { documentsURL.appendingPathComponent("scenarios.json") }

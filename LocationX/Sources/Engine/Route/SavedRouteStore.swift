@@ -91,9 +91,18 @@ final class SavedRouteStore: ObservableObject {
     }
 
     private func persist() {
-        let snapshot = routes
+        // Mã hoá NGAY trên main actor rồi chỉ đẩy `Data` sang hàng đợi nền.
+        //
+        // Đẩy thẳng `[SavedRoute]` qua ranh giới thread là truyền một kiểu không Sendable:
+        // mảng có thể bị sửa tiếp trong lúc thread kia đang đọc. `Data` thì bất biến nên
+        // qua ranh giới an toàn, và phần tốn kém (JSONEncoder) vẫn nằm ngoài main thread
+        // ở chỗ ghi file.
+        guard let data = try? JSONEncoder().encode(routes) else {
+            AppLogger.persist.error("Khong ma hoa duoc danh sach tuyen")
+            return
+        }
         writeQueue.async {
-            PersistenceManager.shared.saveRoutes(snapshot)
+            PersistenceManager.shared.saveRoutesData(data)
         }
     }
 }
