@@ -82,17 +82,69 @@ final class ShadowrocketManager: ObservableObject {
         }
     }
 
+    /// Kết quả kiểm tra một URL module trước khi giao cho Shadowrocket.
+    enum ModuleAvailability: Equatable {
+        case reachable(String)
+        case unreachable(String)
+    }
+
+    /// Lỗi gần nhất khi chuẩn bị import, để giao diện nói thật thay vì im lặng.
+    @Published private(set) var importError: String?
+
+    /// Kiểm tra một URL có tải được không.
+    ///
+    /// Đây là mấu chốt của lỗi "Shadowrocket báo import thành công nhưng chẳng có gì":
+    /// trước đây ta mở `shadowrocket://install?module=...` mà KHÔNG hề kiểm tra URL đó có
+    /// tồn tại. URL GitHub thì 404 (repo chưa đổi tên), còn URL nội bộ thì chỉ sống khi
+    /// ứng dụng chưa bị iOS treo. Shadowrocket nhận một URL hỏng, báo thành công theo cách
+    /// của nó, và người dùng không có cách nào biết.
+    private func checkReachable(_ urlString: String) async -> Bool {
+        guard let url = URL(string: urlString) else { return false }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.timeoutInterval = 4
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+                return false
+            }
+            // Module rỗng cũng vô dụng như module 404.
+            return data.count > 32
+        } catch {
+            return false
+        }
+    }
+
+    /// Chọn URL module dùng được: ưu tiên bản nội bộ (toạ độ realtime), lùi về GitHub.
+    func resolveModuleURL() async -> ModuleAvailability {
+        if !coordServer.isRunning { coordServer.start() }
+        // Cho listener một nhịp để lên sóng.
+        try? await Task.sleep(nanoseconds: 250_000_000)
+
+        if coordServer.isRunning, await checkReachable(moduleURL) {
+            return .reachable(moduleURL)
+        }
+        if await checkReachable(moduleGitURL) {
+            return .reachable(moduleGitURL)
+        }
+        return .unreachable(moduleGitURL)
+    }
+
     /// Import module vào Shadowrocket — one-tap
     func importModule() {
-        // Đảm bảo CoordinateServer đang chạy
-        if !coordServer.isRunning { coordServer.start() }
+        Task { await performImport() }
+    }
 
-        // Thử local module trước (realtime), fallback GitHub (static)
-        let urlString: String
-        if coordServer.isRunning {
-            urlString = moduleURL
-        } else {
-            urlString = moduleGitURL
+    private func performImport() async {
+        importError = nil
+        let availability = await resolveModuleURL()
+
+        guard case .reachable(let urlString) = availability else {
+            // Nói thẳng ra là hỏng, thay vì đẩy sang Shadowrocket rồi để nó im lặng.
+            importError = L("shadowrocket.error.module_unreachable")
+            updateStatus()
+            return
         }
 
         let encoded = urlString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? urlString
@@ -269,6 +321,14 @@ final class ShadowrocketManager: ObservableObject {
     }
 
     private func updateStatus() {
+        // Lỗi chuẩn bị import được ưu tiên hiển thị — người dùng cần biết vì sao hỏng,
+        // chứ không phải một dòng trạng thái chung chung.
+        if let importError {
+            statusMessage = importError
+            isReady = false
+            showSetupBanner = true
+            return
+        }
         if !isInstalled {
             statusMessage = L("shadowrocket.status.not_installed")
             isReady = false

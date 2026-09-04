@@ -229,8 +229,63 @@ function transform(bytes, args, depth) {
 
 /* -------------------------------------------------------------------- chạy */
 
-function run() {
-    const args = getArgs();
+/* ------------------------------------------------- lay toa do song luc chay */
+
+/// Dia chi CoordinateServer cua ung dung.
+const LIVE_COORD_URL = 'http://127.0.0.1:8765/coord';
+
+/**
+ * Lay toa do hien tai.
+ *
+ * Vi sao phai fetch luc CHAY chu khong nuong san vao script: Shadowrocket CACHE script
+ * sau lan tai dau tien. Toa do nuong cung se dung yen mai mai — nguoi dung di chuyen
+ * trong ung dung ma vi tri gia khong doi theo.
+ *
+ * Neu ung dung dang ngu (iOS treo tien trinh, cong 8765 dong) thi fetch that bai va ta
+ * lui ve tham so tinh trong `$argument`. Nho vay mat tinh realtime chu khong mat luon
+ * kha nang dinh vi.
+ */
+function resolveArgs(callback) {
+    const fallback = getArgs();
+
+    if (typeof $httpClient === 'undefined' || !$httpClient.get) {
+        callback(fallback);
+        return;
+    }
+
+    let settled = false;
+    function finish(args) {
+        if (settled) return;
+        settled = true;
+        callback(args);
+    }
+
+    try {
+        $httpClient.get({ url: LIVE_COORD_URL, timeout: 2 }, function (error, response, body) {
+            if (error || !body) { finish(fallback); return; }
+            try {
+                const live = JSON.parse(body);
+                if (typeof live.lat === 'number' && typeof live.lon === 'number') {
+                    finish({
+                        latitude: live.lat,
+                        longitude: live.lon,
+                        horizontalAccuracy: typeof live.acc === 'number'
+                            ? live.acc : fallback.horizontalAccuracy,
+                    });
+                    return;
+                }
+            } catch (e) {}
+            finish(fallback);
+        });
+    } catch (e) {
+        finish(fallback);
+    }
+}
+
+/* -------------------------------------------------------------------- chay */
+
+/// Thay toa do trong response roi tra ve cho he thong.
+function rewrite(args) {
     const body = $response.body;
 
     if (!body || body.byteLength < 8) {
@@ -244,9 +299,9 @@ function run() {
         const output = transform(input, args, 0);
 
         if (rewriteCount === 0) {
-            // Không nhận ra Location nào: TRẢ NGUYÊN response.
-            // Trả về dữ liệu đã đụng chạm nửa vời còn tệ hơn không làm gì —
-            // CoreLocation sẽ vứt cả response và người dùng mất luôn định vị.
+            // Khong nhan ra Location nao: TRA NGUYEN response.
+            // Tra ve du lieu da dung cham nua voi con te hon khong lam gi — CoreLocation
+            // se vut ca response va nguoi dung mat luon dinh vi.
             $done({});
             return;
         }
@@ -258,8 +313,8 @@ function run() {
         $done({ body: output.buffer });
     } catch (e) {
         console.log('[LocationX] error: ' + e);
-        $done({}); // lỗi thì để response gốc đi qua
+        $done({}); // loi thi de response goc di qua
     }
 }
 
-run();
+resolveArgs(rewrite);

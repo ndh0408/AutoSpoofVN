@@ -799,3 +799,4 @@ Forces iOS to use Wi-Fi positioning instead of GPS.";
 "location_picker.use_this" = "Use this location";
 "location_picker.hint" = "Tap the map to choose a point";
 "location_picker.search" = "Search for a place";
+"shadowrocket.error.module_unreachable" = "Could not fetch the module. Bring LocationX to the foreground and try again, or check that the GitHub repo exists.";

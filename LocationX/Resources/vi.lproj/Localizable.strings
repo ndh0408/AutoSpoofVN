@@ -799,3 +799,4 @@ Buộc iOS dùng WiFi positioning thay vì GPS.";
 "location_picker.use_this" = "Dùng vị trí này";
 "location_picker.hint" = "Chạm bản đồ để chọn điểm";
 "location_picker.search" = "Tìm địa điểm";
+"shadowrocket.error.module_unreachable" = "Không tải được module. Mở LocationX ở tiền cảnh rồi thử lại, hoặc kiểm tra repo GitHub đã tồn tại chưa.";
