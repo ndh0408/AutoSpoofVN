@@ -157,6 +157,12 @@ final class FlightManager: ObservableObject {
     @Published var activeTourSpotIndex: Int = 0
     @Published var destinationLocalTime: String = ""
     @Published var flightPathCoordinates: [CLLocationCoordinate2D] = []
+    /// Toc do len/xuong (m/s). Duong = dang leo cao.
+    ///
+    /// Suy ra tu chenh lech do cao giua hai tick — FlightManager la noi duy nhat biet
+    /// chuoi do cao theo thoi gian, nen tinh o day chu khong phai o tang giao dien.
+    @Published private(set) var verticalSpeedMps: Double = 0
+    private var lastAltitudeSample: (altitude: Double, at: Date)?
 
     private var flightTimer: Timer?
     private var tourTimer: Timer?
@@ -298,6 +304,18 @@ final class FlightManager: ObservableObject {
             flight.currentSpeedKmh = currentSpd
             flight.altitudeMeters = currentAlt
             flight.phase = phase
+
+            // Toc do len/xuong: chenh lech do cao chia cho thoi gian that giua hai mau.
+            // Dung thoi gian THAT chu khong phai `intervalSeconds`, vi he so tua thoi gian
+            // lam mot tick tuong duong nhieu giay bay.
+            let now = Date()
+            if let last = self.lastAltitudeSample {
+                let dt = now.timeIntervalSince(last.at)
+                if dt > 0.01 {
+                    self.verticalSpeedMps = (currentAlt - last.altitude) / dt
+                }
+            }
+            self.lastAltitudeSample = (currentAlt, now)
             flight.estimatedMinutesRemaining = (newRemainingKm / flight.cruisingSpeedKmh) * 60.0
 
             self.activeFlight = flight
@@ -483,6 +501,8 @@ final class FlightManager: ObservableObject {
     }
 
     func stopFlight() {
+        verticalSpeedMps = 0
+        lastAltitudeSample = nil
         flightTimer?.invalidate()
         tourTimer?.invalidate()
         transitionTimer?.invalidate()

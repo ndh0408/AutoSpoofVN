@@ -147,8 +147,9 @@ struct WorldDestination: Identifiable, Codable, Hashable {
     var stayDays: Int = 3
 }
 
-/// Trang thai chuyen bay mo phong
-enum FlightPhase: String, Codable {
+/// Trang thai chuyen bay mo phong.
+/// `CaseIterable` de giao dien dung duoc lam duong thoi gian theo dung thu tu khai bao.
+enum FlightPhase: String, Codable, CaseIterable {
     case taxiToAirport = "Di chuyển ra sân bay"
     case airportCheckin = "Thủ tục tại sân bay & Chờ cất cánh"
     case scheduled = "Chuẩn bị cất cánh"

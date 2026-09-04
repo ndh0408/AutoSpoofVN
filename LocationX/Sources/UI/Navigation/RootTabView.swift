@@ -34,7 +34,7 @@ struct RootTabView: View {
             .tag(AppTab.routes)
 
             NavigationStack(path: $navigator.flightPath) {
-                FlightHubScreen()
+                FlightScreen()
             }
             .tabItem {
                 Label(AppTab.flight.title, systemImage: AppTab.flight.symbol)
