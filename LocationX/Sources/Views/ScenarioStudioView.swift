@@ -135,6 +135,10 @@ struct ScenarioEditorView: View {
     let onSave: (Scenario) -> Void
     @Environment(\.dismiss) private var dismiss
 
+    /// Chi so buoc dang sua. `nil` = khong sua buoc nao.
+    @State private var editingStepIndex: Int?
+    @State private var isAddingStep = false
+
     var body: some View {
         NavigationStack {
             Form {
@@ -145,18 +149,31 @@ struct ScenarioEditorView: View {
 
                 Section(L("scenario.section.steps")) {
                     ForEach(Array(scenario.steps.enumerated()), id: \.element.id) { index, step in
-                        HStack {
-                            Text("\(index + 1).")
-                                .font(AppFont.mono)
-                                .foregroundStyle(AppColor.textTertiary)
-                            VStack(alignment: .leading) {
-                                Text(step.action.displayName)
-                                    .font(AppFont.body)
-                                Text(stepDetail(step.action))
-                                    .font(AppFont.caption)
-                                    .foregroundStyle(AppColor.textSecondary)
+                        // Cham de SUA. Truoc day danh sach nay chi doc: buoc duoc tao voi
+                        // hang so viet cung va khong co duong nao chinh lai tham so.
+                        Button {
+                            editingStepIndex = index
+                        } label: {
+                            HStack {
+                                Text("\(index + 1).")
+                                    .font(AppFont.mono)
+                                    .foregroundStyle(AppColor.textTertiary)
+                                VStack(alignment: .leading) {
+                                    Text(step.action.displayName)
+                                        .font(AppFont.body)
+                                        .foregroundStyle(AppColor.textPrimary)
+                                    Text(stepDetail(step.action))
+                                        .font(AppFont.caption)
+                                        .foregroundStyle(AppColor.textSecondary)
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundStyle(AppColor.textQuaternary)
                             }
+                            .contentShape(Rectangle())
                         }
+                        .buttonStyle(.plain)
                     }
                     .onDelete { indices in
                         scenario.steps.remove(atOffsets: indices)
@@ -165,25 +182,10 @@ struct ScenarioEditorView: View {
                         scenario.steps.move(fromOffsets: from, toOffset: to)
                     }
 
-                    Menu(L("scenario.add_step")) {
-                        Button(L("scenario.action.set_location"), systemImage: "mappin") {
-                            addStep(.setLocation(CoordinateCodable(latitude: 21.0285, longitude: 105.8542)))
-                        }
-                        Button(L("scenario.action.move_to"), systemImage: "arrow.right") {
-                            addStep(.moveTo(CoordinateCodable(latitude: 21.03, longitude: 105.85), speedKmh: 30))
-                        }
-                        Button(L("scenario.action.wait"), systemImage: "clock") {
-                            addStep(.wait(seconds: 60))
-                        }
-                        Button(L("scenario.action.dwell"), systemImage: "pause") {
-                            addStep(.dwell(seconds: 300))
-                        }
-                        Button(L("scenario.action.random_nearby"), systemImage: "shuffle") {
-                            addStep(.randomNearby(radiusMeters: 200, durationSeconds: 600))
-                        }
-                        Button(L("scenario.action.change_speed"), systemImage: "speedometer") {
-                            addStep(.changeSpeed(kmh: 40))
-                        }
+                    Button {
+                        isAddingStep = true
+                    } label: {
+                        Label(L("scenario.add_step"), systemImage: "plus.circle")
                     }
                 }
             }
@@ -196,6 +198,20 @@ struct ScenarioEditorView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(L("action.save")) { onSave(scenario); dismiss() }
                         .fontWeight(.semibold)
+                }
+            }
+            .sheet(isPresented: $isAddingStep) {
+                ScenarioStepEditor(initial: nil) { action in
+                    addStep(action)
+                }
+            }
+            .sheet(item: Binding(
+                get: { editingStepIndex.map { StepIndex(value: $0) } },
+                set: { editingStepIndex = $0?.value }
+            )) { wrapper in
+                ScenarioStepEditor(initial: scenario.steps[safe: wrapper.value]?.action) { action in
+                    guard scenario.steps.indices.contains(wrapper.value) else { return }
+                    scenario.steps[wrapper.value].action = action
                 }
             }
         }
@@ -220,4 +236,14 @@ struct ScenarioEditorView: View {
         case .loop(let n): return L("scenario.detail.loop_count", n)
         }
     }
+}
+
+
+/// Boc chi so buoc de dung voi `.sheet(item:)`.
+///
+/// `Int` khong conform `Identifiable`, ma dung `.sheet(isPresented:)` kem mot bien chi so
+/// rieng se mo sheet voi gia tri cu trong mot vong cap nhat.
+private struct StepIndex: Identifiable {
+    let value: Int
+    var id: Int { value }
 }
