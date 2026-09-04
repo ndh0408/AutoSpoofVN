@@ -69,7 +69,7 @@ struct FlightScreen: View {
                         .font(AppFont.monoFootnote.weight(.bold))
                         .foregroundStyle(AppColor.primary)
                     Spacer()
-                    StatusBadge(sim.phase.rawValue, color: AppColor.success,
+                    StatusBadge(sim.phase.displayName, color: AppColor.success,
                                 icon: sim.phase.symbol, pulses: true)
                 }
 

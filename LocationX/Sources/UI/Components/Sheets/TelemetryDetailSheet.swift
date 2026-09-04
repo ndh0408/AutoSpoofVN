@@ -39,7 +39,7 @@ struct TelemetryDetailSheet: View {
 
                 Section(L("telemetry.section.motion")) {
                     MetricRow(L("telemetry.speed"), value: "\(AppFormat.speed(telemetry.speedKmh)) km/h", icon: "speedometer")
-                    MetricRow(L("telemetry.phase"), value: telemetry.motionPhase.rawValue, icon: "waveform.path", monospaced: false)
+                    MetricRow(L("telemetry.phase"), value: telemetry.motionPhase.displayName, icon: "waveform.path", monospaced: false)
                     MetricRow(L("telemetry.distance_travelled"), value: AppFormat.distance(telemetry.distanceTravelledMeters), icon: "ruler")
                     MetricRow(L("telemetry.distance_remaining"), value: AppFormat.distance(telemetry.distanceRemainingMeters), icon: "flag.checkered")
                     MetricRow(L("telemetry.progress"), value: AppFormat.percent(telemetry.routeProgress), icon: "chart.bar.fill")

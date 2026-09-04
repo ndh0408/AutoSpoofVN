@@ -181,6 +181,15 @@ enum MotionPhase: String, Codable {
     case cruising
     case decelerating
     case stopped
+
+    var displayName: String {
+        switch self {
+        case .accelerating: return L("motion.accelerating")
+        case .cruising:     return L("motion.cruising")
+        case .decelerating: return L("motion.decelerating")
+        case .stopped:      return L("motion.stopped")
+        }
+    }
 }
 
 // MARK: - GPS Noise Configuration
@@ -226,7 +235,10 @@ struct SimulationTelemetry: Equatable {
     var updateRate: Double = 0  // Hz
 
     var cardinalDirection: String {
-        let directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
+        // Cung mot bang chu voi HeadingEngine — truoc day mot ben ra "NE" con ben kia
+        // ra "ĐB", nen cung mot huong hien hai kieu o hai man hinh khac nhau.
+        let directions = [L("cardinal.n"), L("cardinal.ne"), L("cardinal.e"), L("cardinal.se"),
+                          L("cardinal.s"), L("cardinal.sw"), L("cardinal.w"), L("cardinal.nw")]
         let index = Int((headingDegrees + 22.5).truncatingRemainder(dividingBy: 360) / 45)
         return directions[max(0, min(index, 7))]
     }
@@ -294,10 +306,12 @@ enum DeviceConnectionState: Equatable {
 
 struct SystemHealth {
     enum Status: String {
-        case healthy = "OK"
-        case warning = "Cảnh báo"
-        case error = "Lỗi"
-        case unknown = "Chưa rõ"
+        // `rawValue` la khoa on dinh, KHONG phai chuoi hien thi — truoc day man Chan
+        // doan hien thang rawValue, nen chon English van ra chu tieng Viet.
+        case healthy
+        case warning
+        case error
+        case unknown
 
         var icon: String {
             switch self {

@@ -76,7 +76,7 @@ struct DiagnosticsScreen: View {
                             .foregroundStyle(AppColor.textSecondary)
                     }
                     Spacer()
-                    Text(item.1.rawValue)
+                    Text(item.1.displayName)
                         .font(AppFont.caption.weight(.semibold))
                         .foregroundStyle(color(for: item.1))
                 }
@@ -219,7 +219,7 @@ struct DiagnosticsScreen: View {
         lines.append(ISO8601DateFormatter().string(from: Date()))
         lines.append("")
         for item in results {
-            lines.append("[\(item.1.rawValue)] \(item.0): \(item.2)")
+            lines.append("[\(item.1.rawValue)] \(item.0): \(item.2)")  // bao cao ky thuat: giu khoa on dinh
         }
         lines.append("")
         lines.append("server=\(server.isRunning ? "127.0.0.1:\(server.port)" : "off")")

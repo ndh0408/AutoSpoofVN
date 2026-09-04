@@ -36,7 +36,7 @@ struct FlightTimeline: View {
             }
         }
         .accessibilityElement(children: .contain)
-        .accessibilityLabel(L("flight.timeline.a11y", currentPhase.rawValue))
+        .accessibilityLabel(L("flight.timeline.a11y", currentPhase.displayName))
     }
 
     private func row(phase: FlightPhase, isLast: Bool) -> some View {
@@ -60,7 +60,7 @@ struct FlightTimeline: View {
                 }
             }
 
-            Text(phase.rawValue)
+            Text(phase.displayName)
                 .font(state == .current ? AppFont.calloutEmphasized : AppFont.callout)
                 .foregroundStyle(state.textColor)
                 .padding(.bottom, isLast ? 0 : AppSpacing.sm)
@@ -72,7 +72,7 @@ struct FlightTimeline: View {
             }
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(phase.rawValue). \(state.a11ySuffix)")
+        .accessibilityLabel("\(phase.displayName). \(state.a11ySuffix)")
     }
 
     private enum PhaseState {

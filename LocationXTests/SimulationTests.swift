@@ -151,23 +151,36 @@ final class SimulationTests: XCTestCase {
 
     // MARK: - Telemetry
 
+    /// Huong la bat, chu cai la ban dich.
+    ///
+    /// Ban truoc so voi "N"/"E"/"S"/"W" — dung khi ham nay tra ve chu cai tieng Anh go
+    /// cung, nhung dieu do co nghia la nguoi dung chon Tiếng Việt van thay "NE".
+    /// Gio no di qua L(), nen test so voi chinh khoa dich: dung o CA HAI ngon ngu, va
+    /// van do neu bang tra cuu bi lech chi so.
     func testCardinalDirection() {
         var tel = SimulationTelemetry()
 
         tel.headingDegrees = 0
-        XCTAssertEqual(tel.cardinalDirection, "N")
+        XCTAssertEqual(tel.cardinalDirection, L("cardinal.n"))
 
         tel.headingDegrees = 90
-        XCTAssertEqual(tel.cardinalDirection, "E")
+        XCTAssertEqual(tel.cardinalDirection, L("cardinal.e"))
 
         tel.headingDegrees = 180
-        XCTAssertEqual(tel.cardinalDirection, "S")
+        XCTAssertEqual(tel.cardinalDirection, L("cardinal.s"))
 
         tel.headingDegrees = 270
-        XCTAssertEqual(tel.cardinalDirection, "W")
+        XCTAssertEqual(tel.cardinalDirection, L("cardinal.w"))
 
         tel.headingDegrees = 135
-        XCTAssertEqual(tel.cardinalDirection, "SE")
+        XCTAssertEqual(tel.cardinalDirection, L("cardinal.se"))
+
+        // Tam huong phai ra tam chu khac nhau — neu khong, bang tra cuu co o trung.
+        let all = Set((0..<8).map { i -> String in
+            tel.headingDegrees = Double(i) * 45
+            return tel.cardinalDirection
+        })
+        XCTAssertEqual(all.count, 8)
     }
 
     // MARK: - Session

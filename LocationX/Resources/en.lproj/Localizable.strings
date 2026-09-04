@@ -74,6 +74,16 @@
 "bookmarks.subtitle" = "Home, work, café and custom points";
 "bookmarks.title" = "Saved places";
 
+/* cardinal */
+"cardinal.e" = "E";
+"cardinal.n" = "N";
+"cardinal.ne" = "NE";
+"cardinal.nw" = "NW";
+"cardinal.s" = "S";
+"cardinal.se" = "SE";
+"cardinal.sw" = "SW";
+"cardinal.w" = "W";
+
 /* common */
 "common.actions" = "Actions";
 "common.advanced" = "Advanced";
@@ -82,9 +92,7 @@
 "common.coordinates" = "Coordinates";
 "common.copy" = "Copy";
 "common.details" = "Details";
-"common.enabled" = "Enabled";
 "common.error" = "Error";
-"common.error.unknown" = "Unknown error";
 "common.error_detail" = "Error: %@";
 "common.imported" = "Imported";
 "common.info" = "Information";
@@ -93,7 +101,6 @@
 "common.loading" = "Loading…";
 "common.longitude" = "Longitude";
 "common.more" = "More";
-"common.name" = "Name";
 "common.no" = "not yet";
 "common.none" = "None";
 "common.not_imported" = "Not imported";
@@ -107,58 +114,17 @@
 "common.source.routine" = "24/7 routine";
 "common.status" = "Status";
 "common.today" = "Today";
-"common.travel_mode" = "Travel mode";
 "common.unit.hour" = "h";
-"common.unknown" = "Unknown";
 "common.view" = "View";
 "common.yes" = "yes";
 "common.yesterday" = "Yesterday";
 
 /* device */
-"device.clear_gps" = "Clear GPS";
-"device.connect" = "Connect";
-"device.connect.connecting" = "Connecting to 10.7.0.1:62078...";
-"device.connect.disconnected" = "Disconnected";
-"device.connect.dvt_loopback" = "Connected to DVT loopback (10.7.0.1:62078)";
-"device.connect.dvt_rppairing" = "Connected to real DVT via RPPairing (10.7.0.1:49152)";
-"device.connect.failed" = "DVT connection failed";
-"device.connect.missing_ffi" = "This build is missing the Rust FFI library";
-"device.connect.missing_ffi_status" = "Not connected: this build has no libidevice_ffi.a";
 "device.connected" = "Connected";
 "device.connected_transport" = "Connected (%@)";
 "device.connecting" = "Connecting...";
 "device.connection" = "Connection";
-"device.disconnect" = "Disconnect";
 "device.disconnected" = "Disconnected";
-"device.error.no_pairing" = "No pairing data. Run pairing first.";
-"device.manage" = "Manage devices";
-"device.name" = "Name";
-"device.pair_new" = "New pairing";
-"device.pairing" = "Pairing";
-"device.pairing.advertising" = "Advertising over Bonjour. Open Settings > Privacy & Security > Developer Mode.";
-"device.pairing.cancel" = "Cancel pairing";
-"device.pairing.connecting_tunnel" = "Paired, opening the DVT tunnel...";
-"device.pairing.error.background_timeout" = "Background pairing timed out. Please try again.";
-"device.pairing.error.code" = "Pairing failed (code %d)";
-"device.pairing.error.empty_content" = "Pairing file content is empty";
-"device.pairing.error.empty_file" = "Pairing file is empty";
-"device.pairing.error.local_network" = "Grant Local Network permission in Settings > LocationX.";
-"device.pairing.error.simulation_build" = "This build runs in simulation mode; the real FFI is not enabled.";
-"device.pairing.failed" = "Pairing failed: %@";
-"device.pairing.idle" = "Ready to pair automatically";
-"device.pairing.notification.body" = "Enter code %@ under Pair with LocationX in Developer Mode.";
-"device.pairing.notification.title" = "LocationX pairing code";
-"device.pairing.pin" = "Pairing code: %@";
-"device.pairing.requesting_permission" = "Requesting local network permission...";
-"device.pairing.start" = "Start pairing";
-"device.pairing.success" = "Successfully paired with %@";
-"device.pairing.summary.kind_binary" = "binary plist";
-"device.pairing.summary.kind_text" = "text plist";
-"device.pairing.summary.loaded" = "Loaded %d bytes (%@)";
-"device.pairing.summary.none" = "No pairing file loaded";
-"device.pairing.summary.rppairing" = "Paired on-device via RPPairing (%d bytes)";
-"device.pin_code" = "PIN code";
-"device.quick_diagnostics" = "Quick diagnostics";
 "device.short.connected" = "Online";
 "device.short.connecting" = "Connecting";
 "device.short.disconnected" = "Offline";
@@ -183,16 +149,12 @@
 "diagnostics.item.shadowrocket" = "Shadowrocket";
 "diagnostics.item.simulation" = "Simulation";
 "diagnostics.item.vpn" = "VPN";
-"diagnostics.last_error" = "Last error";
 "diagnostics.last_path" = "Last path";
 "diagnostics.last_request" = "Last request";
 "diagnostics.location_updates" = "Location updates";
 "diagnostics.mitm.fresh" = "Shadowrocket fetched the script recently (%d times)";
 "diagnostics.mitm.stale" = "No recent script fetch";
 "diagnostics.multiplier" = "Time multiplier";
-"diagnostics.pairing.available" = "Available";
-"diagnostics.pairing.missing" = "Not set up — pairing required";
-"diagnostics.permission.need_always" = "Grant Always access";
 "diagnostics.pipeline.footer" = "This is the chain that really moves the coordinate: the app serves it on 127.0.0.1, and Shadowrocket rewrites iOS's location lookups to return it.";
 "diagnostics.reported" = "Reported coordinate";
 "diagnostics.requests" = "Requests served";
@@ -223,18 +185,13 @@
 "empty.routes" = "No routes yet";
 "empty.routes.action" = "Create route";
 "empty.routes.message" = "Create your first route to start simulating.";
-"empty.scenarios" = "No scenarios yet";
 "empty.scenarios.message" = "Create your first scenario to automate GPS simulation.";
 
 /* error */
-"error.connection_lost" = "Cannot send location to device.";
-"error.pairing_failed" = "Pairing failed";
-"error.route_failed" = "Route calculation failed";
+"error.higher_priority_source" = "A higher-priority source currently holds control";
 
 /* flight */
 "flight.altitude" = "Altitude";
-"flight.badge.auto" = "Auto";
-"flight.cancel" = "Cancel flight";
 "flight.cancel.action" = "Cancel flight";
 "flight.cancel.confirm" = "Cancel flight";
 "flight.cancel.message" = "The flight in progress will stop and GPS returns to its previous state.";
@@ -242,8 +199,6 @@
 "flight.controls" = "Controls";
 "flight.cruise" = "Cruise";
 "flight.destination" = "To";
-"flight.destination.local_time" = "local time %@";
-"flight.destination.status" = "In %@, %@ · day %d/%d";
 "flight.destinations" = "Destinations";
 "flight.duration" = "Duration";
 "flight.from" = "From";
@@ -251,10 +206,6 @@
 "flight.heading" = "Heading";
 "flight.in_progress" = "Flight in progress";
 "flight.live_activity.flying" = "In flight";
-"flight.metric.altitude" = "Altitude";
-"flight.metric.heading" = "Heading";
-"flight.metric.remaining" = "Remaining";
-"flight.metric.speed" = "Speed";
 "flight.origin" = "From";
 "flight.phase.airport_checkin" = "Check-in & waiting to depart";
 "flight.phase.cruising" = "Cruising";
@@ -275,14 +226,25 @@
 "flight.progress" = "Progress";
 "flight.remaining_km" = "%d km left";
 "flight.search_airport" = "Search airports...";
-"flight.section.active" = "Flight in progress";
 "flight.section.auto" = "Automatic";
-"flight.section.destination" = "Destination";
-"flight.section.destination.footer" = "Simulate flights between international airports, with a sightseeing schedule at the destination.";
-"flight.section.popular_airports" = "Popular airports";
 "flight.section.vietnam" = "Vietnam";
 "flight.select_airport" = "Choose an airport";
 "flight.start" = "Start flight";
+"flight.status.back_to_hotel" = "Back to %@ to rest";
+"flight.status.breakfast" = "Breakfast buffet at the hotel restaurant";
+"flight.status.checked_in" = "Checked in at %@ (%@, %@)";
+"flight.status.cruising" = "Flight [%1$@]: %2$@ ➔ %3$@ · %4$dm · %5$d km to go";
+"flight.status.departed" = "Flight [%@]: %@ ➔ %@ (%d km/h)";
+"flight.status.dinner" = "Dinner and shopping at %@";
+"flight.status.exploring" = "Exploring %@ [%@]";
+"flight.status.landed" = "Landed safely at %@ (%@)";
+"flight.status.landed_taxi" = "Landed at %@. Taking a taxi to %@…";
+"flight.status.lunch" = "Lunch and local food at %@";
+"flight.status.night_walk" = "An evening stroll through central %@";
+"flight.status.sightseeing" = "Visiting %@ [%@]";
+"flight.status.sleeping" = "Sleeping at %@";
+"flight.status.stopped" = "Flight / tour stopped";
+"flight.status.taxi_leg" = "Taxi from the airport to the hotel";
 "flight.swap" = "Swap";
 "flight.telemetry" = "Flight telemetry";
 "flight.time_warp" = "Time warp";
@@ -300,8 +262,6 @@
 "flight.world_tour.status" = "In %@, %@ · day %d of %d";
 "flight.world_tour.stopped" = "World tour stopped";
 "flight.world_tour.subtitle" = "Pick a destination, fly to its airport and sightsee automatically";
-"flight.world_travel" = "World travel";
-"flight.world_travel.subtitle" = "Pick a destination, fly to its airport and tour automatically";
 
 /* history */
 "history.clear_all" = "Delete all";
@@ -388,11 +348,14 @@
 "map.style.imagery" = "Satellite";
 "map.style.standard" = "Map";
 
+/* motion */
+"motion.accelerating" = "Accelerating";
+"motion.cruising" = "Cruising";
+"motion.decelerating" = "Decelerating";
+"motion.stopped" = "Stopped";
+
 /* onboarding */
 "onboarding.continue" = "Continue";
-"onboarding.devmode.description" = "Go to Settings → Privacy & Security → Developer Mode → turn it on → restart.\n\nApple requires this before developer tools can access the device.";
-"onboarding.devmode.subtitle" = "Required step";
-"onboarding.devmode.title" = "Enable Developer Mode";
 "onboarding.how.note" = "This works through Wi-Fi positioning. Where satellite GPS has a strong fix, some apps may still read your real position.";
 "onboarding.how.step1" = "LocationX runs a small server on your device that continuously publishes the coordinate you are simulating.";
 "onboarding.how.step2" = "Shadowrocket intercepts the Wi-Fi positioning request iOS sends to Apple and swaps your coordinate into the reply.";
@@ -400,10 +363,6 @@
 "onboarding.how.subtitle" = "No jailbreak, no computer needed";
 "onboarding.how.title" = "How LocationX works";
 "onboarding.language.subtitle" = "You can change this any time in Settings";
-"onboarding.pairing.pin" = "PIN code";
-"onboarding.pairing.start" = "Start pairing";
-"onboarding.pairing.success" = "Pairing successful";
-"onboarding.pairing.title" = "Pair device";
 "onboarding.permission.description" = "LocationX needs location access for two things: showing where you are on the map, and keeping the process alive when you switch to another app. Your location is never sent anywhere.";
 "onboarding.permission.grant" = "Allow location access";
 "onboarding.permission.open_settings" = "Open system Settings";
@@ -436,7 +395,6 @@
 "pipeline.error.server_down" = "Coordinate server is not running";
 
 /* recovery */
-"recovery.details" = "View details";
 "recovery.discard" = "Discard";
 "recovery.resume" = "Resume";
 "recovery.session_at" = "%@ at %@";
@@ -477,6 +435,9 @@
 "route.detail.updated" = "Updated · %@";
 "route.distance" = "Distance";
 "route.duration" = "Duration";
+"route.error.invalid_endpoints" = "The start or end coordinate is invalid.";
+"route.error.no_route" = "Apple Maps returned no usable route.";
+"route.error.too_few_points" = "A route needs at least two valid points.";
 "route.estimated_duration" = "Estimated duration";
 "route.eta" = "ETA";
 "route.export_failed" = "Could not create the GPX file.";
@@ -484,6 +445,7 @@
 "route.geometry_point_count" = "Geometry points";
 "route.import.done" = "Imported %d points from %@.";
 "route.last_used" = "Last run";
+"route.leg" = "Leg %d";
 "route.leg_count" = "%d legs";
 "route.name_placeholder" = "Route name";
 "route.point_count" = "Points";
@@ -499,11 +461,13 @@
 "route.source" = "Route Source";
 "route.source.fallback" = "Straight Line";
 "route.source.gpx" = "Imported GPX";
-"route.source.mapkit" = "Apple Maps";
+"route.source.partial_fallback" = "Apple Maps (%d of %d legs interpolated)";
 "route.speed" = "Speed";
 "route.start_failed" = "Could not start route";
 "route.stop" = "Stop route";
 "route.stop_count" = "Stops";
+"route.stopped.gps_restored" = "Stopped because you restored the real GPS.";
+"route.stopped.preempted" = "A higher-priority source took control.";
 "route.title" = "Route";
 "route.total_distance" = "Distance";
 "route.travel_mode" = "Travel mode";
@@ -522,30 +486,13 @@
 "routes.title" = "Routes";
 
 /* routine */
-"routine.activity.home_to_work" = "Home → Work";
-"routine.activity.lunch_break" = "Lunch break / Café";
-"routine.activity.sleeping" = "Sleeping";
-"routine.activity.walk" = "Out for a walk";
-"routine.activity.work_to_home" = "Work → Home";
-"routine.activity.working" = "Working";
 "routine.add" = "Add step";
-"routine.auto_cycle" = "Automatic 24/7 routine";
 "routine.commute.lunch_cafe" = "Lunch break & coffee";
 "routine.commute.to_home" = "Heading home (Office -> Home)";
 "routine.commute.to_work" = "Commuting to work (Home -> Office)";
 "routine.commute.to_work_near" = "Commuting to work (final stretch)";
 "routine.current_speed" = "Speed";
 "routine.current_state" = "Currently";
-"routine.day.fri" = "Fri";
-"routine.day.mon" = "Mon";
-"routine.day.sat" = "Sat";
-"routine.day.sun" = "Sun";
-"routine.day.thu" = "Thu";
-"routine.day.tue" = "Tue";
-"routine.day.wed" = "Wed";
-"routine.days.daily" = "Every day";
-"routine.days.weekdays" = "Mon–Fri";
-"routine.default_schedule" = "Default schedule";
 "routine.disable" = "Disable";
 "routine.disabled" = "disabled";
 "routine.editor.basics" = "Details";
@@ -571,9 +518,6 @@
 "routine.footer" = "Simulate a full day's rhythm without lifting a finger.";
 "routine.footer.custom" = "Using %d steps you defined.";
 "routine.footer.default_rhythm" = "No steps yet, so the default rhythm applies: work in the morning, coffee at noon, home in the evening.";
-"routine.location.cafe" = "Café";
-"routine.location.home" = "Home";
-"routine.location.work" = "Work";
 "routine.place.cafe" = "Cafe";
 "routine.place.hint" = "Pick the location again on the map";
 "routine.place.home" = "Home";
@@ -582,17 +526,6 @@
 "routine.places.footer" = "Tap to pick again on the map. The default rhythm uses these three places.";
 "routine.real_road" = "real road";
 "routine.running_status" = "Running: %@";
-"routine.schedule.add" = "Add schedule";
-"routine.schedule.edit_title" = "Edit schedule";
-"routine.schedule.empty" = "No custom schedules yet";
-"routine.schedule.empty.message" = "Using the default schedule based on Vietnam time slots.";
-"routine.schedule.new_name" = "New schedule";
-"routine.schedule.time_field" = "Time (HH:mm)";
-"routine.section.cycle" = "Routine";
-"routine.section.locations" = "Locations";
-"routine.section.reference" = "Reference";
-"routine.section.schedules" = "Schedules";
-"routine.section.weekdays" = "Days of the week";
 "routine.state.airport_dwell" = "At airport (check-in / waiting)";
 "routine.state.commuting_airport" = "To airport / to hotel";
 "routine.state.dining" = "Dining / restaurant";
@@ -655,6 +588,7 @@
 "scenario.section.list" = "Scenarios";
 "scenario.section.steps" = "Steps";
 "scenario.step.duration" = "Duration";
+"scenario.step.dwell" = "Dwell %ds";
 "scenario.step.edit" = "Edit step";
 "scenario.step.location" = "Location";
 "scenario.step.loop_times" = "Repeat count";
@@ -663,12 +597,14 @@
 "scenario.step.no_routes" = "No saved routes yet.";
 "scenario.step.parameters" = "Parameters";
 "scenario.step.radius" = "Radius";
+"scenario.step.random" = "Move randomly";
 "scenario.step.route" = "Route";
 "scenario.step.route.footer" = "Only routes with computed geometry can run. Open the route and tap Recalculate if needed.";
 "scenario.step.route.none" = "Not selected";
 "scenario.step.speed" = "Speed";
 "scenario.step.travel_mode" = "Travel mode";
 "scenario.step.type" = "Action type";
+"scenario.step.wait" = "Wait %ds";
 "scenario.step_count" = "%d steps";
 "scenario.step_number" = "Step %d";
 "scenario.subtitle" = "A chain of actions: move, wait, stop over, repeat";
@@ -687,16 +623,10 @@
 "settings.background.subtitle" = "Background, reconnect, heartbeat";
 "settings.background_keep_alive" = "Keep app alive in background";
 "settings.build" = "Build";
-"settings.bypass" = "Bypass GPS detection";
-"settings.bypass.footer" = "Bypasses isSimulatedBySoftware so Bump treats the spoofed GPS as real.";
-"settings.bypass.troubleshoot" = "Bypass troubleshooting";
 "settings.correlated_drift" = "Correlated drift";
 "settings.default_travel_mode" = "Default travel mode";
-"settings.developer" = "Developer";
 "settings.developer.footer" = "Shows raw coordinates, latency, and internal state on the main screens.";
 "settings.device" = "Device";
-"settings.device_manager" = "Device manager";
-"settings.device_manager.subtitle" = "Pair, reconnect, check the DVT channel";
 "settings.device_update_rate" = "Device update rate";
 "settings.diagnostics" = "System diagnostics";
 "settings.diagnostics.subtitle" = "Transport status, background mode, Live Activity";
@@ -709,9 +639,6 @@
 "settings.map.subtitle" = "Map style, follow mode, trail";
 "settings.map_3d" = "3D terrain";
 "settings.map_style" = "Map style";
-"settings.map_style.hybrid" = "Hybrid";
-"settings.map_style.satellite" = "Satellite";
-"settings.map_style.standard" = "Standard";
 "settings.preferred_source" = "Preferred source";
 "settings.rates" = "Update rates";
 "settings.rates.footer" = "The simulation rate is how often the position is recomputed; the device rate is how often it is pushed out. Setting the device rate too high drains battery without looking any smoother.";
@@ -732,7 +659,6 @@
 "settings.simulation_options.subtitle" = "GPS noise, map, background mode, appearance";
 "settings.simulation_rate" = "Simulation rate";
 "settings.spoof_method" = "Method";
-"settings.system_diagnostics" = "System diagnostics";
 "settings.trail" = "Draw movement trail";
 "settings.trail.footer" = "The trail keeps the path already travelled on the map. More points means more to draw.";
 "settings.trail_points" = "Maximum points";
@@ -743,8 +669,6 @@
 /* shadowrocket */
 "shadowrocket.action.open_app" = "Open Shadowrocket";
 "shadowrocket.action.open_cert_trust" = "Open Certificate Trust";
-"shadowrocket.action.open_settings" = "Open Settings";
-"shadowrocket.action.reset_progress" = "Reset progress";
 "shadowrocket.banner.action.import" = "Import";
 "shadowrocket.banner.action.install" = "Install";
 "shadowrocket.banner.enable_vpn" = "Enable VPN";
@@ -760,25 +684,13 @@
 "shadowrocket.check.sim.ok" = "Sending coordinate %@";
 "shadowrocket.check.sim.title" = "GPS simulation running";
 "shadowrocket.copy_github_url" = "Copy the GitHub module URL";
-"shadowrocket.done.message" = "Open Bump → the spoofed GPS location shows up, isSimulatedBySoftware = false";
-"shadowrocket.done.title" = "Bypass is ready";
 "shadowrocket.endpoint.coord" = "Current coordinate (JSON)";
 "shadowrocket.endpoint.module" = "Shadowrocket module definition";
 "shadowrocket.endpoint.spoofer" = "MITM script with live coordinates";
 "shadowrocket.endpoint.status" = "Server health + stats (JSON)";
 "shadowrocket.endpoints.footer" = "Tap to open, long-press to copy. These addresses only exist while LocationX is running.";
 "shadowrocket.error.module_unreachable" = "Could not fetch the module. Bring LocationX to the foreground and try again, or check that the GitHub repo exists.";
-"shadowrocket.flow.dvt" = "LocationX sends coordinates over DVT";
-"shadowrocket.flow.mitm" = "Shadowrocket MITM intercepts gs-loc.apple.com";
-"shadowrocket.flow.result" = "isSimulatedBySoftware = false → Bump accepts ✓";
-"shadowrocket.flow.script" = "location-spoofer.js rewrites the binary response";
-"shadowrocket.flow.server" = "CoordinateServer (port 8765) serves coordinates in real time";
-"shadowrocket.flow.wifi" = "iOS receives the result as Wi-Fi positioning (not DVT)";
 "shadowrocket.help.footer" = "Reset clears the recorded state; it does not remove anything inside Shadowrocket.";
-"shadowrocket.install.live.subtitle" = "Coordinates update in real time as you move";
-"shadowrocket.install.live.title" = "Install live module";
-"shadowrocket.install.static.subtitle" = "Fixed coordinates — reinstall when the location changes";
-"shadowrocket.install.static.title" = "Install static module (GitHub)";
 "shadowrocket.issue.flag.cause" = "The Airplane trick was not performed → iOS uses the GPS hardware instead of Wi-Fi positioning.";
 "shadowrocket.issue.flag.fix" = "Airplane Mode on → Location Services off → restart the iPhone → Airplane off → Wi-Fi on → Shadowrocket VPN on → Location Services on.
 The order matters.";
@@ -793,54 +705,30 @@ Settings → General → About → Certificate Trust Settings → enable the Sha
 "shadowrocket.issue.timeout.cause" = "CoordinateServer does not respond while the script runs.";
 "shadowrocket.issue.timeout.fix" = "LocationX must be running in the foreground, or at least in the background. Enable Background Keep-Alive in Settings.";
 "shadowrocket.issue.timeout.title" = "The module reports a timeout";
-"shadowrocket.metric.fake_coord" = "Spoofed coordinate";
-"shadowrocket.metric.requests" = "Requests";
-"shadowrocket.metric.server" = "Server";
-"shadowrocket.metric.server.off" = "Off";
-"shadowrocket.nojb.appstore" = "Shadowrocket is a paid App Store app ($2.99) — no jailbreak required.";
-"shadowrocket.nojb.cert" = "The MITM certificate is trusted via Settings → General (a supported iOS mechanism).";
-"shadowrocket.nojb.scope" = "The module only intercepts Apple's Wi-Fi location API; other traffic is untouched.";
 "shadowrocket.overall.need_module" = "Module not loaded";
 "shadowrocket.overall.no_traffic" = "No traffic yet";
 "shadowrocket.overall.not_installed" = "Shadowrocket not installed";
 "shadowrocket.overall.running" = "Active";
-"shadowrocket.problem.detail" = "Every coordinate that goes through DVT is automatically flagged isSimulatedBySoftware = true by the iOS daemon (locationd). Bump reads that flag and rejects it. This is a system mechanism — not a code bug.";
 "shadowrocket.reset" = "Reset setup";
 "shadowrocket.section.endpoints" = "Endpoints";
 "shadowrocket.section.help" = "Help";
-"shadowrocket.section.no_jailbreak" = "Why no jailbreak is needed";
-"shadowrocket.section.problem" = "Problem";
-"shadowrocket.section.solution" = "Solution";
 "shadowrocket.section.status" = "Status";
 "shadowrocket.section.steps" = "Steps";
-"shadowrocket.section.test" = "Test";
 "shadowrocket.server.running" = "CoordinateServer running";
-"shadowrocket.server.start" = "Start";
-"shadowrocket.server.stopped" = "CoordinateServer stopped";
 "shadowrocket.setup" = "Shadowrocket setup";
-"shadowrocket.setup.steps_title" = "5 setup steps";
 "shadowrocket.signal.installed" = "Shadowrocket installed";
 "shadowrocket.signal.module" = "Module loaded";
 "shadowrocket.signal.requests" = "%d requests";
 "shadowrocket.signal.server" = "Coordinate server running";
 "shadowrocket.signal.traffic" = "Shadowrocket is fetching coordinates";
-"shadowrocket.state.active" = "Bypass active";
-"shadowrocket.state.active.detail" = "isSimulatedBySoftware = false · spoofed GPS looks real";
-"shadowrocket.state.not_setup" = "Bypass not set up";
-"shadowrocket.state.not_setup.detail" = "Follow the 5 steps to bypass spoofed-GPS detection";
-"shadowrocket.state.progress" = "Setting up (%d/5)";
-"shadowrocket.state.progress.detail" = "Finish the remaining steps to activate the bypass";
 "shadowrocket.status.awaiting_import" = "Waiting for Shadowrocket to load the module — tap Import in Shadowrocket";
 "shadowrocket.status.footer" = "These four lines are facts the app verifies, not boxes you tick yourself.";
-"shadowrocket.status.module_missing" = "Tap to import the module into Shadowrocket";
 "shadowrocket.status.need_import" = "Tap to import the module into Shadowrocket";
 "shadowrocket.status.need_vpn" = "Turn on the Shadowrocket VPN to start";
 "shadowrocket.status.no_traffic" = "VPN is on but no traffic yet. Check HTTPS Decryption and that the certificate is trusted.";
 "shadowrocket.status.not_installed" = "Install Shadowrocket to bypass fake-GPS detection";
 "shadowrocket.status.ready" = "Active — Shadowrocket is receiving spoofed coordinates";
 "shadowrocket.status.server_down" = "CoordinateServer is not running";
-"shadowrocket.status.server_stopped" = "CoordinateServer is not running";
-"shadowrocket.status.vpn_off" = "Turn on the Shadowrocket VPN to start";
 "shadowrocket.step1.action" = "Open App Store";
 "shadowrocket.step1.detail" = "Paid app on the App Store. Surge, Loon and Stash work with the same module.";
 "shadowrocket.step1.title" = "Install Shadowrocket";
@@ -857,9 +745,6 @@ Settings → General → About → Certificate Trust Settings → enable the Sha
 "shadowrocket.step6.detail" = "Airplane Mode on → Location Services off → restart the iPhone → Airplane Mode off → Wi-Fi on → Shadowrocket VPN on → Location Services back on. Outdoors, satellite GPS overrides Wi-Fi positioning and the real location wins; this forces the device back onto Wi-Fi positioning.";
 "shadowrocket.step6.title" = "Force the device onto Wi-Fi positioning";
 "shadowrocket.steps.footer" = "The app cannot check steps 3, 4 and 5 directly — they are proven indirectly by the “Shadowrocket is fetching coordinates” signal.";
-"shadowrocket.tab.howto" = "How it works";
-"shadowrocket.tab.server" = "Server";
-"shadowrocket.tab.setup" = "Setup";
 "shadowrocket.tech.mechanism" = "Mechanism";
 "shadowrocket.tech.mechanism.value" = "iOS receives the result from Wi-Fi positioning
 → isSimulatedBySoftware = false";
@@ -869,9 +754,6 @@ Settings → General → About → Certificate Trust Settings → enable the Sha
 "shadowrocket.tech.server.stopped" = "Stopped";
 "shadowrocket.tech.server_status" = "Server status";
 "shadowrocket.tech.target_api" = "Target API";
-"shadowrocket.test.coord" = "View current coordinate (/coord)";
-"shadowrocket.test.status" = "View server status (/status)";
-"shadowrocket.title" = "GPS bypass";
 "shadowrocket.troubleshoot" = "Troubleshooting";
 "shadowrocket.troubleshoot.common_issues" = "Common issues";
 "shadowrocket.troubleshoot.live_checks" = "Real-time checks";

@@ -83,7 +83,7 @@ final class LiveActivityManager: ObservableObject {
 
         if flight.isFlying, let sim = flight.activeFlight {
             stateName = L("flight.live_activity.flying")
-            desc = sim.phase.rawValue
+            desc = sim.phase.displayName
             speed = sim.currentSpeedKmh
             flightNo = sim.flightNumber
             flightProgress = sim.progressFraction
@@ -104,7 +104,7 @@ final class LiveActivityManager: ObservableObject {
             etaText = coordinator.telemetry.estimatedArrival
                 .map { $0.formatted(date: .omitted, time: .shortened) }
         } else {
-            stateName = routine.currentState.rawValue
+            stateName = routine.currentState.displayName
             desc = routine.statusDescription
             speed = routine.currentSpeedKmh
             flightNo = nil

@@ -143,7 +143,7 @@ final class ScenarioEngine: ObservableObject {
             }
 
         case .wait(let seconds):
-            currentStepDescription = "Chờ \(Int(seconds))s"
+            currentStepDescription = L("scenario.step.wait", Int(seconds))
             try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
 
         case .changeSpeed(let kmh):
@@ -167,7 +167,7 @@ final class ScenarioEngine: ObservableObject {
             break // handled by executeSteps loop
 
         case .dwell(let seconds):
-            currentStepDescription = "Dừng chân \(Int(seconds))s"
+            currentStepDescription = L("scenario.step.dwell", Int(seconds))
             let start = Date()
             while Date().timeIntervalSince(start) < seconds && !Task.isCancelled {
                 // Jitter tại chỗ
@@ -177,7 +177,7 @@ final class ScenarioEngine: ObservableObject {
             }
 
         case .randomNearby(let radius, let duration):
-            currentStepDescription = "Di chuyển ngẫu nhiên"
+            currentStepDescription = L("scenario.step.random")
             let center = coordinator.currentCoordinate
             let start = Date()
             while Date().timeIntervalSince(start) < duration && !Task.isCancelled {

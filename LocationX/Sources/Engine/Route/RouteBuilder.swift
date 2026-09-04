@@ -37,8 +37,8 @@ enum RouteBuilder {
         var sourceDescription: String {
             if legCount == 0 { return "—" }
             if fallbackLegCount == 0 { return "MKDirections" }
-            if fallbackLegCount == legCount { return "Nội suy đường thẳng" }
-            return "MKDirections (\(fallbackLegCount)/\(legCount) chặng nội suy)"
+            if fallbackLegCount == legCount { return L("route.source.fallback") }
+            return L("route.source.partial_fallback", fallbackLegCount, legCount)
         }
 
         static let empty = BuildResult(geometry: [], distanceMeters: 0, durationSeconds: 0,
@@ -66,7 +66,7 @@ enum RouteBuilder {
 
         for index in 0..<(coordinates.count - 1) {
             let result = await RouteProvider.shared.resolveRoute(
-                named: "Chặng \(index + 1)",
+                named: L("route.leg", index + 1),
                 from: coordinates[index],
                 to: coordinates[index + 1],
                 transportType: transport,

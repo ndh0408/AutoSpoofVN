@@ -237,7 +237,7 @@ final class FlightManager: ObservableObject {
         _ = SpoofEngine.shared.submit(latitude: origin.coordinate.latitude, longitude: origin.coordinate.longitude, from: .flight)
 
         RoutineManager.shared.currentState = .flying
-        RoutineManager.shared.statusDescription = "Chuyến bay [\(flightNum)]: \(origin.code) ➔ \(destination.code) (\(Int(speedKmh)) km/h)"
+        RoutineManager.shared.statusDescription = L("flight.status.departed", flightNum, origin.code, destination.code, Int(speedKmh))
         RoutineManager.shared.currentSpeedKmh = speedKmh
 
         startFlightLoop()
@@ -331,7 +331,7 @@ final class FlightManager: ObservableObject {
 
             self.activeFlight = flight
             RoutineManager.shared.currentSpeedKmh = currentSpd
-            RoutineManager.shared.statusDescription = "Bay [\(flight.flightNumber)]: \(flight.origin.code) ➔ \(flight.destination.code) | Cao: \(Int(currentAlt))m | \(Int(newRemainingKm)) km còn lại"
+            RoutineManager.shared.statusDescription = L("flight.status.cruising", flight.flightNumber, flight.origin.code, flight.destination.code, Int(currentAlt), Int(newRemainingKm))
 
             if newProgress >= 1.0 {
                 self.handleFlightArrival(flight)
@@ -352,17 +352,17 @@ final class FlightManager: ObservableObject {
 
         if let dest = self.activeDestination {
             RoutineManager.shared.currentState = .commutingAirport
-            RoutineManager.shared.statusDescription = "Đã hạ cánh tại sân bay \(dest.airport.name). Đang di chuyển taxi về \(dest.hotelName)..."
+            RoutineManager.shared.statusDescription = L("flight.status.landed_taxi", dest.airport.name, dest.hotelName)
             RoutineManager.shared.currentSpeedKmh = 40.0
 
             // Mô phỏng di chuyển từ Sân bay về Khách sạn
-            simulateAirportTransfer(from: dest.airport.coordinate.clCoordinate, to: dest.hotelCoordinate.clCoordinate, stateName: .commutingAirport, label: "Taxi từ sân bay về khách sạn") { [weak self] in
+            simulateAirportTransfer(from: dest.airport.coordinate.clCoordinate, to: dest.hotelCoordinate.clCoordinate, stateName: .commutingAirport, label: L("flight.status.taxi_leg")) { [weak self] in
                 guard let self = self else { return }
                 self.setupDestinationRoutine(destination: dest)
             }
         } else {
             RoutineManager.shared.currentState = .resting
-            RoutineManager.shared.statusDescription = "Đã hạ cánh an toàn tại \(flight.destination.name) (\(flight.destination.code))"
+            RoutineManager.shared.statusDescription = L("flight.status.landed", flight.destination.name, flight.destination.code)
             RoutineManager.shared.currentSpeedKmh = 0.0
         }
     }
@@ -393,7 +393,7 @@ final class FlightManager: ObservableObject {
 
         _ = SpoofEngine.shared.submit(latitude: destination.hotelCoordinate.latitude, longitude: destination.hotelCoordinate.longitude, from: .flight)
         RoutineManager.shared.currentState = .hotel
-        RoutineManager.shared.statusDescription = "Đã nhận phòng tại \(destination.hotelName) (\(destination.name), \(destination.country))"
+        RoutineManager.shared.statusDescription = L("flight.status.checked_in", destination.hotelName, destination.name, destination.country)
         RoutineManager.shared.currentSpeedKmh = 0.0
 
         startDestinationTour(destination: destination)
@@ -423,14 +423,14 @@ final class FlightManager: ObservableObject {
         case 23...24, 0...7:
             // 23:00 - 07:30: Ngủ tại khách sạn
             RoutineManager.shared.currentState = .hotel
-            RoutineManager.shared.statusDescription = "Đang ngủ tại khách sạn \(destination.hotelName)"
+            RoutineManager.shared.statusDescription = L("flight.status.sleeping", destination.hotelName)
             RoutineManager.shared.currentSpeedKmh = 0.0
             _ = SpoofEngine.shared.submit(latitude: destination.hotelCoordinate.latitude, longitude: destination.hotelCoordinate.longitude, from: .flight)
 
         case 8:
             // 08:00 - 08:59: Ăn sáng khách sạn
             RoutineManager.shared.currentState = .dining
-            RoutineManager.shared.statusDescription = "Ăn buffet sáng tại nhà hàng khách sạn"
+            RoutineManager.shared.statusDescription = L("flight.status.breakfast")
             RoutineManager.shared.currentSpeedKmh = 0.0
             _ = SpoofEngine.shared.submit(latitude: destination.hotelCoordinate.latitude, longitude: destination.hotelCoordinate.longitude, from: .flight)
 
@@ -439,7 +439,7 @@ final class FlightManager: ObservableObject {
             if !destination.spots.isEmpty {
                 let spot = destination.spots[0]
                 RoutineManager.shared.currentState = .sightseeing
-                RoutineManager.shared.statusDescription = "Đang tham quan \(spot.name) [\(spot.category)]"
+                RoutineManager.shared.statusDescription = L("flight.status.sightseeing", spot.name, spot.category)
                 RoutineManager.shared.currentSpeedKmh = 3.5
                 _ = SpoofEngine.shared.submit(latitude: spot.coordinate.latitude, longitude: spot.coordinate.longitude, from: .flight)
             }
@@ -448,7 +448,7 @@ final class FlightManager: ObservableObject {
             // 12:00 - 13:00: Ăn trưa tại quán ăn nổi tiếng
             if let foodSpot = destination.spots.first(where: { $0.category.contains("Ẩm thực") }) ?? destination.spots.first {
                 RoutineManager.shared.currentState = .dining
-                RoutineManager.shared.statusDescription = "Ăn trưa & trải nghiệm ẩm thực tại \(foodSpot.name)"
+                RoutineManager.shared.statusDescription = L("flight.status.lunch", foodSpot.name)
                 RoutineManager.shared.currentSpeedKmh = 0.0
                 _ = SpoofEngine.shared.submit(latitude: foodSpot.coordinate.latitude, longitude: foodSpot.coordinate.longitude, from: .flight)
             }
@@ -458,7 +458,7 @@ final class FlightManager: ObservableObject {
             let spotIndex = (destination.spots.count > 1) ? ((localHour % 2 == 0) ? 1 : (destination.spots.count > 2 ? 2 : 1)) : 0
             let spot = destination.spots[spotIndex]
             RoutineManager.shared.currentState = .sightseeing
-            RoutineManager.shared.statusDescription = "Đang khám phá \(spot.name) [\(spot.category)]"
+            RoutineManager.shared.statusDescription = L("flight.status.exploring", spot.name, spot.category)
             RoutineManager.shared.currentSpeedKmh = 4.0
             _ = SpoofEngine.shared.submit(latitude: spot.coordinate.latitude, longitude: spot.coordinate.longitude, from: .flight)
 
@@ -466,12 +466,12 @@ final class FlightManager: ObservableObject {
             // 18:00 - 21:59: Ăn tối & Dạo phố đêm (Nightlife & Shopping)
             if let shopSpot = destination.spots.first(where: { $0.category.contains("Mua sắm") || $0.category.contains("Thành phố") }) {
                 RoutineManager.shared.currentState = .dining
-                RoutineManager.shared.statusDescription = "Ăn tối & dạo phố mua sắm tại \(shopSpot.name)"
+                RoutineManager.shared.statusDescription = L("flight.status.dinner", shopSpot.name)
                 RoutineManager.shared.currentSpeedKmh = 3.8
                 _ = SpoofEngine.shared.submit(latitude: shopSpot.coordinate.latitude, longitude: shopSpot.coordinate.longitude, from: .flight)
             } else {
                 RoutineManager.shared.currentState = .wandering
-                RoutineManager.shared.statusDescription = "Dạo phố đêm trung tâm \(destination.name)"
+                RoutineManager.shared.statusDescription = L("flight.status.night_walk", destination.name)
                 RoutineManager.shared.currentSpeedKmh = 3.5
                 let delta = Double.random(in: -0.002...0.002)
                 _ = SpoofEngine.shared.submit(latitude: destination.hotelCoordinate.latitude + delta, longitude: destination.hotelCoordinate.longitude + delta, from: .flight)
@@ -480,7 +480,7 @@ final class FlightManager: ObservableObject {
         default:
             // 22:00: Về lại khách sạn
             RoutineManager.shared.currentState = .hotel
-            RoutineManager.shared.statusDescription = "Về lại khách sạn \(destination.hotelName) nghỉ ngơi"
+            RoutineManager.shared.statusDescription = L("flight.status.back_to_hotel", destination.hotelName)
             RoutineManager.shared.currentSpeedKmh = 0.0
             _ = SpoofEngine.shared.submit(latitude: destination.hotelCoordinate.latitude, longitude: destination.hotelCoordinate.longitude, from: .flight)
         }
@@ -521,7 +521,7 @@ final class FlightManager: ObservableObject {
         activeFlight = nil
         flightPathCoordinates.removeAll()
         RoutineManager.shared.currentSpeedKmh = 0.0
-        RoutineManager.shared.statusDescription = "Đã dừng chuyến bay / tour"
+        RoutineManager.shared.statusDescription = L("flight.status.stopped")
         // Tra lai nha / co quan / quan ca phe / bookmark that cua nguoi dung.
         RoutineManager.shared.endTravelOverride()
         activeDestination = nil

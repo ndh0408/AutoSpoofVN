@@ -129,9 +129,9 @@ final class SimulationCoordinator: ObservableObject {
         sessionStartDate = Date()
 
         guard acquire(source) else {
-            newSession.status = .failed("Nguồn ưu tiên cao hơn đang hoạt động")
+            newSession.status = .failed(L("error.higher_priority_source"))
             session = newSession
-            state = .failed("Nguồn ưu tiên cao hơn đang hoạt động")
+            state = .failed(L("error.higher_priority_source"))
             return newSession
         }
 

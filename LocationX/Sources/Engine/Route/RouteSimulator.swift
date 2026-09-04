@@ -85,7 +85,7 @@ final class RouteSimulator: ObservableObject {
                routeID: UUID? = nil) -> Bool {
         let valid = coordinates.filter { CLLocationCoordinate2DIsValid($0) }
         guard valid.count >= 2 else {
-            lastFailure = "Tuyến đường cần ít nhất hai điểm hợp lệ."
+            lastFailure = L("route.error.too_few_points")
             return false
         }
         stop()
@@ -244,8 +244,8 @@ final class RouteSimulator: ObservableObject {
             isRunning = false
             isPaused = false
             lastFailure = coordinator.isHalted
-                ? "Đã dừng vì GPS thật được khôi phục."
-                : "Một nguồn ưu tiên cao hơn đã giành quyền điều khiển."
+                ? L("route.stopped.gps_restored")
+                : L("route.stopped.preempted")
             // KHONG goi stopSession(): nguon kia dang so huu phien, dung se cat phien cua ho.
             activeRouteName = nil
             activeRouteID = nil

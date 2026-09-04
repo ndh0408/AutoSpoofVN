@@ -71,6 +71,21 @@ for k, a, b in mismatch[:20]:
 if vi_dupes or en_dupes:
     print(f"\nKHOA TRUNG khac gia tri: vi={sorted(set(vi_dupes))[:10]} en={sorted(set(en_dupes))[:10]}")
 
+# Khoa mo coi: co trong .strings nhung khong ma nguon nao goi.
+#
+# Khong lam CI do - chung vo hai - nhung chung la dau hieu dang doc: sau moi lan
+# thiet ke lai, danh sach nay chinh la nhung man hinh vua bi go bo.
+#
+# Mot so khoa duoc goi qua BIEN (L(kind.titleKey)) nen quet theo chuoi hang khong
+# thay; tien to cua chung phai nam trong danh sach duoi, neu khong se bao nham.
+DYNAMIC_PREFIXES = ("scenario.kind.", "routine.place.", "routine.commute.")
+orphans = sorted(k for k in vi
+                 if k not in used and not k.startswith(DYNAMIC_PREFIXES))
+print("")
+print(f"KHOA MO COI (khong ai goi): {len(orphans)}")
+for k in orphans[:30]:
+    print(f"   {k}")
+
 bad = len(missing_vi) + len(missing_en) + len(mismatch)
 print("\n" + ("KET LUAN: SACH" if bad == 0 else f"KET LUAN: {bad} van de can sua"))
 sys.exit(1 if bad else 0)

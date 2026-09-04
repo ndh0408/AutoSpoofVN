@@ -122,7 +122,7 @@ struct HealthDot: View {
         Image(systemName: status.icon)
             .font(.system(size: 13, weight: .semibold))
             .foregroundStyle(status.tint)
-            .accessibilityLabel(status.rawValue)
+            .accessibilityLabel(status.displayName)
     }
 }
 
@@ -131,7 +131,7 @@ struct HealthDot: View {
         SimulationStatusView(state: .running)
         SimulationStatusView(state: .paused)
         SimulationStatusView(state: .failed("Không có tuyến"))
-        ConnectionBadge(state: .connected(transport: "DVT"))
+        ConnectionBadge(state: .connected(transport: "Shadowrocket"))
         ConnectionBadge(state: .disconnected)
         SourceBadge(source: .route)
         HStack { HealthDot(status: .healthy); HealthDot(status: .warning); HealthDot(status: .error) }

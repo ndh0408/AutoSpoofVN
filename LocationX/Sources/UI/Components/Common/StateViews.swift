@@ -192,12 +192,12 @@ struct ScalableText: View {
         VStack(spacing: AppSpacing.xxl) {
             EmptyStateView(icon: "map", title: L10n.noRoutes,
                            message: L10n.noRoutesMessage, actionTitle: L10n.createRoute) {}
-            ErrorState(title: "Không kết nối được thiết bị",
-                       message: "Không mở được kênh DVT qua loopback.",
-                       suggestion: "Kiểm tra Developer Mode và VPN loopback.",
+            ErrorState(title: "Chua bat duoc duong truyen",
+                       message: "Shadowrocket chua bat VPN.",
+                       suggestion: "Mo Shadowrocket va bat ket noi.",
                        onRetry: {}, onDiagnostics: {})
             LoadingState(message: "Đang tính tuyến…")
-            ErrorBanner(message: "Thiếu thư viện FFI",
+            ErrorBanner(message: "Khong lay duoc module",
                         suggestion: "Kiểm tra Shadowrocket đã bật VPN và cài chứng chỉ chưa.",
                         retryAction: {}, diagnosticsAction: {})
         }

@@ -119,7 +119,7 @@ struct RoutineScreen: View {
             }
 
             if routine.isAutoRoutineEnabled {
-                MetricRow(L("routine.current_state"), value: routine.currentState.rawValue,
+                MetricRow(L("routine.current_state"), value: routine.currentState.displayName,
                           icon: routine.currentState.icon, monospaced: false)
                 MetricRow(L("routine.current_speed"),
                           value: "\(AppFormat.speed(routine.currentSpeedKmh)) km/h",

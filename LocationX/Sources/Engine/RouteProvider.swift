@@ -15,7 +15,7 @@ actor RouteProvider {
                 case .mapKit:
                     return "MKDirections"
                 case .straightLineFallback:
-                    return "Nội suy đường thẳng"
+                    return L("route.source.fallback")
                 }
             }
         }
@@ -93,7 +93,7 @@ actor RouteProvider {
         case noRoute
 
         var errorDescription: String? {
-            "MapKit không trả về tuyến đường phù hợp."
+            L("route.error.no_route")
         }
     }
 
@@ -148,7 +148,7 @@ actor RouteProvider {
                 speedKmh: speedKmh,
                 spacingMeters: spacing,
                 autoLoop: autoLoop,
-                errorDescription: "Tọa độ đầu hoặc cuối không hợp lệ."
+                errorDescription: L("route.error.invalid_endpoints")
             ))
         }
 

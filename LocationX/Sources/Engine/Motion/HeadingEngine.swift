@@ -33,7 +33,9 @@ struct HeadingEngine {
     }
 
     var cardinalDirection: String {
-        let directions = ["B", "ĐB", "Đ", "ĐN", "N", "TN", "T", "TB"]
+        // Chu cai huong khac nhau theo ngon ngu: B/Đ/N/T so voi N/E/S/W.
+        let directions = [L("cardinal.n"), L("cardinal.ne"), L("cardinal.e"), L("cardinal.se"),
+                          L("cardinal.s"), L("cardinal.sw"), L("cardinal.w"), L("cardinal.nw")]
         let index = Int((currentHeading + 22.5).truncatingRemainder(dividingBy: 360) / 45)
         return directions[max(0, min(index, 7))]
     }
