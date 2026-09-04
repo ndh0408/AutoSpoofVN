@@ -55,7 +55,10 @@ final class SimulationCoordinator: ObservableObject {
     /// `legacyEngine.$currentCoordinate` phát ngược lại chính giá trị ta vừa ghi. Không
     /// chặn tiếng vọng đó thì `currentCoordinate` (vị trí thật) bị ghi đè bằng bản đã
     /// nhiễu, và vòng lặp chuyển động lại tích phân từ đó.
-    private var lastReportedCoordinate: CLLocationCoordinate2D?
+    /// Toạ độ thực sự đã báo ra ngoài — bằng toạ độ mô phỏng cộng phần nhiễu.
+    ///
+    /// Màn Chẩn đoán hiển thị cả hai để phân biệt "nhiễu" với "sai".
+    private(set) var lastReportedCoordinate: CLLocationCoordinate2D?
 
     /// Tham chiếu tới SpoofEngine hiện tại để backward-compatible.
     /// Sẽ dần thay thế khi migrate xong.
@@ -169,7 +172,6 @@ final class SimulationCoordinator: ObservableObject {
         teardownActiveSource()
 
         // Clear device location
-        legacyEngine.clearDeviceLocation()
 
         if let source = activeSource {
             release(source)
@@ -366,11 +368,19 @@ final class SimulationCoordinator: ObservableObject {
 
     private func startDeviceUpdateTimer() {
         stopDeviceUpdateTimer()
-        // Gửi lại coordinate định kỳ để DVT không coi phiên là đã chết.
+        // Làm tươi lại ảnh chụp mà CoordinateServer phục vụ, kể cả khi đứng yên.
+        //
+        // Trước đây timer này gọi `sendLocationToDevice`, mà sau khi bỏ FFI đó là một hàm
+        // rỗng — nên "nhịp gửi thiết bị" trong Cài đặt điều khiển một timer không làm gì cả.
         let timer = Timer(timeInterval: deviceUpdateInterval, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 guard let self, self.state == .running else { return }
-                self.legacyEngine.sendLocationToDevice(self.currentCoordinate)
+                let c = self.lastReportedCoordinate ?? self.currentCoordinate
+                CoordinateServer.shared.updateCoordinate(
+                    latitude: c.latitude,
+                    longitude: c.longitude,
+                    speed: self.telemetry.speedKmh / 3.6,
+                    heading: self.telemetry.headingDegrees)
             }
         }
         RunLoop.main.add(timer, forMode: .common)
@@ -465,71 +475,108 @@ final class SimulationCoordinator: ObservableObject {
             }
             .store(in: &cancellables)
 
-        legacyEngine.$isLoopbackConnected
+        // Trang thai "duong truyen" bam vao Shadowrocket, khong phai DVT nua.
+        //
+        // Sau khi bo FFI, `isLoopbackConnected` khong bao gio thanh true, nen thanh trang
+        // thai bao "chua ket noi" vinh vien va chan doan luon bao loi — ke ca luc viec
+        // gia lap dang chay hoan hao. Nguon su that bay gio la ShadowrocketManager: no
+        // biet app da cai chua, module import chua, VPN bat chua, va — quan trong nhat —
+        // MITM co that su fetch script gan day khong.
+        let shadowrocket = ShadowrocketManager.shared
+        Publishers.CombineLatest4(shadowrocket.$isInstalled,
+                                  shadowrocket.$isModuleImported,
+                                  shadowrocket.$isVPNActive,
+                                  shadowrocket.$isServerRunning)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] connected in
-                if connected {
-                    self?.deviceState = .connected(transport: "DVT")
-                    self?.health.device = .healthy
-                    self?.health.transport = .healthy
-                } else {
-                    self?.deviceState = .disconnected
-                    self?.health.device = .unknown
-                    self?.health.transport = .unknown
+            .sink { [weak self] installed, imported, vpn, server in
+                guard let self else { return }
+                self.deviceState = Self.pipelineState(installed: installed,
+                                                      imported: imported,
+                                                      vpnActive: vpn,
+                                                      serverRunning: server)
+                switch self.deviceState {
+                case .connected:
+                    self.health.device = .healthy
+                    self.health.transport = .healthy
+                case .connecting:
+                    self.health.device = .warning
+                    self.health.transport = .warning
+                case .error:
+                    self.health.device = .error
+                    self.health.transport = .error
+                case .disconnected:
+                    self.health.device = .unknown
+                    self.health.transport = .unknown
                 }
             }
             .store(in: &cancellables)
+    }
 
-        legacyEngine.$connectionStatus
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] status in
-                if status.contains("thất bại") || status.contains("Lỗi") {
-                    self?.deviceState = .error(status)
-                    self?.health.transport = .error
-                }
-            }
-            .store(in: &cancellables)
+    /// Suy ra trang thai duong truyen tu bon tin hieu cua Shadowrocket.
+    ///
+    /// Tach thanh ham thuan tuy `static` de kiem thu duoc ma khong can dung ca mot
+    /// pipeline that.
+    nonisolated static func pipelineState(installed: Bool,
+                                          imported: Bool,
+                                          vpnActive: Bool,
+                                          serverRunning: Bool) -> DeviceConnectionState {
+        guard serverRunning else { return .error(L("pipeline.error.server_down")) }
+        guard installed else { return .error(L("pipeline.error.not_installed")) }
+        guard imported else { return .disconnected }
+        return vpnActive ? .connected(transport: "Shadowrocket") : .connecting
     }
 
     // MARK: - Diagnostics
 
     func runDiagnostics() -> [(String, SystemHealth.Status, String)] {
         var results: [(String, SystemHealth.Status, String)] = []
+        let shadowrocket = ShadowrocketManager.shared
 
-        // Device
         results.append((
-            "Thiết bị",
-            deviceState.isConnected ? .healthy : .warning,
-            deviceState.displayName
+            L("diagnostics.item.server"),
+            CoordinateServer.shared.isRunning ? .healthy : .error,
+            CoordinateServer.shared.isRunning
+                ? L("diagnostics.server.listening", Int(CoordinateServer.shared.port))
+                : L("diagnostics.server.down")
         ))
 
-        // Transport
         results.append((
-            "Transport",
-            legacyEngine.isLoopbackConnected ? .healthy : .error,
-            legacyEngine.isLoopbackConnected ? "DVT hoạt động" : "Chưa kết nối DVT"
+            L("diagnostics.item.shadowrocket"),
+            shadowrocket.isInstalled ? .healthy : .error,
+            shadowrocket.isInstalled ? L("common.installed") : L("common.not_installed")
         ))
 
-        // Background
-        let keeper = BackgroundKeeper.shared
         results.append((
-            "Chạy nền",
-            keeper.isAudioRunning ? .healthy : .warning,
-            keeper.isAudioRunning ? "Audio keep-alive đang chạy" : (keeper.audioError ?? "Chưa khởi động")
+            L("diagnostics.item.module"),
+            shadowrocket.isModuleImported ? .healthy : .warning,
+            shadowrocket.isModuleImported ? L("common.imported") : L("common.not_imported")
         ))
 
-        // Simulation
         results.append((
-            "Mô phỏng",
+            L("diagnostics.item.vpn"),
+            shadowrocket.isVPNActive ? .healthy : .warning,
+            shadowrocket.isVPNActive ? L("common.on") : L("common.off")
+        ))
+
+        // Bang chung truc tiep, khong phai suy doan: MITM co dang fetch script khong.
+        results.append((
+            L("diagnostics.item.mitm"),
+            shadowrocket.isPipelineFresh ? .healthy : .warning,
+            shadowrocket.isPipelineFresh
+                ? L("diagnostics.mitm.fresh", shadowrocket.lastRequestCount)
+                : L("diagnostics.mitm.stale")
+        ))
+
+        results.append((
+            L("diagnostics.item.simulation"),
             state.isActive ? .healthy : .unknown,
             state.displayName
         ))
 
-        // Live Activity
         results.append((
-            "Live Activity",
-            .unknown,
-            "Kiểm tra ActivityKit"
+            L("diagnostics.item.background"),
+            BackgroundKeeper.shared.isAudioRunning ? .healthy : .warning,
+            BackgroundKeeper.shared.isAudioRunning ? L("common.running") : L("common.off")
         ))
 
         return results

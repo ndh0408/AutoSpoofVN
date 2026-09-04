@@ -123,6 +123,12 @@ enum AppFormat {
         return date.formatted(date: .omitted, time: .shortened)
     }
 
+    /// Gio trong ngay, dung cho dau moc thoi gian da qua.
+    static func time(_ date: Date?) -> String {
+        guard let date else { return "—" }
+        return date.formatted(date: .omitted, time: .shortened)
+    }
+
     /// Phan tram tien do.
     static func percent(_ fraction: Double) -> String {
         guard fraction.isFinite else { return "—" }

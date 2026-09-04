@@ -20,7 +20,6 @@ struct LocationXApp: App {
     @StateObject private var liveActivity = LiveActivityManager.shared
     @StateObject private var coordinator = SimulationCoordinator.shared
     @StateObject private var recovery = AppRecoveryManager.shared
-    @StateObject private var deviceManager = DeviceManager.shared
     @StateObject private var appSettings = AppSettingsStore.shared
     @AppStorage("locationx_onboarding_completed") private var hasCompletedOnboarding = false
 
@@ -34,7 +33,7 @@ struct LocationXApp: App {
                 if hasCompletedOnboarding {
                     RootTabView()
                 } else {
-                    OnboardingViewV2()
+                    OnboardingScreen()
                 }
             }
             // Đổi ngôn ngữ trong Cài đặt là dựng lại toàn bộ cây view ngay lập tức.
@@ -70,31 +69,25 @@ struct LocationXApp: App {
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
                 recovery.checkpoint()
             }
-            // Reconnect khi app trở lại foreground
+            // Trở lại foreground: đo lại đường truyền ngay thay vì đợi hết nhịp 5 giây.
+            //
+            // Thường người dùng vừa rời app để bật VPN trong Shadowrocket rồi quay lại,
+            // nên đây chính là lúc trạng thái cũ nhất.
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
-                if engine.isLoopbackConnected {
-                    engine.sendLocationToDevice(coordinator.currentCoordinate)
-                } else if deviceManager.autoReconnect {
-                    deviceManager.connect()
-                }
+                ShadowrocketManager.shared.detectInstallation()
             }
         }
     }
 
     /// Khởi động tất cả subsystem sau onboarding.
     private func bootstrap() {
-        SelfPairingManager.shared.registerBackgroundTask()
+        // Khởi động đường truyền Shadowrocket TRƯỚC: `apply()` cấu hình nhịp đo của nó.
+        _ = ShadowrocketManager.shared
         // Áp cài đặt người dùng TRƯỚC khi khởi động các hệ thống con, để chúng bắt đầu
         // với đúng nhịp và đúng trạng thái bật/tắt.
         AppSettingsStore.shared.apply()
         engine.startBackgroundKeepAlive()
         liveActivity.start()
-        deviceManager.startHeartbeat()
-
-        // Auto-connect nếu có pairing sẵn
-        if !engine.isLoopbackConnected && (engine.pairingData != nil || SelfPairingManager.shared.hasSavedPairing) {
-            deviceManager.connect()
-        }
 
         // Auto-record history khi simulation bắt đầu
         SimulationCoordinator.shared.$state
@@ -110,12 +103,6 @@ struct LocationXApp: App {
                 }
             }
             .store(in: &AppBootstrap.shared.cancellables)
-
-        // Khởi động ConnectionRecovery
-        _ = ConnectionRecovery.shared
-
-        // Khởi động ShadowrocketManager — auto-detect, VPN monitor
-        _ = ShadowrocketManager.shared
 
         AppLogger.simulation.info("Bootstrap complete")
     }

@@ -179,7 +179,8 @@ final class ShadowrocketManager: ObservableObject {
             return
         }
 
-        if !isVPNActive {
+        // Tôn trọng tuỳ chọn "Tự kết nối lại": tắt thì không tự nhảy sang app khác.
+        if !isVPNActive, autoReactivateVPN {
             openShadowrocketToConnect()
         }
     }
@@ -260,9 +261,28 @@ final class ShadowrocketManager: ObservableObject {
 
     // MARK: - VPN Monitor
 
+    /// Nhịp đo trạng thái đường truyền, theo giây.
+    private var pollInterval: TimeInterval = 5
+
+    /// Tự mở lại Shadowrocket khi phát hiện VPN tắt giữa phiên mô phỏng.
+    private var autoReactivateVPN = true
+
+    /// Nối hai tuỳ chọn trong Cài đặt vào giám sát đường truyền.
+    ///
+    /// Hai tuỳ chọn này trước đây điều khiển heartbeat của `DeviceManager` — một lớp
+    /// đo đường DVT đã bị gỡ cùng FFI, nên chỉnh chúng không còn tác dụng gì.
+    func configureMonitoring(autoReactivateVPN: Bool, pollInterval: TimeInterval) {
+        self.autoReactivateVPN = autoReactivateVPN
+        let clamped = min(60, max(5, pollInterval))
+        guard clamped != self.pollInterval else { return }
+        self.pollInterval = clamped
+        startVPNMonitor()
+    }
+
     /// Kiểm tra VPN gián tiếp qua network interface
     private func startVPNMonitor() {
-        vpnCheckTimer = CommonTimer.scheduled(every: 5) { [weak self] _ in
+        vpnCheckTimer?.invalidate()
+        vpnCheckTimer = CommonTimer.scheduled(every: pollInterval) { [weak self] _ in
             Task { @MainActor in
                 self?.checkVPNStatus()
             }

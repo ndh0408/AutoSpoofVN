@@ -37,36 +37,9 @@ final class SpoofEngine: ObservableObject {
 
     @Published var isSimulating: Bool = false
     @Published var currentCoordinate: CLLocationCoordinate2D = CLLocationCoordinate2D(latitude: 21.0285, longitude: 105.8542) // Mặc định: Hoàn Kiếm, Hà Nội
-    @Published var connectionStatus: String = L("device.disconnected")
-    @Published var isLoopbackConnected: Bool = false
     @Published var enableJitter: Bool = true
     @Published var jitterMeters: Double = 3.0
     @Published var lastSpoofedAt: Date? = nil
-    /// Nội dung thô của lockdown pairing record.
-    ///
-    /// Phải là `Data`, không phải `String`: pairing file thật là **binary plist** và
-    /// chứa byte 0, nên chuyển qua chuỗi C sẽ bị cắt cụt ngay ký tự đầu tiên.
-    @Published private(set) var pairingData: Data? = nil
-
-    /// Chỉ dùng cho ô nhập dạng chữ (plist XML). Với file nhị phân, giá trị này rỗng —
-    /// đọc `pairingData` mới là nguồn sự thật.
-    @Published var pairingPlist: String = ""
-
-    /// Lý do thất bại gần nhất do thư viện FFI báo về, đã dịch sang thông điệp cho người dùng.
-    @Published private(set) var lastFFIError: String? = nil
-
-    /// Mô tả ngắn về pairing record đang nạp, để hiển thị trên UI.
-    var pairingSummary: String {
-        guard let d = pairingData, !d.isEmpty else { return L("device.pairing.summary.none") }
-        if d.starts(with: Array("<?xml".utf8)) && (String(data: d, encoding: .utf8)?.contains("public_key") == true) {
-            return L("device.pairing.summary.rppairing", d.count)
-        }
-        let kind = d.starts(with: Array("bplist".utf8))
-            ? L("device.pairing.summary.kind_binary")
-            : L("device.pairing.summary.kind_text")
-        return L("device.pairing.summary.loaded", d.count, kind)
-    }
-
     /// Module đang giữ quyền ghi toạ độ. `nil` nghĩa là chưa ai giữ.
     @Published private(set) var activeSource: SpoofSource? = nil
 
@@ -79,18 +52,7 @@ final class SpoofEngine: ObservableObject {
     /// hành động khởi động lại rõ ràng (bật chu trình, bắt đầu chuyến bay, hoặc đặt tay).
     @Published private(set) var isHalted: Bool = false
 
-    private var heartBeatTimer: Timer?
     private var keeperObservers: Set<AnyCancellable> = []
-
-    /// Mọi lời gọi FFI phải chạy trên đúng hàng đợi này.
-    ///
-    /// Các hàm của libidevice bọc `run_sync` nên chúng CHẶN thread gọi cho tới khi I/O
-    /// mạng xong. Trước đây chúng chạy trên main thread từ Timer, nên tunnel lag là treo UI
-    /// và iOS watchdog giết app (0x8badf00d). Handle cũng không thread-safe, nên phải nối
-    /// tiếp trên một hàng đợi duy nhất.
-    private let ffiQueue = DispatchQueue(label: "com.nguyenduchuy.locationx.ffi")
-    /// Chỉ được đọc/ghi bên trong `ffiQueue`.
-    private var deviceHandle: UnsafeMutableRawPointer? = nil
 
     /// Độ lệch nhiễu hiện tại, tính bằng mét. Giữ lại giữa các lần gọi để nhiễu có
     /// tương quan theo thời gian thay vì nhảy ngẫu nhiên độc lập.
@@ -98,20 +60,6 @@ final class SpoofEngine: ObservableObject {
     private var jitterOffsetEastMeters: Double = 0
 
     private init() {
-        if let saved = UserDefaults.standard.data(forKey: "locationx_pairing_data") {
-            self.pairingData = saved
-            // Chỉ đổ ngược ra ô chữ khi nội dung thực sự là văn bản.
-            if !saved.starts(with: Array("bplist".utf8)),
-               let text = String(data: saved, encoding: .utf8) {
-                self.pairingPlist = text
-            }
-        } else if let sandboxData = try? Data(contentsOf: SelfPairingManager.pairingFileURL), !sandboxData.isEmpty {
-            self.pairingData = sandboxData
-        } else if let legacy = UserDefaults.standard.string(forKey: "locationx_pairing_plist") {
-            // Di trú từ bản cũ từng lưu dạng chuỗi.
-            self.pairingPlist = legacy
-            self.pairingData = Data(legacy.utf8)
-        }
         // Phản chiếu trạng thái nền ra đúng hai thuộc tính MainView đang đọc.
         let keeper = BackgroundKeeper.shared
         keeper.$isAudioRunning
@@ -190,7 +138,6 @@ final class SpoofEngine: ObservableObject {
         currentCoordinate = coord
         isSimulating = true
         lastSpoofedAt = Date()
-        sendLocationToDevice(coord)
     }
 
     private func applyLocation(latitude: Double, longitude: Double) {
@@ -228,7 +175,6 @@ final class SpoofEngine: ObservableObject {
         currentCoordinate = coord
         isSimulating = true
         lastSpoofedAt = Date()
-        sendLocationToDevice(coord)
     }
 
     // MARK: - Chạy ngầm (Keep-Alive)
@@ -239,66 +185,12 @@ final class SpoofEngine: ObservableObject {
     @discardableResult
     func startBackgroundKeepAlive() -> Bool {
         BackgroundKeeper.shared.start()
-
-        // Watchdog định kỳ. Với cầu nối FFI thật, chỗ này phải đổi thành kiểm tra
-        // heartbeat (com.apple.mobile.heartbeat) và dựng lại cả chuỗi kết nối khi đứt,
-        // chứ không phải gửi lặp toạ độ: DVT giữ nguyên vị trí chừng nào kênh còn mở.
-        heartBeatTimer?.invalidate()
-        let timer = Timer(timeInterval: 20.0, repeats: true) { [weak self] _ in
-            guard let self = self, self.isSimulating else { return }
-            self.sendLocationToDevice(self.currentCoordinate)
-        }
-        // .common để timer không bị dừng khi người dùng đang cuộn bản đồ.
-        RunLoop.main.add(timer, forMode: .common)
-        heartBeatTimer = timer
-
         return isKeepAliveRunning
     }
 
     func stopBackgroundKeepAlive() {
-        heartBeatTimer?.invalidate()
-        heartBeatTimer = nil
         BackgroundKeeper.shared.stop()
     }
-
-    // MARK: - Kết nối DVT
-
-    /// Kết nối vào cổng DVT nội bộ qua loopback LocalDevVPN (10.7.0.1).
-    ///
-    /// Bản nhận `String` chỉ dùng được với plist dạng văn bản. Pairing record thật
-    /// thường là binary plist — dùng bản nhận `Data` và một `.fileImporter`.
-    func connectLoopback(plistContent: String) {
-        let trimmed = plistContent.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else {
-            connectionStatus = L("device.pairing.error.empty_content")
-            return
-        }
-        pairingPlist = trimmed
-        connectLoopback(pairingData: Data(trimmed.utf8))
-    }
-
-    /// Kết nối bằng nội dung nhị phân của pairing record. Đây là đường đúng.
-    func connectLoopback(pairingData data: Data) {
-        guard !data.isEmpty else {
-            connectionStatus = L("device.pairing.error.empty_file")
-            return
-        }
-
-        self.pairingData = data
-        UserDefaults.standard.set(data, forKey: "locationx_pairing_data")
-        lastFFIError = nil
-        connectionStatus = L("device.connect.connecting")
-
-        ffiQueue.async { [weak self] in
-            guard let self = self else { return }
-            DispatchQueue.main.async {
-                self.isLoopbackConnected = false
-                self.lastFFIError = L("device.connect.missing_ffi")
-                self.connectionStatus = L("device.connect.missing_ffi_status")
-            }
-        }
-    }
-
 
     /// Khôi phục vị trí GPS thật và CHẶN mọi nguồn ghi tiếp.
     ///
@@ -309,26 +201,6 @@ final class SpoofEngine: ObservableObject {
         isHalted = true
         activeSource = nil
         AppLogger.simulation.info(" Đã xoá mô phỏng toạ độ, khôi phục GPS thật.")
-    }
-
-    /// Ngắt kết nối DVT.
-    func disconnect() {
-        isLoopbackConnected = false
-        isSimulating = false
-        activeSource = nil
-        lastFFIError = nil
-        connectionStatus = L("device.connect.disconnected")
-    }
-
-    /// Khong con `private`: `Coordinator/SimulationCoordinator.swift` goi truc tiep tu
-    /// ben ngoai lam cau noi sang FFI that (xem "MARK: - Legacy Bridge" ben do).
-    func sendLocationToDevice(_ coord: CLLocationCoordinate2D) {
-    }
-
-    /// Xoa vi tri gui xuong thiet bi NGAY nhung KHONG chan nguon ghi tiep theo - dung khi
-    /// dung mot session de chuan bi bat dau session moi (khac `clearSimulation()` ben duoi,
-    /// cai do CHAN het cho toi khi nguoi dung chu dong bat lai).
-    func clearDeviceLocation() {
     }
 
     /// Alias tuong thich cho `Coordinator/SimulationCoordinator.swift` - hanh vi giong het

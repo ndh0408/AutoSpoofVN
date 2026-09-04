@@ -75,6 +75,11 @@ enum AppHaptics {
         UINotificationFeedbackGenerator().notificationOccurred(.warning)
     }
 
+    /// Mot thao tac hoan tat gon (sao chep, luu, xong buoc huong dan).
+    @MainActor static func success() {
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+    }
+
     /// Chon mot muc trong danh sach / doi che do.
     @MainActor static func selection() {
         UISelectionFeedbackGenerator().selectionChanged()

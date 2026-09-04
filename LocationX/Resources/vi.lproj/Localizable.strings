@@ -43,8 +43,10 @@
 "about.tagline" = "Mô phỏng vị trí GPS cho iOS, không cần jailbreak";
 
 /* action */
+"action.back" = "Quay lại";
 "action.cancel" = "Huỷ";
 "action.close" = "Đóng";
+"action.copy" = "Sao chép";
 "action.delete" = "Xoá";
 "action.diagnostics" = "Chẩn đoán";
 "action.done" = "Xong";
@@ -84,7 +86,9 @@
 "common.error" = "Lỗi";
 "common.error.unknown" = "Lỗi không xác định";
 "common.error_detail" = "Lỗi: %@";
+"common.imported" = "Đã nhập";
 "common.info" = "Thông tin";
+"common.installed" = "Đã cài";
 "common.latitude" = "Vĩ độ";
 "common.loading" = "Đang tải…";
 "common.longitude" = "Kinh độ";
@@ -92,6 +96,8 @@
 "common.name" = "Tên";
 "common.no" = "chưa";
 "common.none" = "Không có";
+"common.not_imported" = "Chưa nhập";
+"common.not_installed" = "Chưa cài";
 "common.off" = "Tắt";
 "common.on" = "Đang bật";
 "common.rename" = "Đổi tên";
@@ -159,16 +165,45 @@
 "device.short.error" = "Lỗi";
 
 /* diagnostics */
+"diagnostics.audio" = "Âm thanh nền";
 "diagnostics.audio_error" = "Audio lỗi";
+"diagnostics.authorization" = "Quyền vị trí";
 "diagnostics.coordinate" = "Toạ độ";
 "diagnostics.data" = "Dữ liệu";
 "diagnostics.export" = "Xuất";
+"diagnostics.export.footer" = "Báo cáo là văn bản thuần, không chứa toạ độ đã lưu hay dữ liệu cá nhân nào ngoài vị trí đang mô phỏng.";
+"diagnostics.halted" = "Đã chặn ghi";
+"diagnostics.heading" = "Hướng";
+"diagnostics.interruptions" = "Số lần gián đoạn";
+"diagnostics.item.background" = "Chạy nền";
+"diagnostics.item.mitm" = "Chặn bắt vị trí";
+"diagnostics.item.module" = "Module MITM";
+"diagnostics.item.pipeline" = "Đường truyền";
+"diagnostics.item.server" = "Máy chủ toạ độ";
+"diagnostics.item.shadowrocket" = "Shadowrocket";
+"diagnostics.item.simulation" = "Mô phỏng";
+"diagnostics.item.vpn" = "VPN";
 "diagnostics.last_error" = "Lỗi cuối";
+"diagnostics.last_path" = "Đường dẫn gần nhất";
+"diagnostics.last_request" = "Lượt gần nhất";
+"diagnostics.location_updates" = "Cập nhật vị trí";
+"diagnostics.mitm.fresh" = "Shadowrocket vừa lấy script (%d lượt)";
+"diagnostics.mitm.stale" = "Chưa thấy lượt lấy script nào gần đây";
+"diagnostics.multiplier" = "Hệ số thời gian";
 "diagnostics.pairing.available" = "Có sẵn";
 "diagnostics.pairing.missing" = "Chưa có — cần ghép nối";
 "diagnostics.permission.need_always" = "Cần cấp Always";
+"diagnostics.pipeline.footer" = "Đây là chuỗi thật sự đưa toạ độ ra ngoài: app phục vụ toạ độ ở 127.0.0.1, Shadowrocket bắt yêu cầu định vị của iOS rồi thay bằng toạ độ đó.";
+"diagnostics.reported" = "Toạ độ báo ra";
+"diagnostics.requests" = "Số lượt phục vụ";
 "diagnostics.run" = "Chạy chẩn đoán";
+"diagnostics.seconds_ago" = "%d giây trước";
 "diagnostics.self_check" = "Tự chẩn đoán";
+"diagnostics.self_check.footer" = "Chạy tự động mỗi lần mở màn hình này. Mọi mục đều xanh nghĩa là toạ độ giả đang thật sự tới được các ứng dụng khác.";
+"diagnostics.server.down" = "Không khởi động được";
+"diagnostics.server.listening" = "Đang lắng nghe ở cổng %d";
+"diagnostics.server_port" = "Máy chủ";
+"diagnostics.share" = "Chia sẻ báo cáo";
 "diagnostics.source" = "Nguồn";
 "diagnostics.speed" = "Tốc độ";
 "diagnostics.status.error" = "Lỗi";
@@ -358,18 +393,47 @@
 "onboarding.devmode.description" = "Vào Settings → Privacy & Security → Developer Mode → Bật → Khởi động lại.\n\nĐây là yêu cầu của Apple để cho phép công cụ phát triển truy cập thiết bị.";
 "onboarding.devmode.subtitle" = "Bước bắt buộc";
 "onboarding.devmode.title" = "Bật Developer Mode";
+"onboarding.how.note" = "Cách này dựa vào định vị Wi-Fi. Ở nơi bắt được GPS vệ tinh mạnh, một số ứng dụng vẫn có thể lấy được vị trí thật.";
+"onboarding.how.step1" = "LocationX chạy một máy chủ nhỏ ngay trong máy bạn, liên tục phát ra toạ độ đang mô phỏng.";
+"onboarding.how.step2" = "Shadowrocket bắt yêu cầu định vị Wi-Fi mà iOS gửi lên Apple, rồi thay toạ độ trong câu trả lời bằng toạ độ của bạn.";
+"onboarding.how.step3" = "Các ứng dụng khác đọc vị trí như bình thường — và nhận đúng nơi bạn đã chọn.";
+"onboarding.how.subtitle" = "Không jailbreak, không cần máy tính";
+"onboarding.how.title" = "Cách LocationX hoạt động";
+"onboarding.language.subtitle" = "Bạn đổi lại bất cứ lúc nào trong Cài đặt";
 "onboarding.pairing.pin" = "Mã PIN";
 "onboarding.pairing.start" = "Bắt đầu ghép nối";
 "onboarding.pairing.success" = "Ghép nối thành công";
 "onboarding.pairing.title" = "Ghép nối thiết bị";
+"onboarding.permission.description" = "LocationX cần quyền vị trí cho hai việc: hiển thị bạn đang ở đâu trên bản đồ, và giữ tiến trình sống khi bạn chuyển sang ứng dụng khác. App không gửi vị trí của bạn đi đâu cả.";
+"onboarding.permission.grant" = "Cho phép truy cập vị trí";
+"onboarding.permission.open_settings" = "Mở Cài đặt hệ thống";
+"onboarding.permission.subtitle" = "Để vẽ vị trí thật và giữ app chạy nền";
+"onboarding.permission.title" = "Quyền vị trí";
+"onboarding.progress" = "Bước %d trên %d";
+"onboarding.proxy.description" = "Shadowrocket là ứng dụng trả phí trên App Store. LocationX cần nó để chặn và thay câu trả lời định vị — không có nó thì phần giả lập không tới được các ứng dụng khác.";
+"onboarding.proxy.install" = "Xem trên App Store";
+"onboarding.proxy.later" = "Bạn có thể cài sau. Vào Cài đặt → Shadowrocket để hoàn tất bất cứ lúc nào.";
+"onboarding.proxy.subtitle" = "Thành phần bắt buộc";
 "onboarding.ready.flight" = "Chuyến bay quốc tế với World Odyssey";
 "onboarding.ready.route_studio" = "Route Studio để tạo tuyến đường";
 "onboarding.ready.routine" = "Chu trình 24/7 tự động";
 "onboarding.ready.scenario_studio" = "Scenario Studio để tự động hoá";
+"onboarding.ready.subtitle" = "Bạn có thể bắt đầu rồi";
 "onboarding.ready.tap_map" = "Chạm bản đồ để đặt vị trí";
 "onboarding.ready.title" = "Sẵn sàng";
 "onboarding.skip" = "Bỏ qua";
 "onboarding.welcome.description" = "Mô phỏng vị trí GPS trực tiếp trên iPhone. Không jailbreak, không cần máy tính kết nối liên tục.";
+
+/* permission */
+"permission.always" = "Luôn cho phép";
+"permission.denied" = "Đã từ chối";
+"permission.not_determined" = "Chưa hỏi";
+"permission.restricted" = "Bị hạn chế";
+"permission.when_in_use" = "Khi dùng app";
+
+/* pipeline */
+"pipeline.error.not_installed" = "Chưa cài Shadowrocket";
+"pipeline.error.server_down" = "Máy chủ toạ độ không chạy";
 
 /* recovery */
 "recovery.details" = "Xem chi tiết";
@@ -455,6 +519,7 @@
 "routes.saved" = "Tuyến đã lưu";
 "routes.saved_footer" = "Vuốt sang trái để đổi tên hoặc xoá. Chạm để xem chi tiết và tuỳ chỉnh tốc độ.";
 "routes.start_failed_message" = "Không bắt đầu được phiên mô phỏng.";
+"routes.title" = "Tuyến đường";
 
 /* routine */
 "routine.activity.home_to_work" = "Nhà → Công ty";
@@ -655,6 +720,7 @@
 "settings.section.bypass" = "Vượt kiểm tra";
 "settings.section.preferences" = "Tuỳ chọn";
 "settings.shadowrocket" = "Thiết lập Shadowrocket";
+"settings.shadowrocket.module" = "Module";
 "settings.shadowrocket.pending" = "Chưa xong";
 "settings.shadowrocket.ready" = "Sẵn sàng";
 "settings.shadowrocket.subtitle" = "Module MITM giúp vượt kiểm tra vị trí phía máy chủ";

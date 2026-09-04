@@ -9,29 +9,15 @@ import SwiftUI
 struct SettingsHubScreen: View {
     @Environment(\.navigator) private var navigator
     @ObservedObject private var coordinator = SimulationCoordinator.shared
-    @ObservedObject private var device = DeviceManager.shared
     @ObservedObject private var shadowrocket = ShadowrocketManager.shared
     @ObservedObject private var localization = LocalizationManager.shared
     @ObservedObject private var store = AppSettingsStore.shared
 
     var body: some View {
         List {
-            Section(L("settings.device")) {
-                HubRow(title: L("settings.device_manager"),
-                       subtitle: device.deviceName.isEmpty ? L("settings.device_manager.subtitle") : device.deviceName,
-                       symbol: coordinator.deviceState.icon,
-                       tint: coordinator.deviceState.tint,
-                       badge: coordinator.deviceState.isConnected ? L("device.connected") : L("device.disconnected")) {
-                    navigator.present(.deviceManager)
-                }
-                HubRow(title: L("settings.diagnostics"),
-                       subtitle: L("settings.diagnostics.subtitle"),
-                       symbol: "stethoscope",
-                       tint: AppColor.accent) {
-                    navigator.present(.diagnostics)
-                }
-            }
-
+            // Đường truyền lên đầu: đây là thứ quyết định app có chạy được hay không.
+            // Hàng "Quản lý thiết bị" cũ đã bỏ — nó mở màn ghép nối DVT, một đường đã
+            // chết cùng FFI, và badge của nó vĩnh viễn báo "Chưa kết nối".
             Section {
                 HubRow(title: L("settings.shadowrocket"),
                        subtitle: L("settings.shadowrocket.subtitle"),
@@ -39,6 +25,13 @@ struct SettingsHubScreen: View {
                        tint: shadowrocket.isReady ? AppColor.success : AppColor.warning,
                        badge: shadowrocket.isReady ? L("settings.shadowrocket.ready") : L("settings.shadowrocket.pending")) {
                     navigator.present(.shadowrocketSetup)
+                }
+                HubRow(title: L("settings.diagnostics"),
+                       subtitle: L("settings.diagnostics.subtitle"),
+                       symbol: "stethoscope",
+                       tint: coordinator.deviceState.tint,
+                       badge: coordinator.deviceState.displayName) {
+                    navigator.present(.diagnostics)
                 }
                 HubRow(title: L("settings.troubleshoot"),
                        subtitle: L("settings.troubleshoot.subtitle"),

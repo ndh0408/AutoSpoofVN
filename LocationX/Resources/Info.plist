@@ -29,16 +29,10 @@
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Cần quyền vị trí để duy trì mô phỏng di chuyển ngầm tự nhiên.</string>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>Cần truy cập mạng cục bộ để tự động ghép nối và kết nối mô phỏng vị trí DVT trên thiết bị.</string>
+	<string>Cần truy cập mạng cục bộ để Shadowrocket đọc được toạ độ mô phỏng từ máy chủ chạy ngay trong máy bạn.</string>
 	<key>NSBonjourServices</key>
 	<array>
-		<string>_remotepairing-pairable-host._tcp</string>
-		<string>_remotepairing-manual-pairing._tcp</string>
 		<string>_locationxprobe._tcp</string>
-	</array>
-	<key>BGTaskSchedulerPermittedIdentifiers</key>
-	<array>
-		<string>$(PRODUCT_BUNDLE_IDENTIFIER).pairing</string>
 	</array>
 	<!-- audio: phat WAV im lang de giu tien trinh song.
 	     location: CLLocationManager voi allowsBackgroundLocationUpdates trong

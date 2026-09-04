@@ -43,8 +43,10 @@
 "about.tagline" = "GPS location simulation for iOS — no jailbreak required";
 
 /* action */
+"action.back" = "Back";
 "action.cancel" = "Cancel";
 "action.close" = "Close";
+"action.copy" = "Copy";
 "action.delete" = "Delete";
 "action.diagnostics" = "Diagnostics";
 "action.done" = "Done";
@@ -84,7 +86,9 @@
 "common.error" = "Error";
 "common.error.unknown" = "Unknown error";
 "common.error_detail" = "Error: %@";
+"common.imported" = "Imported";
 "common.info" = "Information";
+"common.installed" = "Installed";
 "common.latitude" = "Latitude";
 "common.loading" = "Loading…";
 "common.longitude" = "Longitude";
@@ -92,6 +96,8 @@
 "common.name" = "Name";
 "common.no" = "not yet";
 "common.none" = "None";
+"common.not_imported" = "Not imported";
+"common.not_installed" = "Not installed";
 "common.off" = "Off";
 "common.on" = "On";
 "common.rename" = "Rename";
@@ -159,16 +165,45 @@
 "device.short.error" = "Error";
 
 /* diagnostics */
+"diagnostics.audio" = "Background audio";
 "diagnostics.audio_error" = "Audio error";
+"diagnostics.authorization" = "Location permission";
 "diagnostics.coordinate" = "Coordinate";
 "diagnostics.data" = "Data";
 "diagnostics.export" = "Export";
+"diagnostics.export.footer" = "The report is plain text. It contains no saved routes and no personal data beyond the coordinate currently being simulated.";
+"diagnostics.halted" = "Writes halted";
+"diagnostics.heading" = "Heading";
+"diagnostics.interruptions" = "Interruptions";
+"diagnostics.item.background" = "Background";
+"diagnostics.item.mitm" = "Location interception";
+"diagnostics.item.module" = "MITM module";
+"diagnostics.item.pipeline" = "Pipeline";
+"diagnostics.item.server" = "Coordinate server";
+"diagnostics.item.shadowrocket" = "Shadowrocket";
+"diagnostics.item.simulation" = "Simulation";
+"diagnostics.item.vpn" = "VPN";
 "diagnostics.last_error" = "Last error";
+"diagnostics.last_path" = "Last path";
+"diagnostics.last_request" = "Last request";
+"diagnostics.location_updates" = "Location updates";
+"diagnostics.mitm.fresh" = "Shadowrocket fetched the script recently (%d times)";
+"diagnostics.mitm.stale" = "No recent script fetch";
+"diagnostics.multiplier" = "Time multiplier";
 "diagnostics.pairing.available" = "Available";
 "diagnostics.pairing.missing" = "Not set up — pairing required";
 "diagnostics.permission.need_always" = "Grant Always access";
+"diagnostics.pipeline.footer" = "This is the chain that really moves the coordinate: the app serves it on 127.0.0.1, and Shadowrocket rewrites iOS's location lookups to return it.";
+"diagnostics.reported" = "Reported coordinate";
+"diagnostics.requests" = "Requests served";
 "diagnostics.run" = "Run diagnostics";
+"diagnostics.seconds_ago" = "%d seconds ago";
 "diagnostics.self_check" = "Self-diagnostic";
+"diagnostics.self_check.footer" = "Runs automatically whenever you open this screen. All green means the spoofed coordinate is actually reaching other apps.";
+"diagnostics.server.down" = "Failed to start";
+"diagnostics.server.listening" = "Listening on port %d";
+"diagnostics.server_port" = "Server";
+"diagnostics.share" = "Share report";
 "diagnostics.source" = "Source";
 "diagnostics.speed" = "Speed";
 "diagnostics.status.error" = "Error";
@@ -358,18 +393,47 @@
 "onboarding.devmode.description" = "Go to Settings → Privacy & Security → Developer Mode → turn it on → restart.\n\nApple requires this before developer tools can access the device.";
 "onboarding.devmode.subtitle" = "Required step";
 "onboarding.devmode.title" = "Enable Developer Mode";
+"onboarding.how.note" = "This works through Wi-Fi positioning. Where satellite GPS has a strong fix, some apps may still read your real position.";
+"onboarding.how.step1" = "LocationX runs a small server on your device that continuously publishes the coordinate you are simulating.";
+"onboarding.how.step2" = "Shadowrocket intercepts the Wi-Fi positioning request iOS sends to Apple and swaps your coordinate into the reply.";
+"onboarding.how.step3" = "Other apps read your location as usual — and get the place you picked.";
+"onboarding.how.subtitle" = "No jailbreak, no computer needed";
+"onboarding.how.title" = "How LocationX works";
+"onboarding.language.subtitle" = "You can change this any time in Settings";
 "onboarding.pairing.pin" = "PIN code";
 "onboarding.pairing.start" = "Start pairing";
 "onboarding.pairing.success" = "Pairing successful";
 "onboarding.pairing.title" = "Pair device";
+"onboarding.permission.description" = "LocationX needs location access for two things: showing where you are on the map, and keeping the process alive when you switch to another app. Your location is never sent anywhere.";
+"onboarding.permission.grant" = "Allow location access";
+"onboarding.permission.open_settings" = "Open system Settings";
+"onboarding.permission.subtitle" = "To draw your real position and keep running in the background";
+"onboarding.permission.title" = "Location permission";
+"onboarding.progress" = "Step %d of %d";
+"onboarding.proxy.description" = "Shadowrocket is a paid App Store app. LocationX needs it to intercept and rewrite location lookups — without it, the simulation never reaches other apps.";
+"onboarding.proxy.install" = "View on the App Store";
+"onboarding.proxy.later" = "You can install it later. Go to Settings → Shadowrocket to finish setup any time.";
+"onboarding.proxy.subtitle" = "Required component";
 "onboarding.ready.flight" = "International flights with World Odyssey";
 "onboarding.ready.route_studio" = "Route Studio to build routes";
 "onboarding.ready.routine" = "Automatic 24/7 routine";
 "onboarding.ready.scenario_studio" = "Scenario Studio to automate";
+"onboarding.ready.subtitle" = "You're all set";
 "onboarding.ready.tap_map" = "Tap the map to set a location";
 "onboarding.ready.title" = "Ready";
 "onboarding.skip" = "Skip";
 "onboarding.welcome.description" = "Simulate GPS location directly on your iPhone. No jailbreak, no computer tethered the whole time.";
+
+/* permission */
+"permission.always" = "Always";
+"permission.denied" = "Denied";
+"permission.not_determined" = "Not asked yet";
+"permission.restricted" = "Restricted";
+"permission.when_in_use" = "While using the app";
+
+/* pipeline */
+"pipeline.error.not_installed" = "Shadowrocket is not installed";
+"pipeline.error.server_down" = "Coordinate server is not running";
 
 /* recovery */
 "recovery.details" = "View details";
@@ -455,6 +519,7 @@
 "routes.saved" = "Saved routes";
 "routes.saved_footer" = "Swipe left to rename or delete. Tap to see details and adjust the speed.";
 "routes.start_failed_message" = "Could not start the simulation session.";
+"routes.title" = "Routes";
 
 /* routine */
 "routine.activity.home_to_work" = "Home → Work";
@@ -655,6 +720,7 @@
 "settings.section.bypass" = "Bypass checks";
 "settings.section.preferences" = "Preferences";
 "settings.shadowrocket" = "Shadowrocket setup";
+"settings.shadowrocket.module" = "Module";
 "settings.shadowrocket.pending" = "Incomplete";
 "settings.shadowrocket.ready" = "Ready";
 "settings.shadowrocket.subtitle" = "MITM module that bypasses server-side location checks";

@@ -33,9 +33,20 @@ final class UILayerTests: XCTestCase {
     ///
     /// Day la luoi an toan cho cam ket zero-feature-loss: `MainViewV2` truoc day gan 12
     /// sheet, neu ban thiet ke lai bo sot mot cai thi test nay do.
+    ///
+    /// Hai case da roi khoi danh sach nay, va ca hai deu co ly do — them lai chung
+    /// khong phai la cach sua neu test nay do:
+    ///
+    /// - `.settings`: khong mat, ma **doi cho**. Tab Cai dat truoc day mo mot man Cai
+    ///   dat thu hai dang sheet; gio chinh tab la Cai dat, cac nhom tuy chon la trang
+    ///   con day ra tu ngan xep cua no (`SimulationSettingsScreen`, `MapSettingsScreen`,
+    ///   `BackgroundSettingsScreen`, `AboutScreen`).
+    /// - `.deviceManager`: **da bo that**. No mo man ghep noi DVT, ma duong DVT bien mat
+    ///   cung FFI theo yeu cau cua nguoi dung. Giu lai chi la dat mot nut khong bao gio
+    ///   thanh cong truoc mat ho.
     func testAllLegacyModalScreensHaveASheetCase() {
         let required: [AppSheet] = [
-            .routeBuilder, .scenarioStudio, .routineStudio, .deviceManager, .settings,
+            .routeBuilder, .scenarioStudio, .routineStudio,
             .history, .worldTravel, .diagnostics, .shadowrocketSetup, .bookmarks,
             .bypassTroubleshoot, .telemetryDetail, .manualCoordinate,
         ]

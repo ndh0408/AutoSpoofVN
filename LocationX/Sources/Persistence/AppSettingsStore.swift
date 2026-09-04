@@ -44,10 +44,10 @@ final class AppSettingsStore: ObservableObject {
         // Tần số tick của vòng lặp mô phỏng tuyến.
         RouteSimulator.shared.setTickInterval(s.simulationTickIntervalSeconds)
 
-        // Thiết bị: tự kết nối lại và nhịp heartbeat.
-        let device = DeviceManager.shared
-        device.autoReconnect = s.autoReconnect
-        device.startHeartbeat(interval: max(5, s.heartbeatIntervalSeconds))
+        // Đường truyền: tự bật lại VPN và nhịp đo trạng thái Shadowrocket.
+        ShadowrocketManager.shared.configureMonitoring(
+            autoReactivateVPN: s.autoReconnect,
+            pollInterval: max(5, s.heartbeatIntervalSeconds))
 
         // Chạy nền.
         if s.backgroundKeepAlive {

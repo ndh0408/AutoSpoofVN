@@ -11,14 +11,14 @@ import Foundation
 /// │ RoutineManager          │ Timer      │ 60s (schedule)   │ toggleAutoRoutine()  │
 /// │ RoutineManager          │ Timer      │ 1-2s (movement)  │ route complete       │
 /// │ FlightManager           │ Timer      │ 1s (flight tick) │ stopFlight()         │
-/// │ DeviceManager           │ Timer      │ 20s (heartbeat)  │ stopHeartbeat()      │
+/// │ SimulationCoordinator   │ Timer      │ nhip gui thiet bi│ stopSession()        │
 /// │ BackgroundKeeper        │ AVAudio    │ continuous       │ stop()               │
 /// │ BackgroundKeeper        │ CLLocation │ continuous       │ stop()               │
 /// │ LiveActivityManager     │ Combine    │ 800ms throttle   │ automatic            │
 /// │ RouteSimulator          │ Task       │ 100ms (10Hz)     │ stop() / complete    │
 /// │ ScenarioEngine          │ Task       │ varies per step  │ stop() / complete    │
 /// │ ReplayEngine            │ Task       │ varies per point │ stop() / complete    │
-/// │ ConnectionRecovery      │ Task       │ exponential back │ reconnect / cancel   │
+/// │ ShadowrocketManager     │ Timer      │ 5s (do trang thai)│ deinit               │
 /// │ AppRecoveryManager      │ None       │ on resign active │ automatic            │
 /// └─────────────────────────┴────────────┴──────────────────┴──────────────────────┘
 ///
@@ -47,8 +47,8 @@ final class TimerAudit {
             Entry(owner: "BackgroundKeeper", type: "CLLocationManager", interval: "continuous", stopCondition: "stop()", isRunning: BackgroundKeeper.shared.isLocationUpdating),
             Entry(owner: "RoutineManager", type: "Timer", interval: "60s", stopCondition: "toggleAutoRoutine()", isRunning: RoutineManager.shared.isAutoRoutineEnabled),
             Entry(owner: "FlightManager", type: "Timer", interval: "1s", stopCondition: "stopFlight()", isRunning: FlightManager.shared.isFlying),
-            Entry(owner: "DeviceManager", type: "Timer", interval: "20s", stopCondition: "stopHeartbeat()", isRunning: DeviceManager.shared.connectionState.isConnected),
-            Entry(owner: "ConnectionRecovery", type: "Task", interval: "exp backoff", stopCondition: "reconnect/cancel", isRunning: ConnectionRecovery.shared.isRecovering),
+            Entry(owner: "SimulationCoordinator", type: "Timer", interval: "deviceUpdateRate", stopCondition: "stopSession()", isRunning: SimulationCoordinator.shared.state.isActive),
+            Entry(owner: "ShadowrocketManager", type: "Timer", interval: "5s", stopCondition: "deinit", isRunning: ShadowrocketManager.shared.isServerRunning),
         ]
     }
 

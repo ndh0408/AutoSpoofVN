@@ -97,20 +97,12 @@ struct MapFloatingControls: View {
                 }
             }
 
-            Section(L("settings.device")) {
-                Button {
-                    onOpenSheet(.deviceManager)
-                } label: {
-                    Label(L("device.manage"), systemImage: "iphone")
-                }
+            Section(L("map.menu.bypass")) {
                 Button {
                     onOpenSheet(.diagnostics)
                 } label: {
                     Label(L("diagnostics.title"), systemImage: "stethoscope")
                 }
-            }
-
-            Section(L("map.menu.bypass")) {
                 Button {
                     onOpenSheet(.shadowrocketSetup)
                 } label: {
