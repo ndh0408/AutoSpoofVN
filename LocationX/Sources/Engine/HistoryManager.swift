@@ -44,7 +44,7 @@ final class HistoryManager: ObservableObject {
         recordingRouteName = coordinator.session?.routeName
         recordingSessionId = coordinator.session?.id
 
-        sampleTimer = Timer.scheduledTimer(withTimeInterval: sampleInterval, repeats: true) { [weak self] _ in
+        sampleTimer = CommonTimer.scheduled(every: sampleInterval) { [weak self] _ in
             Task { @MainActor in
                 self?.sampleCurrentPosition()
             }

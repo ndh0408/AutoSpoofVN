@@ -157,7 +157,7 @@ final class RoutineManager: ObservableObject {
 
     private func startScheduleMonitoring() {
         routineTimer?.invalidate()
-        routineTimer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { [weak self] _ in
+        routineTimer = CommonTimer.scheduled(every: 60.0) { [weak self] _ in
             self?.evaluateCurrentTimeSchedule()
         }
         evaluateCurrentTimeSchedule()

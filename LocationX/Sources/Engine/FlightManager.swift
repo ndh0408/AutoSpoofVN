@@ -244,7 +244,7 @@ final class FlightManager: ObservableObject {
         flightTimer?.invalidate()
         let intervalSeconds: Double = 1.0
 
-        flightTimer = Timer.scheduledTimer(withTimeInterval: intervalSeconds, repeats: true) { [weak self] _ in
+        flightTimer = CommonTimer.scheduled(every: intervalSeconds) { [weak self] _ in
             guard let self = self, var flight = self.activeFlight else { return }
 
             let effectiveSpeedKmh = flight.cruisingSpeedKmh * self.flightTimeWarpMultiplier
@@ -365,7 +365,7 @@ final class FlightManager: ObservableObject {
 
         evaluateTourSchedule(destination: destination)
 
-        tourTimer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { [weak self] _ in
+        tourTimer = CommonTimer.scheduled(every: 60.0) { [weak self] _ in
             guard let self = self, let dest = self.activeDestination else { return }
             self.evaluateTourSchedule(destination: dest)
         }
@@ -458,7 +458,7 @@ final class FlightManager: ObservableObject {
 
         var idx = 0
         transitionTimer?.invalidate()
-        transitionTimer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { [weak self] timer in
+        transitionTimer = CommonTimer.scheduled(every: 1.5) { [weak self] timer in
             if idx < coords.count {
                 _ = SpoofEngine.shared.submit(latitude: coords[idx].latitude, longitude: coords[idx].longitude, from: .flight)
                 idx += 1

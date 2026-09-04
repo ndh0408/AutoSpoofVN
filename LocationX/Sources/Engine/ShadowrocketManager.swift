@@ -210,7 +210,7 @@ final class ShadowrocketManager: ObservableObject {
 
     /// Kiểm tra VPN gián tiếp qua network interface
     private func startVPNMonitor() {
-        vpnCheckTimer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in
+        vpnCheckTimer = CommonTimer.scheduled(every: 5) { [weak self] _ in
             Task { @MainActor in
                 self?.checkVPNStatus()
             }

@@ -88,7 +88,7 @@ struct LocationXApp: App {
         // với đúng nhịp và đúng trạng thái bật/tắt.
         AppSettingsStore.shared.apply()
         engine.startBackgroundKeepAlive()
-        liveActivity.startOrUpdateActivity()
+        liveActivity.start()
         deviceManager.startHeartbeat()
 
         // Auto-connect nếu có pairing sẵn

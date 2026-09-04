@@ -95,6 +95,19 @@ final class BackgroundKeeper: NSObject, ObservableObject {
         }
     }
 
+    /// Phat trang thai audio ve main thread.
+    private func publishOnMain(running: Bool, error: String?) {
+        if Thread.isMainThread {
+            isAudioRunning = running
+            audioError = error
+        } else {
+            DispatchQueue.main.async { [weak self] in
+                self?.isAudioRunning = running
+                self?.audioError = error
+            }
+        }
+    }
+
     private func configureAndPlayAudio() {
         do {
             let session = AVAudioSession.sharedInstance()
@@ -109,12 +122,15 @@ final class BackgroundKeeper: NSObject, ObservableObject {
             player.prepareToPlay()
             let started = player.play()
             self.player = player
-            isAudioRunning = started
-            audioError = started ? nil : "AVAudioPlayer.play() trả về false"
+            // `isAudioRunning` va `audioError` la @Published, ma ham nay chay tren hang doi
+            // nen. Gan thang o day khien SwiftUI nhan objectWillChange NGOAI main thread —
+            // iOS canh bao "Publishing changes from background threads is not allowed" va
+            // co the lam hong bo cuc. Doi ve main truoc khi phat.
+            publishOnMain(running: started,
+                          error: started ? nil : "AVAudioPlayer.play() tra ve false")
         } catch {
             player = nil
-            isAudioRunning = false
-            audioError = error.localizedDescription
+            publishOnMain(running: false, error: error.localizedDescription)
         }
     }
 

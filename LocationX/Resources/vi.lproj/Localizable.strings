@@ -715,3 +715,7 @@ Buộc iOS dùng WiFi positioning thay vì GPS.";
 "travel.motorcycle" = "Xe máy";
 "travel.train" = "Tàu";
 "travel.walking" = "Đi bộ";
+
+/* live_activity */
+"live_activity.real_gps" = "GPS thật";
+"flight.live_activity.flying" = "Đang bay";

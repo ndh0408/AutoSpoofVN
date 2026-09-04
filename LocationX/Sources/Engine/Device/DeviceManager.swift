@@ -76,7 +76,7 @@ final class DeviceManager: ObservableObject {
 
     func startHeartbeat(interval: TimeInterval = 20) {
         stopHeartbeat()
-        heartbeatTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
+        heartbeatTimer = CommonTimer.scheduled(every: interval) { [weak self] _ in
             Task { @MainActor in
                 guard let self else { return }
                 if self.engine.isLoopbackConnected {
