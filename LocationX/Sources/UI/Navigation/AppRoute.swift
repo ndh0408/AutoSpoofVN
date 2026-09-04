@@ -54,7 +54,6 @@ enum AppSheet: Identifiable, Hashable {
     case scenarioStudio
     case routineStudio
     case deviceManager
-    case settings
     case history
     case worldTravel
     case diagnostics
@@ -155,7 +154,6 @@ struct AppSheetDestination: View {
         case .scenarioStudio:     ScenarioStudioView()
         case .routineStudio:      RoutineScreen()
         case .deviceManager:      DeviceManagerView()
-        case .settings:           SettingsView()
         case .history:            HistoryView()
         case .worldTravel:        WorldTravelViewV2()
         case .diagnostics:        DiagnosticsV2View()

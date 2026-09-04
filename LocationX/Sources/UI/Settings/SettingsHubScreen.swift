@@ -2,16 +2,17 @@ import SwiftUI
 
 /// Tab "Cài đặt".
 ///
-/// **Giai doan 1**: duong vao cho cac man hinh hien co, chua phai ban thiet ke lai
-/// (Giai doan 8). Nhung no da lam mot viec that: gom bon man hinh truoc day chi vao duoc
-/// bang cach doan dung mot trong muoi nut icon xep doc ben phai ban do
-/// (thiet bi, chan doan, Shadowrocket, khac phuc su co) thanh mot cau truc doc duoc.
+/// Trước đây tab này chỉ là một danh sách lối tắt, và hàng "Tuỳ chọn mô phỏng" của nó lại
+/// **mở ra một màn Cài đặt thứ hai dưới dạng sheet** — người dùng vào Cài đặt để rồi phải
+/// mở Cài đặt lần nữa. Nay các nhóm tuỳ chọn là trang con đẩy ra từ chính tab này, còn
+/// những màn thực sự là tác vụ (quản lý thiết bị, chẩn đoán, Shadowrocket) vẫn là sheet.
 struct SettingsHubScreen: View {
     @Environment(\.navigator) private var navigator
     @ObservedObject private var coordinator = SimulationCoordinator.shared
     @ObservedObject private var device = DeviceManager.shared
     @ObservedObject private var shadowrocket = ShadowrocketManager.shared
     @ObservedObject private var localization = LocalizationManager.shared
+    @ObservedObject private var store = AppSettingsStore.shared
 
     var body: some View {
         List {
@@ -53,31 +54,66 @@ struct SettingsHubScreen: View {
                 }
             }
 
-            Section(L("settings.simulation")) {
-                HubRow(title: L("settings.simulation_options"),
-                       subtitle: L("settings.simulation_options.subtitle"),
-                       symbol: "slider.horizontal.3",
-                       tint: AppColor.primary) {
-                    navigator.present(.settings)
+            // Trang con, không phải sheet: chúng thuộc về ngăn xếp của tab Cài đặt.
+            Section(L("settings.section.preferences")) {
+                NavigationLink {
+                    SimulationSettingsScreen()
+                } label: {
+                    HubRowLabel(title: L("settings.simulation_options"),
+                                subtitle: L("settings.simulation_options.subtitle"),
+                                symbol: "slider.horizontal.3",
+                                tint: AppColor.primary)
+                }
+                NavigationLink {
+                    MapSettingsScreen()
+                } label: {
+                    HubRowLabel(title: L("settings.map"),
+                                subtitle: L("settings.map.subtitle"),
+                                symbol: "map.fill",
+                                tint: AppColor.info)
+                }
+                NavigationLink {
+                    BackgroundSettingsScreen()
+                } label: {
+                    HubRowLabel(title: L("settings.background"),
+                                subtitle: L("settings.background.subtitle"),
+                                symbol: "moon.fill",
+                                tint: AppColor.purple)
                 }
             }
 
             Section {
+                Picker(L("settings.appearance"), selection: $store.settings.appearance) {
+                    Text(L("settings.appearance.system")).tag("system")
+                    Text(L("settings.appearance.light")).tag("light")
+                    Text(L("settings.appearance.dark")).tag("dark")
+                }
                 Picker(L("language.title"), selection: languageBinding) {
                     ForEach(AppLanguage.allCases) { lang in
                         Label(lang.displayName, systemImage: lang.symbol).tag(lang)
                     }
                 }
-                .pickerStyle(.inline)
             } header: {
-                Text(L("language.title"))
+                Text(L("settings.section.appearance"))
             } footer: {
                 Text(L("language.footer"))
             }
 
             Section {
-                LabeledContent(L("settings.version"), value: appVersion)
-                LabeledContent(L("settings.build"), value: buildNumber)
+                NavigationLink {
+                    AboutScreen()
+                } label: {
+                    HubRowLabel(title: L("settings.about"),
+                                subtitle: "LocationX \(appVersion) (\(buildNumber))",
+                                symbol: "info.circle.fill",
+                                tint: AppColor.textSecondary)
+                }
+                HubRow(title: L("settings.simulation_history"),
+                       subtitle: L("settings.simulation_history.subtitle"),
+                       symbol: "clock.arrow.circlepath",
+                       tint: AppColor.warning) {
+                    navigator.present(.history)
+                }
                 LabeledContent(L("settings.preferred_source")) {
                     Text(coordinator.activeSource?.displayName ?? L("common.none"))
                         .foregroundStyle(AppColor.textSecondary)

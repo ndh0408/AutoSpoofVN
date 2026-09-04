@@ -35,6 +35,13 @@
 "a11y.status" = "Trạng thái: %@";
 "a11y.waypoint_index" = "Điểm %d trên %d";
 
+/* about */
+"about.author" = "Tác giả";
+"about.disclaimer" = "LocationX chỉ dành cho kiểm thử, phát triển ứng dụng và mục đích cá nhân hợp pháp. Việc giả mạo vị trí có thể vi phạm điều khoản của một số dịch vụ; bạn tự chịu trách nhiệm về cách sử dụng.";
+"about.disclaimer.title" = "Lưu ý";
+"about.license" = "Giấy phép";
+"about.tagline" = "Mô phỏng vị trí GPS cho iOS, không cần jailbreak";
+
 /* action */
 "action.cancel" = "Huỷ";
 "action.close" = "Đóng";
@@ -603,7 +610,6 @@
 "scenario.title" = "Kịch bản";
 
 /* settings */
-"settings.spoof_method" = "Phương thức";
 "settings.about" = "Thông tin";
 "settings.app.footer" = "LocationX mô phỏng vị trí GPS trên thiết bị của chính bạn thông qua kênh DVT của Apple. Cần bật Developer Mode.";
 "settings.appearance" = "Giao diện";
@@ -612,6 +618,8 @@
 "settings.appearance.system" = "Hệ thống";
 "settings.auto_reconnect" = "Tự kết nối lại";
 "settings.background" = "Chạy nền";
+"settings.background.footer" = "Giữ app sống khi bạn chuyển sang ứng dụng khác, bằng một phiên âm thanh im lặng. Tắt đi thì iOS có thể tạm dừng mô phỏng sau vài phút.";
+"settings.background.subtitle" = "Chạy nền, kết nối lại, heartbeat";
 "settings.background_keep_alive" = "Giữ app sống nền";
 "settings.build" = "Build";
 "settings.bypass" = "Bypass GPS Detection";
@@ -620,6 +628,7 @@
 "settings.correlated_drift" = "Drift tương quan";
 "settings.default_travel_mode" = "Phương tiện mặc định";
 "settings.developer" = "Nhà phát triển";
+"settings.developer.footer" = "Hiện toạ độ thô, độ trễ và trạng thái nội bộ trên các màn hình chính.";
 "settings.device" = "Thiết bị";
 "settings.device_manager" = "Quản lý thiết bị";
 "settings.device_manager.subtitle" = "Ghép nối, kết nối lại, kiểm tra kênh DVT";
@@ -628,14 +637,23 @@
 "settings.diagnostics.subtitle" = "Trạng thái transport, chạy nền, Live Activity";
 "settings.follow_location" = "Theo dõi vị trí";
 "settings.gps_noise" = "Nhiễu GPS";
+"settings.gps_noise.footer" = "Thêm nhiễu ngẫu nhiên quanh toạ độ báo ra để giống tín hiệu GPS thật hơn. Nhiễu chỉ áp lên toạ độ gửi đi — quỹ đạo mô phỏng bên trong vẫn chính xác.";
+"settings.heartbeat" = "Nhịp heartbeat";
+"settings.heartbeat.footer" = "Khoảng thời gian giữa hai lần kiểm tra thiết bị còn kết nối hay không.";
 "settings.map" = "Bản đồ";
+"settings.map.subtitle" = "Kiểu bản đồ, bám theo vị trí, vệt đi";
+"settings.map_3d" = "Địa hình 3D";
 "settings.map_style" = "Kiểu bản đồ";
 "settings.map_style.hybrid" = "Hỗn hợp";
 "settings.map_style.satellite" = "Vệ tinh";
 "settings.map_style.standard" = "Tiêu chuẩn";
 "settings.preferred_source" = "Nguồn ưu tiên";
+"settings.rates" = "Tần suất cập nhật";
+"settings.rates.footer" = "Nhịp mô phỏng là số lần tính lại vị trí mỗi giây; nhịp gửi thiết bị là số lần đẩy toạ độ ra ngoài. Đặt nhịp gửi quá cao khiến pin hao nhanh mà không mượt hơn.";
 "settings.section.app" = "Ứng dụng";
+"settings.section.appearance" = "Hiển thị";
 "settings.section.bypass" = "Vượt kiểm tra";
+"settings.section.preferences" = "Tuỳ chọn";
 "settings.shadowrocket" = "Thiết lập Shadowrocket";
 "settings.shadowrocket.pending" = "Chưa xong";
 "settings.shadowrocket.ready" = "Sẵn sàng";
@@ -643,10 +661,15 @@
 "settings.show_technical_info" = "Hiện thông tin kỹ thuật";
 "settings.simulation" = "Mô phỏng";
 "settings.simulation_history" = "Lịch sử mô phỏng";
+"settings.simulation_history.subtitle" = "Các phiên mô phỏng đã chạy";
 "settings.simulation_options" = "Tuỳ chọn mô phỏng";
 "settings.simulation_options.subtitle" = "Nhiễu GPS, bản đồ, chạy nền, giao diện";
+"settings.simulation_rate" = "Nhịp mô phỏng";
+"settings.spoof_method" = "Phương thức";
 "settings.system_diagnostics" = "Chẩn đoán hệ thống";
 "settings.trail" = "Vẽ vết di chuyển";
+"settings.trail.footer" = "Vệt đi giữ lại đường đã qua trên bản đồ. Giữ càng nhiều điểm thì vẽ càng nặng.";
+"settings.trail_points" = "Số điểm tối đa";
 "settings.troubleshoot" = "Khắc phục sự cố";
 "settings.troubleshoot.subtitle" = "Vì sao ứng dụng vẫn nhận ra vị trí giả";
 "settings.version" = "Phiên bản";

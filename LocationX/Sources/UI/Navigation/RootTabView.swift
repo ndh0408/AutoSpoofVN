@@ -85,6 +85,51 @@ struct RootTabView: View {
 
 // MARK: - Hang mo sheet dung chung
 
+/// Phan nhin cua mot hang trong cac man hinh hub.
+///
+/// Tach rieng khoi `HubRow` de `NavigationLink` dung lai duoc: link tu no ve chevron,
+/// nen neu nhung chung mot than hinh co chevron thi se ra hai mui ten canh nhau.
+struct HubRowLabel: View {
+    let title: String
+    var subtitle: String?
+    let symbol: String
+    var tint: Color = AppColor.primary
+    var badge: String?
+
+    var body: some View {
+        HStack(spacing: AppSpacing.md) {
+            Image(systemName: symbol)
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(.white)
+                .frame(width: 29, height: 29)
+                .background(tint, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(title)
+                    .font(AppFont.body)
+                    .foregroundStyle(AppColor.textPrimary)
+                if let subtitle {
+                    Text(subtitle)
+                        .font(AppFont.caption1)
+                        .foregroundStyle(AppColor.textSecondary)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                }
+            }
+
+            Spacer(minLength: AppSpacing.sm)
+
+            if let badge {
+                Text(badge)
+                    .font(AppFont.caption)
+                    .foregroundStyle(AppColor.textSecondary)
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(subtitle.map { "\(title). \($0)" } ?? title)
+    }
+}
+
 /// Mot hang trong danh sach mo ra mot man hinh modal.
 ///
 /// Dung chung cho ca ba tab hub, nen ba man hinh do khong bi lech nhau ve cach trinh bay.
@@ -99,33 +144,8 @@ struct HubRow: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: AppSpacing.md) {
-                Image(systemName: symbol)
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(.white)
-                    .frame(width: 29, height: 29)
-                    .background(tint, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
-
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(title)
-                        .font(AppFont.body)
-                        .foregroundStyle(AppColor.textPrimary)
-                    if let subtitle {
-                        Text(subtitle)
-                            .font(AppFont.caption1)
-                            .foregroundStyle(AppColor.textSecondary)
-                            .lineLimit(2)
-                            .multilineTextAlignment(.leading)
-                    }
-                }
-
-                Spacer(minLength: AppSpacing.sm)
-
-                if let badge {
-                    Text(badge)
-                        .font(AppFont.caption)
-                        .foregroundStyle(AppColor.textSecondary)
-                }
-
+                HubRowLabel(title: title, subtitle: subtitle, symbol: symbol,
+                            tint: tint, badge: badge)
                 Image(systemName: "chevron.right")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(AppColor.textQuaternary)
@@ -133,8 +153,6 @@ struct HubRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(subtitle.map { "\(title). \($0)" } ?? title)
         .accessibilityAddTraits(.isButton)
     }
 }

@@ -27,6 +27,10 @@ enum AppColor {
     static let warning = Color(.systemOrange)
     /// Loi, hanh dong pha huy.
     static let danger = Color(.systemRed)
+    /// Thong tin trung tinh — dung cho cac hang cai dat khong mang y nghia trang thai.
+    static let info = Color(.systemTeal)
+    /// Nhan phu, phan biet nhom cai dat voi nhau trong danh sach.
+    static let purple = Color(.systemPurple)
 
     // MARK: - Surfaces
 

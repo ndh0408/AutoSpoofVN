@@ -35,6 +35,13 @@
 "a11y.status" = "Status: %@";
 "a11y.waypoint_index" = "Point %d of %d";
 
+/* about */
+"about.author" = "Author";
+"about.disclaimer" = "LocationX is for testing, app development, and lawful personal use only. Spoofing your location may violate some services' terms; how you use it is your responsibility.";
+"about.disclaimer.title" = "Notice";
+"about.license" = "License";
+"about.tagline" = "GPS location simulation for iOS — no jailbreak required";
+
 /* action */
 "action.cancel" = "Cancel";
 "action.close" = "Close";
@@ -603,7 +610,6 @@
 "scenario.title" = "Scenarios";
 
 /* settings */
-"settings.spoof_method" = "Method";
 "settings.about" = "About";
 "settings.app.footer" = "LocationX simulates the GPS location on your own device through Apple's DVT channel. Developer Mode must be enabled.";
 "settings.appearance" = "Appearance";
@@ -612,6 +618,8 @@
 "settings.appearance.system" = "System";
 "settings.auto_reconnect" = "Auto-reconnect";
 "settings.background" = "Background";
+"settings.background.footer" = "Keeps the app alive while you switch to another app, using a silent audio session. Turn it off and iOS may suspend the simulation after a few minutes.";
+"settings.background.subtitle" = "Background, reconnect, heartbeat";
 "settings.background_keep_alive" = "Keep app alive in background";
 "settings.build" = "Build";
 "settings.bypass" = "Bypass GPS detection";
@@ -620,6 +628,7 @@
 "settings.correlated_drift" = "Correlated drift";
 "settings.default_travel_mode" = "Default travel mode";
 "settings.developer" = "Developer";
+"settings.developer.footer" = "Shows raw coordinates, latency, and internal state on the main screens.";
 "settings.device" = "Device";
 "settings.device_manager" = "Device manager";
 "settings.device_manager.subtitle" = "Pair, reconnect, check the DVT channel";
@@ -628,14 +637,23 @@
 "settings.diagnostics.subtitle" = "Transport status, background mode, Live Activity";
 "settings.follow_location" = "Follow location";
 "settings.gps_noise" = "GPS noise";
+"settings.gps_noise.footer" = "Adds random jitter around the reported coordinate so it reads like a real GPS fix. The noise applies only to what is sent out — the internal simulated path stays exact.";
+"settings.heartbeat" = "Heartbeat";
+"settings.heartbeat.footer" = "How long to wait between checks that the device is still connected.";
 "settings.map" = "Map";
+"settings.map.subtitle" = "Map style, follow mode, trail";
+"settings.map_3d" = "3D terrain";
 "settings.map_style" = "Map style";
 "settings.map_style.hybrid" = "Hybrid";
 "settings.map_style.satellite" = "Satellite";
 "settings.map_style.standard" = "Standard";
 "settings.preferred_source" = "Preferred source";
+"settings.rates" = "Update rates";
+"settings.rates.footer" = "The simulation rate is how often the position is recomputed; the device rate is how often it is pushed out. Setting the device rate too high drains battery without looking any smoother.";
 "settings.section.app" = "App";
+"settings.section.appearance" = "Appearance";
 "settings.section.bypass" = "Bypass checks";
+"settings.section.preferences" = "Preferences";
 "settings.shadowrocket" = "Shadowrocket setup";
 "settings.shadowrocket.pending" = "Incomplete";
 "settings.shadowrocket.ready" = "Ready";
@@ -643,10 +661,15 @@
 "settings.show_technical_info" = "Show technical info";
 "settings.simulation" = "Simulation";
 "settings.simulation_history" = "Simulation history";
+"settings.simulation_history.subtitle" = "Simulation sessions already run";
 "settings.simulation_options" = "Simulation options";
 "settings.simulation_options.subtitle" = "GPS noise, map, background mode, appearance";
+"settings.simulation_rate" = "Simulation rate";
+"settings.spoof_method" = "Method";
 "settings.system_diagnostics" = "System diagnostics";
 "settings.trail" = "Draw movement trail";
+"settings.trail.footer" = "The trail keeps the path already travelled on the map. More points means more to draw.";
+"settings.trail_points" = "Maximum points";
 "settings.troubleshoot" = "Troubleshooting";
 "settings.troubleshoot.subtitle" = "Why apps still detect a spoofed location";
 "settings.version" = "Version";
