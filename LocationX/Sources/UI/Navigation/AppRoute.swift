@@ -159,7 +159,7 @@ struct AppSheetDestination: View {
         case .history:            HistoryView()
         case .worldTravel:        WorldTravelViewV2()
         case .diagnostics:        DiagnosticsV2View()
-        case .shadowrocketSetup:  ShadowrocketSetupView()
+        case .shadowrocketSetup:  ShadowrocketSetupScreen()
         case .bookmarks:          BookmarksView()
         case .bypassTroubleshoot: BypassTroubleshootView()
         case .telemetryDetail:    TelemetryDetailSheet()

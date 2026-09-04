@@ -1,4 +1,4 @@
-/* LocationX — Tiếng Việt. Sắp xếp theo nhóm. */
+/* LocationX — Tiếng Việt. Sinh tu dong, sap xep theo nhom. */
 
 /* a11y */
 "a11y.create_route" = "Tạo tuyến đường";
@@ -71,6 +71,7 @@
 "common.all" = "Tất cả";
 "common.back" = "Quay lại";
 "common.coordinates" = "Toạ độ";
+"common.copy" = "Chép";
 "common.details" = "Chi tiết";
 "common.enabled" = "Bật";
 "common.error" = "Lỗi";
@@ -82,9 +83,10 @@
 "common.longitude" = "Kinh độ";
 "common.more" = "Thêm";
 "common.name" = "Tên";
-"common.no" = "Không";
+"common.no" = "chưa";
 "common.none" = "Không có";
 "common.off" = "Tắt";
+"common.on" = "Đang bật";
 "common.rename" = "Đổi tên";
 "common.running" = "Đang chạy";
 "common.source.flight" = "Chuyến bay";
@@ -96,7 +98,7 @@
 "common.unit.hour" = "giờ";
 "common.unknown" = "Chưa biết";
 "common.view" = "Xem";
-"common.yes" = "Có";
+"common.yes" = "có";
 "common.yesterday" = "Hôm qua";
 
 /* device */
@@ -188,17 +190,30 @@
 "error.route_failed" = "Không tính được tuyến đường";
 
 /* flight */
+"flight.altitude" = "Độ cao";
 "flight.badge.auto" = "Tự động";
 "flight.cancel" = "Huỷ bay";
+"flight.cancel.action" = "Huỷ chuyến bay";
+"flight.cancel.confirm" = "Huỷ chuyến bay";
+"flight.cancel.message" = "Chuyến bay đang thực hiện sẽ dừng và GPS trở về trạng thái trước đó.";
+"flight.cancel.title" = "Huỷ chuyến bay?";
+"flight.controls" = "Điều khiển";
 "flight.cruise" = "Hành trình";
+"flight.destination" = "Điểm đến";
 "flight.destination.local_time" = "giờ địa phương %@";
 "flight.destination.status" = "Đang ở %@, %@ · ngày %d/%d";
+"flight.destinations" = "Điểm đến";
 "flight.duration" = "Thời gian";
 "flight.from" = "Từ";
+"flight.ground_speed" = "Tốc độ mặt đất";
+"flight.heading" = "Hướng";
+"flight.in_progress" = "Chuyến bay đang thực hiện";
+"flight.live_activity.flying" = "Đang bay";
 "flight.metric.altitude" = "Độ cao";
 "flight.metric.heading" = "Hướng";
 "flight.metric.remaining" = "Còn lại";
 "flight.metric.speed" = "Tốc độ";
+"flight.origin" = "Điểm đi";
 "flight.phase.airport_checkin" = "Thủ tục tại sân bay & Chờ cất cánh";
 "flight.phase.cruising" = "Bay hành trình (Cruising)";
 "flight.phase.descent" = "Hạ độ cao & Tiếp cận sân bay";
@@ -208,7 +223,15 @@
 "flight.phase.taxi" = "Lăn bánh ra đường băng";
 "flight.phase.taxi_to_airport" = "Di chuyển ra sân bay";
 "flight.phase.taxi_to_hotel" = "Di chuyển về khách sạn nhận phòng";
+"flight.picker.empty" = "Không tìm thấy sân bay";
+"flight.picker.empty_message" = "Thử mã IATA, tên thành phố hoặc quốc gia khác.";
+"flight.picker.search" = "Tìm mã, thành phố hoặc quốc gia";
+"flight.plan" = "Lập chuyến bay";
+"flight.plan.footer" = "Chọn sân bay đi và đến để xem trước quãng đường và thời gian bay.";
+"flight.preview.summary" = "%d km · khoảng %@ bay";
 "flight.preview.title" = "Xem trước chuyến bay";
+"flight.progress" = "Tiến độ";
+"flight.remaining_km" = "Còn %d km";
 "flight.search_airport" = "Tìm sân bay...";
 "flight.section.active" = "Chuyến bay đang thực hiện";
 "flight.section.auto" = "Tự động";
@@ -216,9 +239,25 @@
 "flight.section.destination.footer" = "Mô phỏng chuyến bay giữa các sân bay quốc tế, kèm lịch tham quan tại điểm đến.";
 "flight.section.popular_airports" = "Sân bay phổ biến";
 "flight.section.vietnam" = "Việt Nam";
-"flight.start" = "Bắt đầu chuyến bay";
+"flight.select_airport" = "Chọn sân bay";
+"flight.start" = "Bắt đầu bay";
+"flight.swap" = "Đảo chiều";
+"flight.telemetry" = "Số liệu bay";
+"flight.time_warp" = "Hệ số thời gian";
+"flight.time_warp.footer" = "Tua nhanh mô phỏng. Hệ số càng cao, chuyến bay càng chóng xong.";
+"flight.timeline" = "Hành trình";
+"flight.timeline.a11y" = "Hành trình chuyến bay, đang ở giai đoạn %@";
+"flight.timeline.current" = "Đang diễn ra";
+"flight.timeline.done" = "Đã qua";
+"flight.timeline.upcoming" = "Sắp tới";
 "flight.to" = "Đến";
+"flight.vertical_speed" = "Tốc độ lên/xuống";
 "flight.world_odyssey.subtitle" = "Bay vòng quanh thế giới tự động";
+"flight.world_tour" = "Du lịch thế giới";
+"flight.world_tour.footer" = "Mô phỏng chuyến bay giữa các sân bay quốc tế, kèm lịch tham quan tại điểm đến.";
+"flight.world_tour.status" = "Đang ở %@, %@ · ngày %d/%d";
+"flight.world_tour.stopped" = "Đã dừng chế độ chu du thế giới";
+"flight.world_tour.subtitle" = "Chọn điểm đến, bay tới sân bay và tự tham quan";
 "flight.world_travel" = "Du lịch thế giới";
 "flight.world_travel.subtitle" = "Chọn điểm đến, bay tới sân bay và tự tham quan";
 
@@ -234,6 +273,17 @@
 "language.footer" = "Áp dụng ngay, không cần khởi động lại ứng dụng.";
 "language.system" = "Theo hệ thống";
 "language.title" = "Ngôn ngữ";
+
+/* live_activity */
+"live_activity.real_gps" = "GPS thật";
+"live_activity.status.active" = "HOẠT ĐỘNG";
+"live_activity.status.halted" = "GPS THẬT";
+"live_activity.status.paused" = "TẠM DỪNG";
+
+/* location_picker */
+"location_picker.hint" = "Chạm bản đồ để chọn điểm";
+"location_picker.search" = "Tìm địa điểm";
+"location_picker.use_this" = "Dùng vị trí này";
 
 /* map */
 "map.follow" = "Bám theo vị trí";
@@ -322,7 +372,6 @@
 "recovery.title" = "Phát hiện phiên chưa hoàn thành";
 
 /* route */
-"route.leg_count" = "%d chặng";
 "route.builder.calc_failed" = "Không tính được tuyến giữa các điểm này.";
 "route.builder.calculate" = "Tính tuyến";
 "route.builder.clear_all" = "Xoá tất cả";
@@ -364,6 +413,7 @@
 "route.geometry_point_count" = "Số điểm hình học";
 "route.import.done" = "Đã nhập %d điểm từ %@.";
 "route.last_used" = "Chạy lần cuối";
+"route.leg_count" = "%d chặng";
 "route.name_placeholder" = "Tên tuyến";
 "route.point_count" = "Số điểm";
 "route.recalc_failed" = "Không tính được tuyến.";
@@ -406,11 +456,14 @@
 "routine.activity.walk" = "Đi dạo";
 "routine.activity.work_to_home" = "Công ty → Nhà";
 "routine.activity.working" = "Làm việc";
+"routine.add" = "Thêm mốc";
 "routine.auto_cycle" = "Chu trình tự động 24/7";
 "routine.commute.lunch_cafe" = "Nghỉ trưa & Cà phê";
 "routine.commute.to_home" = "Tan sở về nhà (Cơ quan -> Nhà)";
 "routine.commute.to_work" = "Đang đi làm (Nhà -> Cơ quan)";
 "routine.commute.to_work_near" = "Đang đi làm (Đoạn gần tới)";
+"routine.current_speed" = "Tốc độ";
+"routine.current_state" = "Đang làm gì";
 "routine.day.fri" = "T6";
 "routine.day.mon" = "T2";
 "routine.day.sat" = "T7";
@@ -421,14 +474,40 @@
 "routine.days.daily" = "Hàng ngày";
 "routine.days.weekdays" = "T2-T6";
 "routine.default_schedule" = "Lịch mặc định";
+"routine.disable" = "Tắt";
+"routine.disabled" = "đang tắt";
+"routine.editor.basics" = "Thông tin";
+"routine.editor.days" = "Ngày trong tuần";
+"routine.editor.days.every" = "Không chọn ngày nào nghĩa là áp dụng mọi ngày.";
+"routine.editor.days.footer" = "Mốc chỉ chạy vào những ngày được chọn.";
+"routine.editor.distance" = "Quãng đường";
+"routine.editor.edit" = "Sửa mốc";
+"routine.editor.estimated" = "Thời gian ước tính";
+"routine.editor.from" = "Từ";
+"routine.editor.name" = "Tên mốc";
+"routine.editor.new" = "Mốc mới";
+"routine.editor.preview" = "Xem trước";
+"routine.editor.route" = "Lộ trình";
+"routine.editor.time" = "Giờ";
+"routine.editor.to" = "Đến";
+"routine.editor.travel_mode" = "Phương tiện";
+"routine.empty" = "Chưa có mốc nào";
+"routine.empty_message" = "Thêm mốc để mô tả một ngày của bạn: mấy giờ đi làm, mấy giờ về.";
+"routine.enable" = "Bật chu trình tự động";
+"routine.enable_one" = "Bật";
 "routine.enabled_badge" = "Đang bật";
 "routine.footer" = "Mô phỏng nhịp sinh hoạt cả ngày mà không cần thao tác.";
+"routine.footer.custom" = "Đang dùng %d mốc bạn đặt.";
+"routine.footer.default_rhythm" = "Chưa có mốc nào nên đang dùng nhịp mặc định: sáng đi làm, trưa cà phê, chiều về nhà.";
 "routine.location.cafe" = "Quán cà phê";
 "routine.location.home" = "Nhà";
 "routine.location.work" = "Công ty";
 "routine.place.cafe" = "Cà phê";
+"routine.place.hint" = "Chọn lại vị trí trên bản đồ";
 "routine.place.home" = "Nhà";
 "routine.place.work" = "Công ty";
+"routine.places" = "Địa điểm cố định";
+"routine.places.footer" = "Chạm để chọn lại trên bản đồ. Nhịp mặc định dùng ba địa điểm này.";
 "routine.real_road" = "đường thật";
 "routine.running_status" = "Đang chạy: %@";
 "routine.schedule.add" = "Thêm lịch trình";
@@ -460,6 +539,8 @@
 "routine.status.wandering" = "Đi dạo tối quanh khu vực nhà (~4 km/h)";
 "routine.status.working" = "Ở Nơi làm việc (Cố định)";
 "routine.subtitle" = "Lịch sinh hoạt tự động giữa nhà, công ty và quán cà phê";
+"routine.timeline" = "Đường thời gian";
+"routine.timeline.footer" = "Chạm một mốc để sửa. Vuốt sang trái để bật/tắt hoặc xoá.";
 "routine.title" = "Chu trình 24/7";
 
 /* scenario */
@@ -481,6 +562,17 @@
 "scenario.detail.random_nearby" = "bán kính %dm, %ds";
 "scenario.detail.wait_seconds" = "%d giây";
 "scenario.edit_title" = "Chỉnh sửa kịch bản";
+"scenario.kind.changeSpeed" = "Đổi tốc độ";
+"scenario.kind.changeTravelMode" = "Đổi phương tiện";
+"scenario.kind.dwell" = "Dừng chân";
+"scenario.kind.followRoute" = "Đi theo tuyến";
+"scenario.kind.loop" = "Lặp lại";
+"scenario.kind.moveTo" = "Di chuyển đến";
+"scenario.kind.pause" = "Tạm dừng";
+"scenario.kind.randomNearby" = "Đi lang thang quanh đây";
+"scenario.kind.resume" = "Tiếp tục";
+"scenario.kind.setLocation" = "Đặt vị trí";
+"scenario.kind.wait" = "Chờ";
 "scenario.loop" = "Lặp lại";
 "scenario.loop_forever" = "Lặp vô hạn";
 "scenario.manage" = "Quản lý kịch bản";
@@ -490,6 +582,21 @@
 "scenario.running" = "Đang chạy";
 "scenario.section.list" = "Kịch bản";
 "scenario.section.steps" = "Các bước";
+"scenario.step.duration" = "Thời lượng";
+"scenario.step.edit" = "Sửa bước";
+"scenario.step.location" = "Vị trí";
+"scenario.step.loop_times" = "Số lần lặp";
+"scenario.step.new" = "Bước mới";
+"scenario.step.no_parameters" = "Hành động này không có tham số nào.";
+"scenario.step.no_routes" = "Chưa có tuyến nào được lưu.";
+"scenario.step.parameters" = "Tham số";
+"scenario.step.radius" = "Bán kính";
+"scenario.step.route" = "Tuyến đường";
+"scenario.step.route.footer" = "Chỉ tuyến đã tính hình học mới chạy được. Mở tuyến và bấm Tính lại nếu cần.";
+"scenario.step.route.none" = "Chưa chọn";
+"scenario.step.speed" = "Tốc độ";
+"scenario.step.travel_mode" = "Phương tiện";
+"scenario.step.type" = "Loại hành động";
 "scenario.step_count" = "%d bước";
 "scenario.step_number" = "Bước %d";
 "scenario.subtitle" = "Chuỗi hành động: di chuyển, chờ, dừng chân, lặp lại";
@@ -562,18 +669,22 @@
 "shadowrocket.check.sim.fail" = "Chưa bật simulation — bấm nút trên dashboard";
 "shadowrocket.check.sim.ok" = "Đang gửi toạ độ %@";
 "shadowrocket.check.sim.title" = "Đang mô phỏng GPS";
+"shadowrocket.copy_github_url" = "Chép URL module trên GitHub";
 "shadowrocket.done.message" = "Mở Bump → vị trí GPS giả sẽ hiện, isSimulatedBySoftware = false";
 "shadowrocket.done.title" = "Bypass đã sẵn sàng";
 "shadowrocket.endpoint.coord" = "Toạ độ hiện tại (JSON)";
 "shadowrocket.endpoint.module" = "Shadowrocket module definition";
 "shadowrocket.endpoint.spoofer" = "MITM script với toạ độ live";
 "shadowrocket.endpoint.status" = "Server health + stats (JSON)";
+"shadowrocket.endpoints.footer" = "Chạm để mở, giữ để chép URL. Các địa chỉ này chỉ sống khi LocationX đang chạy.";
+"shadowrocket.error.module_unreachable" = "Không tải được module. Mở LocationX ở tiền cảnh rồi thử lại, hoặc kiểm tra repo GitHub đã tồn tại chưa.";
 "shadowrocket.flow.dvt" = "LocationX gửi toạ độ qua DVT";
 "shadowrocket.flow.mitm" = "Shadowrocket MITM intercept gs-loc.apple.com";
 "shadowrocket.flow.result" = "isSimulatedBySoftware = false → Bump accept ✓";
 "shadowrocket.flow.script" = "location-spoofer.js rewrite binary response";
 "shadowrocket.flow.server" = "CoordinateServer (port 8765) phục vụ toạ độ realtime";
 "shadowrocket.flow.wifi" = "iOS nhận kết quả như WiFi positioning (không phải DVT)";
+"shadowrocket.help.footer" = "Đặt lại sẽ xoá trạng thái đã ghi nhận, không gỡ gì trong Shadowrocket.";
 "shadowrocket.install.live.subtitle" = "Toạ độ tự cập nhật realtime khi di chuyển";
 "shadowrocket.install.live.title" = "Cài Module Live";
 "shadowrocket.install.static.subtitle" = "Toạ độ cố định — cần cài lại khi đổi vị trí";
@@ -599,17 +710,30 @@ Settings → General → About → Certificate Trust Settings → Bật CA Shado
 "shadowrocket.nojb.appstore" = "Shadowrocket là app có thể mua trên App Store ($2.99) — không cần jailbreak.";
 "shadowrocket.nojb.cert" = "MITM certificate được trust qua Settings → General (cơ chế hợp lệ của iOS).";
 "shadowrocket.nojb.scope" = "Module intercept chỉ target Apple WiFi location API, không ảnh hưởng traffic khác.";
+"shadowrocket.overall.need_module" = "Chưa nạp module";
+"shadowrocket.overall.no_traffic" = "Chưa thấy lưu lượng";
+"shadowrocket.overall.not_installed" = "Chưa cài Shadowrocket";
+"shadowrocket.overall.running" = "Đang hoạt động";
 "shadowrocket.problem.detail" = "Mọi toạ độ đi qua DVT đều bị iOS daemon (locationd) tự động gắn cờ isSimulatedBySoftware = true. Bump đọc cờ này và từ chối. Đây là cơ chế hệ thống — không phải lỗi code.";
+"shadowrocket.reset" = "Đặt lại thiết lập";
 "shadowrocket.section.endpoints" = "Endpoints";
+"shadowrocket.section.help" = "Trợ giúp";
 "shadowrocket.section.no_jailbreak" = "Tại sao không cần jailbreak";
 "shadowrocket.section.problem" = "Vấn đề";
 "shadowrocket.section.solution" = "Giải pháp";
+"shadowrocket.section.status" = "Trạng thái";
+"shadowrocket.section.steps" = "Các bước";
 "shadowrocket.section.test" = "Kiểm tra";
 "shadowrocket.server.running" = "CoordinateServer chạy";
 "shadowrocket.server.start" = "Khởi động";
 "shadowrocket.server.stopped" = "CoordinateServer tắt";
 "shadowrocket.setup" = "Thiết lập Shadowrocket";
 "shadowrocket.setup.steps_title" = "5 bước cài đặt";
+"shadowrocket.signal.installed" = "Đã cài Shadowrocket";
+"shadowrocket.signal.module" = "Module đã được nạp";
+"shadowrocket.signal.requests" = "%d lượt";
+"shadowrocket.signal.server" = "Server toạ độ đang chạy";
+"shadowrocket.signal.traffic" = "Shadowrocket đang lấy toạ độ";
 "shadowrocket.state.active" = "Bypass hoạt động";
 "shadowrocket.state.active.detail" = "isSimulatedBySoftware = false · GPS giả như GPS thật";
 "shadowrocket.state.not_setup" = "Chưa cài Bypass";
@@ -617,6 +741,7 @@ Settings → General → About → Certificate Trust Settings → Bật CA Shado
 "shadowrocket.state.progress" = "Đang cài đặt (%d/5)";
 "shadowrocket.state.progress.detail" = "Hoàn thành các bước còn lại để kích hoạt bypass";
 "shadowrocket.status.awaiting_import" = "Đang chờ Shadowrocket nạp module — bấm Import trong Shadowrocket";
+"shadowrocket.status.footer" = "Bốn dòng trên là sự thật app kiểm chứng được, không phải bạn tự đánh dấu.";
 "shadowrocket.status.module_missing" = "Bấm để import module vào Shadowrocket";
 "shadowrocket.status.need_import" = "Bấm để import module vào Shadowrocket";
 "shadowrocket.status.need_vpn" = "Bật VPN Shadowrocket để bắt đầu";
@@ -626,17 +751,22 @@ Settings → General → About → Certificate Trust Settings → Bật CA Shado
 "shadowrocket.status.server_down" = "CoordinateServer chưa chạy";
 "shadowrocket.status.server_stopped" = "CoordinateServer chưa chạy";
 "shadowrocket.status.vpn_off" = "Bật VPN Shadowrocket để bắt đầu";
-"shadowrocket.step1.detail" = "Bấm \"Cài Live\" ở trên → Shadowrocket mở tự động → tap Import.";
-"shadowrocket.step1.title" = "Import module vào Shadowrocket";
-"shadowrocket.step2.detail" = "Shadowrocket → Settings → HTTPS Decryption → ON → Generate Certificate → Install Profile.";
-"shadowrocket.step2.title" = "Bật HTTPS Decryption";
-"shadowrocket.step3.detail" = "Settings → General → About → Certificate Trust Settings → Bật CA Shadowrocket.";
-"shadowrocket.step3.title" = "Trust Certificate";
-"shadowrocket.step4.detail" = "Mở Shadowrocket → bật toggle Connect ở trang chủ.";
-"shadowrocket.step4.title" = "Kết nối VPN Shadowrocket";
-"shadowrocket.step5.detail" = "Bật Airplane → Tắt Location → Restart iPhone → Tắt Airplane → Bật WiFi → Bật VPN → Bật Location.
-Buộc iOS dùng WiFi positioning thay vì GPS.";
-"shadowrocket.step5.title" = "Airplane Mode trick";
+"shadowrocket.step1.action" = "Mở App Store";
+"shadowrocket.step1.detail" = "Ứng dụng có phí trên App Store. Surge, Loon và Stash dùng được cùng module.";
+"shadowrocket.step1.title" = "Cài Shadowrocket";
+"shadowrocket.step2.action" = "Nạp module";
+"shadowrocket.step2.detail" = "App kiểm tra URL tải được rồi mới chuyển sang Shadowrocket. Dòng “Module đã được nạp” chỉ bật khi Shadowrocket thật sự tới lấy.";
+"shadowrocket.step2.title" = "Nạp module vào Shadowrocket";
+"shadowrocket.step3.detail" = "Trong Shadowrocket: Settings → HTTPS Decryption → bật → Generate Certificate → Install.";
+"shadowrocket.step3.title" = "Bật giải mã HTTPS";
+"shadowrocket.step4.action" = "Mở Cài đặt";
+"shadowrocket.step4.detail" = "Cài đặt → Cài đặt chung → Giới thiệu → Cài đặt tin cậy chứng chỉ → bật CA của Shadowrocket. Đây là bước hay bị bỏ sót nhất và là nguyên nhân phổ biến nhất khiến không chạy.";
+"shadowrocket.step4.title" = "Tin cậy chứng chỉ";
+"shadowrocket.step5.detail" = "Bật công tắc kết nối trong Shadowrocket. Xong bước này mà dòng “đang lấy toạ độ” vẫn tắt thì quay lại bước 3 và 4.";
+"shadowrocket.step5.title" = "Bật VPN";
+"shadowrocket.step6.detail" = "Bật Chế độ máy bay → tắt Dịch vụ vị trí → khởi động lại iPhone → tắt Chế độ máy bay → bật Wi-Fi → bật VPN Shadowrocket → bật lại Dịch vụ vị trí. Ngoài trời, tín hiệu GPS vệ tinh lấn át định vị WiFi và vị trí thật sẽ thắng — mẹo này buộc máy quay về định vị bằng WiFi.";
+"shadowrocket.step6.title" = "Ép máy dùng định vị WiFi";
+"shadowrocket.steps.footer" = "Bước 3, 4 và 5 app không kiểm tra trực tiếp được — chúng được chứng minh gián tiếp bằng dòng “Shadowrocket đang lấy toạ độ”.";
 "shadowrocket.tab.howto" = "Cơ chế";
 "shadowrocket.tab.server" = "Server";
 "shadowrocket.tab.setup" = "Cài đặt";
@@ -715,116 +845,3 @@ Buộc iOS dùng WiFi positioning thay vì GPS.";
 "travel.motorcycle" = "Xe máy";
 "travel.train" = "Tàu";
 "travel.walking" = "Đi bộ";
-
-/* live_activity */
-"live_activity.real_gps" = "GPS thật";
-"flight.live_activity.flying" = "Đang bay";
-"flight.world_tour.stopped" = "Đã dừng chế độ chu du thế giới";
-"live_activity.status.active" = "HOẠT ĐỘNG";
-"live_activity.status.paused" = "TẠM DỪNG";
-"live_activity.status.halted" = "GPS THẬT";
-
-/* flight (man hinh moi) */
-"flight.in_progress" = "Chuyến bay đang thực hiện";
-"flight.telemetry" = "Số liệu bay";
-"flight.timeline" = "Hành trình";
-"flight.controls" = "Điều khiển";
-"flight.plan" = "Lập chuyến bay";
-"flight.plan.footer" = "Chọn sân bay đi và đến để xem trước quãng đường và thời gian bay.";
-"flight.destinations" = "Điểm đến";
-"flight.origin" = "Điểm đi";
-"flight.destination" = "Điểm đến";
-"flight.select_airport" = "Chọn sân bay";
-"flight.swap" = "Đảo chiều";
-"flight.start" = "Bắt đầu bay";
-"flight.altitude" = "Độ cao";
-"flight.ground_speed" = "Tốc độ mặt đất";
-"flight.vertical_speed" = "Tốc độ lên/xuống";
-"flight.heading" = "Hướng";
-"flight.progress" = "Tiến độ";
-"flight.remaining_km" = "Còn %d km";
-"flight.preview.summary" = "%d km · khoảng %@ bay";
-"flight.time_warp" = "Hệ số thời gian";
-"flight.time_warp.footer" = "Tua nhanh mô phỏng. Hệ số càng cao, chuyến bay càng chóng xong.";
-"flight.cancel.action" = "Huỷ chuyến bay";
-"flight.cancel.title" = "Huỷ chuyến bay?";
-"flight.cancel.confirm" = "Huỷ chuyến bay";
-"flight.cancel.message" = "Chuyến bay đang thực hiện sẽ dừng và GPS trở về trạng thái trước đó.";
-"flight.world_tour" = "Du lịch thế giới";
-"flight.world_tour.subtitle" = "Chọn điểm đến, bay tới sân bay và tự tham quan";
-"flight.world_tour.footer" = "Mô phỏng chuyến bay giữa các sân bay quốc tế, kèm lịch tham quan tại điểm đến.";
-"flight.world_tour.status" = "Đang ở %@, %@ · ngày %d/%d";
-"flight.timeline.a11y" = "Hành trình chuyến bay, đang ở giai đoạn %@";
-"flight.timeline.done" = "Đã qua";
-"flight.timeline.current" = "Đang diễn ra";
-"flight.timeline.upcoming" = "Sắp tới";
-"flight.picker.search" = "Tìm mã, thành phố hoặc quốc gia";
-"flight.picker.empty" = "Không tìm thấy sân bay";
-"flight.picker.empty_message" = "Thử mã IATA, tên thành phố hoặc quốc gia khác.";
-"common.on" = "Đang bật";
-
-/* routine (man hinh moi) */
-"routine.title" = "Chu trình 24/7";
-"routine.enable" = "Bật chu trình tự động";
-"routine.enable_one" = "Bật";
-"routine.disable" = "Tắt";
-"routine.disabled" = "đang tắt";
-"routine.add" = "Thêm mốc";
-"routine.timeline" = "Đường thời gian";
-"routine.timeline.footer" = "Chạm một mốc để sửa. Vuốt sang trái để bật/tắt hoặc xoá.";
-"routine.empty" = "Chưa có mốc nào";
-"routine.empty_message" = "Thêm mốc để mô tả một ngày của bạn: mấy giờ đi làm, mấy giờ về.";
-"routine.current_state" = "Đang làm gì";
-"routine.current_speed" = "Tốc độ";
-"routine.places" = "Địa điểm cố định";
-"routine.places.footer" = "Chạm để chọn lại trên bản đồ. Nhịp mặc định dùng ba địa điểm này.";
-"routine.place.hint" = "Chọn lại vị trí trên bản đồ";
-"routine.footer.default_rhythm" = "Chưa có mốc nào nên đang dùng nhịp mặc định: sáng đi làm, trưa cà phê, chiều về nhà.";
-"routine.footer.custom" = "Đang dùng %d mốc bạn đặt.";
-"routine.editor.new" = "Mốc mới";
-"routine.editor.edit" = "Sửa mốc";
-"routine.editor.basics" = "Thông tin";
-"routine.editor.name" = "Tên mốc";
-"routine.editor.time" = "Giờ";
-"routine.editor.days" = "Ngày trong tuần";
-"routine.editor.days.every" = "Không chọn ngày nào nghĩa là áp dụng mọi ngày.";
-"routine.editor.days.footer" = "Mốc chỉ chạy vào những ngày được chọn.";
-"routine.editor.route" = "Lộ trình";
-"routine.editor.from" = "Từ";
-"routine.editor.to" = "Đến";
-"routine.editor.travel_mode" = "Phương tiện";
-"routine.editor.preview" = "Xem trước";
-"routine.editor.distance" = "Quãng đường";
-"routine.editor.estimated" = "Thời gian ước tính";
-"location_picker.use_this" = "Dùng vị trí này";
-"location_picker.hint" = "Chạm bản đồ để chọn điểm";
-"location_picker.search" = "Tìm địa điểm";
-"shadowrocket.error.module_unreachable" = "Không tải được module. Mở LocationX ở tiền cảnh rồi thử lại, hoặc kiểm tra repo GitHub đã tồn tại chưa.";
-
-/* scenario step editor */
-"scenario.step.new" = "Bước mới";
-"scenario.step.edit" = "Sửa bước";
-"scenario.step.type" = "Loại hành động";
-"scenario.step.parameters" = "Tham số";
-"scenario.step.no_parameters" = "Hành động này không có tham số nào.";
-"scenario.step.location" = "Vị trí";
-"scenario.step.speed" = "Tốc độ";
-"scenario.step.duration" = "Thời lượng";
-"scenario.step.radius" = "Bán kính";
-"scenario.step.loop_times" = "Số lần lặp";
-"scenario.step.travel_mode" = "Phương tiện";
-"scenario.step.route" = "Tuyến đường";
-"scenario.step.route.none" = "Chưa chọn";
-"scenario.step.route.footer" = "Chỉ tuyến đã tính hình học mới chạy được. Mở tuyến và bấm Tính lại nếu cần.";
-"scenario.step.no_routes" = "Chưa có tuyến nào được lưu.";
-"scenario.kind.setLocation" = "Đặt vị trí";
-"scenario.kind.moveTo" = "Di chuyển đến";
-"scenario.kind.followRoute" = "Đi theo tuyến";
-"scenario.kind.wait" = "Chờ";
-"scenario.kind.dwell" = "Dừng chân";
-"scenario.kind.randomNearby" = "Đi lang thang quanh đây";
-"scenario.kind.changeSpeed" = "Đổi tốc độ";
-"scenario.kind.changeTravelMode" = "Đổi phương tiện";
-"scenario.kind.loop" = "Lặp lại";
-"scenario.kind.pause" = "Tạm dừng";
-"scenario.kind.resume" = "Tiếp tục";

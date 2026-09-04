@@ -1,4 +1,4 @@
-/* LocationX — English. Grouped by area. */
+/* LocationX — English. Generated, grouped by area. */
 
 /* a11y */
 "a11y.create_route" = "Create route";
@@ -71,6 +71,7 @@
 "common.all" = "All";
 "common.back" = "Back";
 "common.coordinates" = "Coordinates";
+"common.copy" = "Copy";
 "common.details" = "Details";
 "common.enabled" = "Enabled";
 "common.error" = "Error";
@@ -82,9 +83,10 @@
 "common.longitude" = "Longitude";
 "common.more" = "More";
 "common.name" = "Name";
-"common.no" = "No";
+"common.no" = "not yet";
 "common.none" = "None";
 "common.off" = "Off";
+"common.on" = "On";
 "common.rename" = "Rename";
 "common.running" = "Running";
 "common.source.flight" = "Flight";
@@ -96,7 +98,7 @@
 "common.unit.hour" = "h";
 "common.unknown" = "Unknown";
 "common.view" = "View";
-"common.yes" = "Yes";
+"common.yes" = "yes";
 "common.yesterday" = "Yesterday";
 
 /* device */
@@ -188,17 +190,30 @@
 "error.route_failed" = "Route calculation failed";
 
 /* flight */
+"flight.altitude" = "Altitude";
 "flight.badge.auto" = "Auto";
 "flight.cancel" = "Cancel flight";
+"flight.cancel.action" = "Cancel flight";
+"flight.cancel.confirm" = "Cancel flight";
+"flight.cancel.message" = "The flight in progress will stop and GPS returns to its previous state.";
+"flight.cancel.title" = "Cancel this flight?";
+"flight.controls" = "Controls";
 "flight.cruise" = "Cruise";
+"flight.destination" = "To";
 "flight.destination.local_time" = "local time %@";
 "flight.destination.status" = "In %@, %@ · day %d/%d";
+"flight.destinations" = "Destinations";
 "flight.duration" = "Duration";
 "flight.from" = "From";
+"flight.ground_speed" = "Ground speed";
+"flight.heading" = "Heading";
+"flight.in_progress" = "Flight in progress";
+"flight.live_activity.flying" = "In flight";
 "flight.metric.altitude" = "Altitude";
 "flight.metric.heading" = "Heading";
 "flight.metric.remaining" = "Remaining";
 "flight.metric.speed" = "Speed";
+"flight.origin" = "From";
 "flight.phase.airport_checkin" = "Check-in & waiting to depart";
 "flight.phase.cruising" = "Cruising";
 "flight.phase.descent" = "Descent & approach";
@@ -208,7 +223,15 @@
 "flight.phase.taxi" = "Taxiing to the runway";
 "flight.phase.taxi_to_airport" = "Heading to the airport";
 "flight.phase.taxi_to_hotel" = "Heading to the hotel to check in";
+"flight.picker.empty" = "No airports found";
+"flight.picker.empty_message" = "Try a different IATA code, city or country.";
+"flight.picker.search" = "Search code, city or country";
+"flight.plan" = "Plan a flight";
+"flight.plan.footer" = "Pick a departure and arrival airport to preview distance and flight time.";
+"flight.preview.summary" = "%d km · about %@ in the air";
 "flight.preview.title" = "Flight preview";
+"flight.progress" = "Progress";
+"flight.remaining_km" = "%d km left";
 "flight.search_airport" = "Search airports...";
 "flight.section.active" = "Flight in progress";
 "flight.section.auto" = "Automatic";
@@ -216,9 +239,25 @@
 "flight.section.destination.footer" = "Simulate flights between international airports, with a sightseeing schedule at the destination.";
 "flight.section.popular_airports" = "Popular airports";
 "flight.section.vietnam" = "Vietnam";
+"flight.select_airport" = "Choose an airport";
 "flight.start" = "Start flight";
+"flight.swap" = "Swap";
+"flight.telemetry" = "Flight telemetry";
+"flight.time_warp" = "Time warp";
+"flight.time_warp.footer" = "Speeds up the simulation. The higher the multiplier, the sooner the flight finishes.";
+"flight.timeline" = "Timeline";
+"flight.timeline.a11y" = "Flight timeline, currently in phase %@";
+"flight.timeline.current" = "In progress";
+"flight.timeline.done" = "Completed";
+"flight.timeline.upcoming" = "Upcoming";
 "flight.to" = "To";
+"flight.vertical_speed" = "Vertical speed";
 "flight.world_odyssey.subtitle" = "Fly around the world automatically";
+"flight.world_tour" = "World tour";
+"flight.world_tour.footer" = "Simulates flights between international airports, with a sightseeing schedule on arrival.";
+"flight.world_tour.status" = "In %@, %@ · day %d of %d";
+"flight.world_tour.stopped" = "World tour stopped";
+"flight.world_tour.subtitle" = "Pick a destination, fly to its airport and sightsee automatically";
 "flight.world_travel" = "World travel";
 "flight.world_travel.subtitle" = "Pick a destination, fly to its airport and tour automatically";
 
@@ -234,6 +273,17 @@
 "language.footer" = "Applies immediately, no restart needed.";
 "language.system" = "System default";
 "language.title" = "Language";
+
+/* live_activity */
+"live_activity.real_gps" = "Real GPS";
+"live_activity.status.active" = "ACTIVE";
+"live_activity.status.halted" = "REAL GPS";
+"live_activity.status.paused" = "PAUSED";
+
+/* location_picker */
+"location_picker.hint" = "Tap the map to choose a point";
+"location_picker.search" = "Search for a place";
+"location_picker.use_this" = "Use this location";
 
 /* map */
 "map.follow" = "Follow location";
@@ -322,7 +372,6 @@
 "recovery.title" = "Unfinished simulation detected";
 
 /* route */
-"route.leg_count" = "%d legs";
 "route.builder.calc_failed" = "Could not calculate a route between these points.";
 "route.builder.calculate" = "Calculate route";
 "route.builder.clear_all" = "Clear all";
@@ -364,6 +413,7 @@
 "route.geometry_point_count" = "Geometry points";
 "route.import.done" = "Imported %d points from %@.";
 "route.last_used" = "Last run";
+"route.leg_count" = "%d legs";
 "route.name_placeholder" = "Route name";
 "route.point_count" = "Points";
 "route.recalc_failed" = "Could not calculate the route.";
@@ -406,11 +456,14 @@
 "routine.activity.walk" = "Out for a walk";
 "routine.activity.work_to_home" = "Work → Home";
 "routine.activity.working" = "Working";
+"routine.add" = "Add step";
 "routine.auto_cycle" = "Automatic 24/7 routine";
 "routine.commute.lunch_cafe" = "Lunch break & coffee";
 "routine.commute.to_home" = "Heading home (Office -> Home)";
 "routine.commute.to_work" = "Commuting to work (Home -> Office)";
 "routine.commute.to_work_near" = "Commuting to work (final stretch)";
+"routine.current_speed" = "Speed";
+"routine.current_state" = "Currently";
 "routine.day.fri" = "Fri";
 "routine.day.mon" = "Mon";
 "routine.day.sat" = "Sat";
@@ -421,14 +474,40 @@
 "routine.days.daily" = "Every day";
 "routine.days.weekdays" = "Mon–Fri";
 "routine.default_schedule" = "Default schedule";
+"routine.disable" = "Disable";
+"routine.disabled" = "disabled";
+"routine.editor.basics" = "Details";
+"routine.editor.days" = "Days of the week";
+"routine.editor.days.every" = "Selecting no days means it applies every day.";
+"routine.editor.days.footer" = "The step only runs on the selected days.";
+"routine.editor.distance" = "Distance";
+"routine.editor.edit" = "Edit step";
+"routine.editor.estimated" = "Estimated time";
+"routine.editor.from" = "From";
+"routine.editor.name" = "Step name";
+"routine.editor.new" = "New step";
+"routine.editor.preview" = "Preview";
+"routine.editor.route" = "Route";
+"routine.editor.time" = "Time";
+"routine.editor.to" = "To";
+"routine.editor.travel_mode" = "Travel mode";
+"routine.empty" = "No steps yet";
+"routine.empty_message" = "Add steps to describe your day: when you leave for work, when you head home.";
+"routine.enable" = "Enable automatic routine";
+"routine.enable_one" = "Enable";
 "routine.enabled_badge" = "On";
 "routine.footer" = "Simulate a full day's rhythm without lifting a finger.";
+"routine.footer.custom" = "Using %d steps you defined.";
+"routine.footer.default_rhythm" = "No steps yet, so the default rhythm applies: work in the morning, coffee at noon, home in the evening.";
 "routine.location.cafe" = "Café";
 "routine.location.home" = "Home";
 "routine.location.work" = "Work";
 "routine.place.cafe" = "Cafe";
+"routine.place.hint" = "Pick the location again on the map";
 "routine.place.home" = "Home";
 "routine.place.work" = "Work";
+"routine.places" = "Fixed places";
+"routine.places.footer" = "Tap to pick again on the map. The default rhythm uses these three places.";
 "routine.real_road" = "real road";
 "routine.running_status" = "Running: %@";
 "routine.schedule.add" = "Add schedule";
@@ -460,6 +539,8 @@
 "routine.status.wandering" = "Evening walk around home (~4 km/h)";
 "routine.status.working" = "At the workplace (stationary)";
 "routine.subtitle" = "An automatic daily schedule between home, work and the café";
+"routine.timeline" = "Timeline";
+"routine.timeline.footer" = "Tap a step to edit it. Swipe left to enable, disable or delete.";
 "routine.title" = "24/7 routine";
 
 /* scenario */
@@ -481,6 +562,17 @@
 "scenario.detail.random_nearby" = "%dm radius, %ds";
 "scenario.detail.wait_seconds" = "%d seconds";
 "scenario.edit_title" = "Edit scenario";
+"scenario.kind.changeSpeed" = "Change speed";
+"scenario.kind.changeTravelMode" = "Change travel mode";
+"scenario.kind.dwell" = "Dwell";
+"scenario.kind.followRoute" = "Follow route";
+"scenario.kind.loop" = "Loop";
+"scenario.kind.moveTo" = "Move to";
+"scenario.kind.pause" = "Pause";
+"scenario.kind.randomNearby" = "Wander nearby";
+"scenario.kind.resume" = "Resume";
+"scenario.kind.setLocation" = "Set location";
+"scenario.kind.wait" = "Wait";
 "scenario.loop" = "Loop";
 "scenario.loop_forever" = "Loop forever";
 "scenario.manage" = "Manage scenarios";
@@ -490,6 +582,21 @@
 "scenario.running" = "Running";
 "scenario.section.list" = "Scenarios";
 "scenario.section.steps" = "Steps";
+"scenario.step.duration" = "Duration";
+"scenario.step.edit" = "Edit step";
+"scenario.step.location" = "Location";
+"scenario.step.loop_times" = "Repeat count";
+"scenario.step.new" = "New step";
+"scenario.step.no_parameters" = "This action takes no parameters.";
+"scenario.step.no_routes" = "No saved routes yet.";
+"scenario.step.parameters" = "Parameters";
+"scenario.step.radius" = "Radius";
+"scenario.step.route" = "Route";
+"scenario.step.route.footer" = "Only routes with computed geometry can run. Open the route and tap Recalculate if needed.";
+"scenario.step.route.none" = "Not selected";
+"scenario.step.speed" = "Speed";
+"scenario.step.travel_mode" = "Travel mode";
+"scenario.step.type" = "Action type";
 "scenario.step_count" = "%d steps";
 "scenario.step_number" = "Step %d";
 "scenario.subtitle" = "A chain of actions: move, wait, stop over, repeat";
@@ -562,18 +669,22 @@
 "shadowrocket.check.sim.fail" = "Simulation is off — tap the button on the dashboard";
 "shadowrocket.check.sim.ok" = "Sending coordinate %@";
 "shadowrocket.check.sim.title" = "GPS simulation running";
+"shadowrocket.copy_github_url" = "Copy the GitHub module URL";
 "shadowrocket.done.message" = "Open Bump → the spoofed GPS location shows up, isSimulatedBySoftware = false";
 "shadowrocket.done.title" = "Bypass is ready";
 "shadowrocket.endpoint.coord" = "Current coordinate (JSON)";
 "shadowrocket.endpoint.module" = "Shadowrocket module definition";
 "shadowrocket.endpoint.spoofer" = "MITM script with live coordinates";
 "shadowrocket.endpoint.status" = "Server health + stats (JSON)";
+"shadowrocket.endpoints.footer" = "Tap to open, long-press to copy. These addresses only exist while LocationX is running.";
+"shadowrocket.error.module_unreachable" = "Could not fetch the module. Bring LocationX to the foreground and try again, or check that the GitHub repo exists.";
 "shadowrocket.flow.dvt" = "LocationX sends coordinates over DVT";
 "shadowrocket.flow.mitm" = "Shadowrocket MITM intercepts gs-loc.apple.com";
 "shadowrocket.flow.result" = "isSimulatedBySoftware = false → Bump accepts ✓";
 "shadowrocket.flow.script" = "location-spoofer.js rewrites the binary response";
 "shadowrocket.flow.server" = "CoordinateServer (port 8765) serves coordinates in real time";
 "shadowrocket.flow.wifi" = "iOS receives the result as Wi-Fi positioning (not DVT)";
+"shadowrocket.help.footer" = "Reset clears the recorded state; it does not remove anything inside Shadowrocket.";
 "shadowrocket.install.live.subtitle" = "Coordinates update in real time as you move";
 "shadowrocket.install.live.title" = "Install live module";
 "shadowrocket.install.static.subtitle" = "Fixed coordinates — reinstall when the location changes";
@@ -599,17 +710,30 @@ Settings → General → About → Certificate Trust Settings → enable the Sha
 "shadowrocket.nojb.appstore" = "Shadowrocket is a paid App Store app ($2.99) — no jailbreak required.";
 "shadowrocket.nojb.cert" = "The MITM certificate is trusted via Settings → General (a supported iOS mechanism).";
 "shadowrocket.nojb.scope" = "The module only intercepts Apple's Wi-Fi location API; other traffic is untouched.";
+"shadowrocket.overall.need_module" = "Module not loaded";
+"shadowrocket.overall.no_traffic" = "No traffic yet";
+"shadowrocket.overall.not_installed" = "Shadowrocket not installed";
+"shadowrocket.overall.running" = "Active";
 "shadowrocket.problem.detail" = "Every coordinate that goes through DVT is automatically flagged isSimulatedBySoftware = true by the iOS daemon (locationd). Bump reads that flag and rejects it. This is a system mechanism — not a code bug.";
+"shadowrocket.reset" = "Reset setup";
 "shadowrocket.section.endpoints" = "Endpoints";
+"shadowrocket.section.help" = "Help";
 "shadowrocket.section.no_jailbreak" = "Why no jailbreak is needed";
 "shadowrocket.section.problem" = "Problem";
 "shadowrocket.section.solution" = "Solution";
+"shadowrocket.section.status" = "Status";
+"shadowrocket.section.steps" = "Steps";
 "shadowrocket.section.test" = "Test";
 "shadowrocket.server.running" = "CoordinateServer running";
 "shadowrocket.server.start" = "Start";
 "shadowrocket.server.stopped" = "CoordinateServer stopped";
 "shadowrocket.setup" = "Shadowrocket setup";
 "shadowrocket.setup.steps_title" = "5 setup steps";
+"shadowrocket.signal.installed" = "Shadowrocket installed";
+"shadowrocket.signal.module" = "Module loaded";
+"shadowrocket.signal.requests" = "%d requests";
+"shadowrocket.signal.server" = "Coordinate server running";
+"shadowrocket.signal.traffic" = "Shadowrocket is fetching coordinates";
 "shadowrocket.state.active" = "Bypass active";
 "shadowrocket.state.active.detail" = "isSimulatedBySoftware = false · spoofed GPS looks real";
 "shadowrocket.state.not_setup" = "Bypass not set up";
@@ -617,6 +741,7 @@ Settings → General → About → Certificate Trust Settings → enable the Sha
 "shadowrocket.state.progress" = "Setting up (%d/5)";
 "shadowrocket.state.progress.detail" = "Finish the remaining steps to activate the bypass";
 "shadowrocket.status.awaiting_import" = "Waiting for Shadowrocket to load the module — tap Import in Shadowrocket";
+"shadowrocket.status.footer" = "These four lines are facts the app verifies, not boxes you tick yourself.";
 "shadowrocket.status.module_missing" = "Tap to import the module into Shadowrocket";
 "shadowrocket.status.need_import" = "Tap to import the module into Shadowrocket";
 "shadowrocket.status.need_vpn" = "Turn on the Shadowrocket VPN to start";
@@ -626,17 +751,22 @@ Settings → General → About → Certificate Trust Settings → enable the Sha
 "shadowrocket.status.server_down" = "CoordinateServer is not running";
 "shadowrocket.status.server_stopped" = "CoordinateServer is not running";
 "shadowrocket.status.vpn_off" = "Turn on the Shadowrocket VPN to start";
-"shadowrocket.step1.detail" = "Tap \"Install live module\" above → Shadowrocket opens automatically → tap Import.";
-"shadowrocket.step1.title" = "Import the module into Shadowrocket";
-"shadowrocket.step2.detail" = "Shadowrocket → Settings → HTTPS Decryption → ON → Generate Certificate → Install Profile.";
-"shadowrocket.step2.title" = "Enable HTTPS Decryption";
-"shadowrocket.step3.detail" = "Settings → General → About → Certificate Trust Settings → enable the Shadowrocket CA.";
-"shadowrocket.step3.title" = "Trust the certificate";
-"shadowrocket.step4.detail" = "Open Shadowrocket → turn on the Connect toggle on the home screen.";
-"shadowrocket.step4.title" = "Connect the Shadowrocket VPN";
-"shadowrocket.step5.detail" = "Airplane on → Location off → restart iPhone → Airplane off → Wi-Fi on → VPN on → Location on.
-Forces iOS to use Wi-Fi positioning instead of GPS.";
-"shadowrocket.step5.title" = "Airplane Mode trick";
+"shadowrocket.step1.action" = "Open App Store";
+"shadowrocket.step1.detail" = "Paid app on the App Store. Surge, Loon and Stash work with the same module.";
+"shadowrocket.step1.title" = "Install Shadowrocket";
+"shadowrocket.step2.action" = "Load module";
+"shadowrocket.step2.detail" = "The app checks the URL resolves before switching over. “Module loaded” only lights up once Shadowrocket actually fetches it.";
+"shadowrocket.step2.title" = "Load the module into Shadowrocket";
+"shadowrocket.step3.detail" = "In Shadowrocket: Settings → HTTPS Decryption → on → Generate Certificate → Install.";
+"shadowrocket.step3.title" = "Enable HTTPS decryption";
+"shadowrocket.step4.action" = "Open Settings";
+"shadowrocket.step4.detail" = "Settings → General → About → Certificate Trust Settings → enable Shadowrocket's CA. This is the most commonly missed step and the most common reason nothing works.";
+"shadowrocket.step4.title" = "Trust the certificate";
+"shadowrocket.step5.detail" = "Flip the connect switch in Shadowrocket. If “fetching coordinates” stays off after this, go back to steps 3 and 4.";
+"shadowrocket.step5.title" = "Turn on the VPN";
+"shadowrocket.step6.detail" = "Airplane Mode on → Location Services off → restart the iPhone → Airplane Mode off → Wi-Fi on → Shadowrocket VPN on → Location Services back on. Outdoors, satellite GPS overrides Wi-Fi positioning and the real location wins; this forces the device back onto Wi-Fi positioning.";
+"shadowrocket.step6.title" = "Force the device onto Wi-Fi positioning";
+"shadowrocket.steps.footer" = "The app cannot check steps 3, 4 and 5 directly — they are proven indirectly by the “Shadowrocket is fetching coordinates” signal.";
 "shadowrocket.tab.howto" = "How it works";
 "shadowrocket.tab.server" = "Server";
 "shadowrocket.tab.setup" = "Setup";
@@ -715,116 +845,3 @@ Forces iOS to use Wi-Fi positioning instead of GPS.";
 "travel.motorcycle" = "Motorcycle";
 "travel.train" = "Train";
 "travel.walking" = "Walking";
-
-/* live_activity */
-"live_activity.real_gps" = "Real GPS";
-"flight.live_activity.flying" = "In flight";
-"flight.world_tour.stopped" = "World tour stopped";
-"live_activity.status.active" = "ACTIVE";
-"live_activity.status.paused" = "PAUSED";
-"live_activity.status.halted" = "REAL GPS";
-
-/* flight (new screen) */
-"flight.in_progress" = "Flight in progress";
-"flight.telemetry" = "Flight telemetry";
-"flight.timeline" = "Timeline";
-"flight.controls" = "Controls";
-"flight.plan" = "Plan a flight";
-"flight.plan.footer" = "Pick a departure and arrival airport to preview distance and flight time.";
-"flight.destinations" = "Destinations";
-"flight.origin" = "From";
-"flight.destination" = "To";
-"flight.select_airport" = "Choose an airport";
-"flight.swap" = "Swap";
-"flight.start" = "Start flight";
-"flight.altitude" = "Altitude";
-"flight.ground_speed" = "Ground speed";
-"flight.vertical_speed" = "Vertical speed";
-"flight.heading" = "Heading";
-"flight.progress" = "Progress";
-"flight.remaining_km" = "%d km left";
-"flight.preview.summary" = "%d km · about %@ in the air";
-"flight.time_warp" = "Time warp";
-"flight.time_warp.footer" = "Speeds up the simulation. The higher the multiplier, the sooner the flight finishes.";
-"flight.cancel.action" = "Cancel flight";
-"flight.cancel.title" = "Cancel this flight?";
-"flight.cancel.message" = "The flight in progress will stop and GPS returns to its previous state.";
-"flight.cancel.confirm" = "Cancel flight";
-"flight.world_tour" = "World tour";
-"flight.world_tour.subtitle" = "Pick a destination, fly to its airport and sightsee automatically";
-"flight.world_tour.footer" = "Simulates flights between international airports, with a sightseeing schedule on arrival.";
-"flight.world_tour.status" = "In %@, %@ · day %d of %d";
-"flight.timeline.a11y" = "Flight timeline, currently in phase %@";
-"flight.timeline.done" = "Completed";
-"flight.timeline.current" = "In progress";
-"flight.timeline.upcoming" = "Upcoming";
-"flight.picker.search" = "Search code, city or country";
-"flight.picker.empty" = "No airports found";
-"flight.picker.empty_message" = "Try a different IATA code, city or country.";
-"common.on" = "On";
-
-/* routine (new screen) */
-"routine.title" = "24/7 routine";
-"routine.enable" = "Enable automatic routine";
-"routine.enable_one" = "Enable";
-"routine.disable" = "Disable";
-"routine.disabled" = "disabled";
-"routine.add" = "Add step";
-"routine.timeline" = "Timeline";
-"routine.timeline.footer" = "Tap a step to edit it. Swipe left to enable, disable or delete.";
-"routine.empty" = "No steps yet";
-"routine.empty_message" = "Add steps to describe your day: when you leave for work, when you head home.";
-"routine.current_state" = "Currently";
-"routine.current_speed" = "Speed";
-"routine.places" = "Fixed places";
-"routine.places.footer" = "Tap to pick again on the map. The default rhythm uses these three places.";
-"routine.place.hint" = "Pick the location again on the map";
-"routine.footer.default_rhythm" = "No steps yet, so the default rhythm applies: work in the morning, coffee at noon, home in the evening.";
-"routine.footer.custom" = "Using %d steps you defined.";
-"routine.editor.new" = "New step";
-"routine.editor.edit" = "Edit step";
-"routine.editor.basics" = "Details";
-"routine.editor.name" = "Step name";
-"routine.editor.time" = "Time";
-"routine.editor.days" = "Days of the week";
-"routine.editor.days.every" = "Selecting no days means it applies every day.";
-"routine.editor.days.footer" = "The step only runs on the selected days.";
-"routine.editor.route" = "Route";
-"routine.editor.from" = "From";
-"routine.editor.to" = "To";
-"routine.editor.travel_mode" = "Travel mode";
-"routine.editor.preview" = "Preview";
-"routine.editor.distance" = "Distance";
-"routine.editor.estimated" = "Estimated time";
-"location_picker.use_this" = "Use this location";
-"location_picker.hint" = "Tap the map to choose a point";
-"location_picker.search" = "Search for a place";
-"shadowrocket.error.module_unreachable" = "Could not fetch the module. Bring LocationX to the foreground and try again, or check that the GitHub repo exists.";
-
-/* scenario step editor */
-"scenario.step.new" = "New step";
-"scenario.step.edit" = "Edit step";
-"scenario.step.type" = "Action type";
-"scenario.step.parameters" = "Parameters";
-"scenario.step.no_parameters" = "This action takes no parameters.";
-"scenario.step.location" = "Location";
-"scenario.step.speed" = "Speed";
-"scenario.step.duration" = "Duration";
-"scenario.step.radius" = "Radius";
-"scenario.step.loop_times" = "Repeat count";
-"scenario.step.travel_mode" = "Travel mode";
-"scenario.step.route" = "Route";
-"scenario.step.route.none" = "Not selected";
-"scenario.step.route.footer" = "Only routes with computed geometry can run. Open the route and tap Recalculate if needed.";
-"scenario.step.no_routes" = "No saved routes yet.";
-"scenario.kind.setLocation" = "Set location";
-"scenario.kind.moveTo" = "Move to";
-"scenario.kind.followRoute" = "Follow route";
-"scenario.kind.wait" = "Wait";
-"scenario.kind.dwell" = "Dwell";
-"scenario.kind.randomNearby" = "Wander nearby";
-"scenario.kind.changeSpeed" = "Change speed";
-"scenario.kind.changeTravelMode" = "Change travel mode";
-"scenario.kind.loop" = "Loop";
-"scenario.kind.pause" = "Pause";
-"scenario.kind.resume" = "Resume";

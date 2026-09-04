@@ -76,3 +76,15 @@ print(next(x['udid'] for x in d[rt] if 'iPhone' in x['name']))")
       # It nhat phai bao dam no phan tich cu phap duoc.
       - name: Kiem tra cu phap
         run: node --check Proxy/location-spoofer.js
+
+  localization:
+    name: Kiem tra ban dia hoa
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+      # Thieu mot ban dich se hien ra CHINH CHUOI KHOA tren man hinh, va lech %d/%@
+      # giua hai ngon ngu la loi crash that. Ca hai deu khong bi trinh bien dich bat.
+      - name: Doi chieu vi.lproj va en.lproj
+        run: python3 scripts/check-localization.py
