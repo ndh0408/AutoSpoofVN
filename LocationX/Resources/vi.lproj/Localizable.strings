@@ -603,6 +603,7 @@
 "scenario.title" = "Kịch bản";
 
 /* settings */
+"settings.spoof_method" = "Phương thức";
 "settings.about" = "Thông tin";
 "settings.app.footer" = "LocationX mô phỏng vị trí GPS trên thiết bị của chính bạn thông qua kênh DVT của Apple. Cần bật Developer Mode.";
 "settings.appearance" = "Giao diện";

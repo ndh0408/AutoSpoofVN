@@ -603,6 +603,7 @@
 "scenario.title" = "Scenarios";
 
 /* settings */
+"settings.spoof_method" = "Method";
 "settings.about" = "About";
 "settings.app.footer" = "LocationX simulates the GPS location on your own device through Apple's DVT channel. Developer Mode must be enabled.";
 "settings.appearance" = "Appearance";

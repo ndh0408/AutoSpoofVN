@@ -56,10 +56,16 @@ struct SettingsView: View {
 
                 // MARK: - Map
                 Section {
+                    // Duyet thang MapStyleKind.allCases thay vi go cung ba the chuoi.
+                    //
+                    // Ban truoc gan the "satellite", nhung rawValue cua MapStyleKind la
+                    // "imagery" — nen `MapStyleKind(rawValue:)` tra ve nil va lua chon Ve
+                    // tinh am tham quay ve Ban do thuong. Lay danh sach tu chinh enum thi
+                    // hai ben khong the lech nhau duoc nua.
                     Picker(L("settings.map_style"), selection: $store.settings.mapStyle) {
-                        Text(L("settings.map_style.standard")).tag("standard")
-                        Text(L("settings.map_style.satellite")).tag("satellite")
-                        Text(L("settings.map_style.hybrid")).tag("hybrid")
+                        ForEach(MapStyleKind.allCases) { kind in
+                            Text(kind.title).tag(kind.rawValue)
+                        }
                     }
                     Toggle(L("settings.follow_location"), isOn: $store.settings.mapFollowMode)
                     Toggle("3D", isOn: $store.settings.map3DEnabled)
@@ -111,7 +117,7 @@ struct SettingsView: View {
                 // MARK: - Bypass
                 Section {
                     NavigationLink {
-                        ShadowrocketSetupView()
+                        ShadowrocketSetupScreen()
                     } label: {
                         HStack {
                             Label("Shadowrocket MITM", systemImage: "bolt.horizontal")
@@ -156,10 +162,10 @@ struct SettingsView: View {
                             .foregroundStyle(AppColor.textSecondary)
                     }
                     HStack {
-                        Text("FFI ABI")
+                        Text(L("settings.spoof_method"))
                         Spacer()
-                        Text("v3")
-                            .font(AppFont.mono)
+                        Text("Shadowrocket MITM")
+                            .font(AppFont.caption)
                             .foregroundStyle(AppColor.textSecondary)
                     }
                 } header: {
