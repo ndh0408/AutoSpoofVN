@@ -177,9 +177,21 @@ final class FlightManager: ObservableObject {
                 startDestinationTour(destination: activeDestination!)
             }
         } else {
-            tourTimer?.invalidate()
-            transitionTimer?.invalidate()
-            RoutineManager.shared.statusDescription = "Đã dừng Chế độ Chu du Thế giới"
+            // Tắt chế độ chu du phải dừng HẲN, kể cả chuyến bay đang giữa trời.
+            //
+            // Bản trước chỉ huỷ `tourTimer` và `transitionTimer`, bỏ quên `flightTimer` —
+            // nên người dùng tắt chế độ này giữa chuyến bay thì máy bay vẫn tiếp tục bay
+            // và tiếp tục ghi toạ độ, `isFlying` vẫn `true`, nguồn `.flight` không được nhả.
+            if isFlying {
+                stopFlight()
+            } else {
+                tourTimer?.invalidate()
+                tourTimer = nil
+                transitionTimer?.invalidate()
+                transitionTimer = nil
+            }
+            activeDestination = nil
+            RoutineManager.shared.statusDescription = L("flight.world_tour.stopped")
         }
     }
 

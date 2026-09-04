@@ -51,6 +51,15 @@ final class RoutineManager: ObservableObject {
         isLoading = true
         loadSavedLocations()
         loadSavedBookmarks()
+        // Khôi phục cờ chế độ du lịch từ chính sự tồn tại của bản sao lưu.
+        //
+        // Trước đây cờ này chỉ nằm trong bộ nhớ, trong khi home/work/cafe/bookmarks lại
+        // ĐƯỢC lưu xuống đĩa. App bị kill giữa chuyến đi thì lần khởi động sau cờ về
+        // `false` nhưng địa điểm đã lưu là địa điểm GIẢ — và chuyến đi kế tiếp gọi
+        // `beginTravelOverride()` sẽ ghi đè bản sao lưu bằng dữ liệu giả đó, xoá vĩnh
+        // viễn địa điểm thật của người dùng. Suy cờ ra từ bản sao lưu thì hai thứ không
+        // bao giờ lệch nhau được.
+        isTravelOverrideActive = UserDefaults.standard.data(forKey: RoutineManager.travelBackupKey) != nil
         isLoading = false
     }
 
@@ -420,6 +429,12 @@ final class RoutineManager: ObservableObject {
 
     /// Trả lại địa điểm thật sau khi kết thúc chuyến đi.
     func endTravelOverride() {
+        // Không có gì để trả lại thì đừng đụng vào địa điểm hiện tại.
+        //
+        // `stopFlight()` gọi hàm này vô điều kiện, kể cả với chuyến bay A→B thường vốn
+        // chưa từng gọi `beginTravelOverride()`. Thiếu chốt chặn này, một bản sao lưu cũ
+        // còn sót lại sẽ được khôi phục đè lên địa điểm người dùng vừa đặt.
+        guard isTravelOverrideActive else { return }
         defer { isTravelOverrideActive = false }
         guard let data = UserDefaults.standard.data(forKey: RoutineManager.travelBackupKey),
               let snap = try? JSONDecoder().decode(PlacesSnapshot.self, from: data) else { return }

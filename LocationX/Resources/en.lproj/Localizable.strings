@@ -719,3 +719,4 @@ Forces iOS to use Wi-Fi positioning instead of GPS.";
 /* live_activity */
 "live_activity.real_gps" = "Real GPS";
 "flight.live_activity.flying" = "In flight";
+"flight.world_tour.stopped" = "World tour stopped";
