@@ -38,6 +38,22 @@ final class RoutineManager: ObservableObject {
 
     /// Tuyến đang chạy là đường thật hay đường thẳng nội suy. Hiển thị được trên UI
     /// để người dùng biết mô phỏng đang ở mức nào.
+    /// Lịch chu trình do người dùng đặt.
+    ///
+    /// Trước đây `routines.json` chỉ được `RoutineStudioView` đọc/ghi, còn engine chạy một
+    /// switch giờ CỨNG trong `evaluateCurrentTimeSchedule()`. Nghĩa là toàn bộ trình soạn
+    /// lịch tạo ra dữ liệu không bao giờ ảnh hưởng tới hành vi. Giờ engine đọc chính danh
+    /// sách này; danh sách rỗng thì mới lùi về nhịp mặc định.
+    @Published var schedules: [RoutineSchedule] = [] {
+        didSet {
+            guard !isLoading else { return }
+            PersistenceManager.shared.saveRoutineSchedules(schedules)
+            // Lịch đổi thì đánh giá lại ngay, không đợi hết chu kỳ 60 giây.
+            activeCommuteKey = nil
+            if isAutoRoutineEnabled { evaluateCurrentTimeSchedule() }
+        }
+    }
+
     @Published private(set) var isFollowingRealRoad: Bool = false
     /// Số lần phải lùi về nội suy thẳng vì MKDirections không trả được tuyến.
     @Published private(set) var routeFallbackCount: Int = 0
@@ -51,6 +67,7 @@ final class RoutineManager: ObservableObject {
         isLoading = true
         loadSavedLocations()
         loadSavedBookmarks()
+        schedules = PersistenceManager.shared.loadRoutineSchedules()
         // Khôi phục cờ chế độ du lịch từ chính sự tồn tại của bản sao lưu.
         //
         // Trước đây cờ này chỉ nằm trong bộ nhớ, trong khi home/work/cafe/bookmarks lại
@@ -118,6 +135,10 @@ final class RoutineManager: ObservableObject {
         let hour = calendar.component(.hour, from: now)
         let minute = calendar.component(.minute, from: now)
 
+        // Có lịch riêng thì dùng lịch riêng. Chỉ khi người dùng chưa đặt gì mới rơi về
+        // nhịp sinh hoạt mặc định bên dưới.
+        if applyUserSchedule(now: now, calendar: calendar) { return }
+
         switch hour {
         case 23, 0...6:
             // 23:00 - 06:59: Đang ngủ ở nhà
@@ -180,6 +201,63 @@ final class RoutineManager: ObservableObject {
         statusDescription = L("routine.status.sleeping")
         moveStepTimer?.invalidate()
         _ = SpoofEngine.shared.submit(latitude: homeLocation.latitude, longitude: homeLocation.longitude, from: .routine)
+    }
+
+    // MARK: - Lịch do người dùng đặt
+
+    /// Cửa sổ thời gian coi là "đang trên đường" sau mốc giờ của một lịch.
+    private static let commuteWindowMinutes = 45
+
+    /// Áp lịch của người dùng nếu có lịch nào phù hợp. Trả về `false` để nhường cho nhịp mặc định.
+    private func applyUserSchedule(now: Date, calendar: Calendar) -> Bool {
+        let active = schedules.filter { $0.isEnabled }
+        guard !active.isEmpty else { return false }
+
+        // `Calendar.component(.weekday)` trả 1 = Chủ nhật. Mô hình dùng 1 = Thứ Hai ... 7 = Chủ nhật.
+        let weekday = calendar.component(.weekday, from: now)
+        let modelDay = weekday == 1 ? 7 : weekday - 1
+
+        let today = active.filter { $0.days.isEmpty || $0.days.contains(modelDay) }
+        guard !today.isEmpty else { return false }
+
+        let minutesNow = calendar.component(.hour, from: now) * 60 + calendar.component(.minute, from: now)
+
+        // Lịch gần nhất đã tới giờ. Chưa tới lịch nào trong ngày thì dùng lịch cuối của
+        // hôm trước — người ta vẫn đang ở nơi kết thúc của nó.
+        let passed = today.filter { $0.hour * 60 + $0.minute <= minutesNow }
+        let chosen = passed.max { ($0.hour * 60 + $0.minute) < ($1.hour * 60 + $1.minute) }
+            ?? today.max { ($0.hour * 60 + $0.minute) < ($1.hour * 60 + $1.minute) }
+
+        guard let schedule = chosen else { return false }
+
+        let scheduleMinutes = schedule.hour * 60 + schedule.minute
+        let elapsed = minutesNow - scheduleMinutes
+
+        if elapsed >= 0 && elapsed < Self.commuteWindowMinutes {
+            // Đang trong cửa sổ di chuyển của lịch này.
+            startCommute(from: schedule.startLocation.clCoordinate,
+                         to: schedule.endLocation.clCoordinate,
+                         speed: schedule.travelMode.defaultSpeed.cruise,
+                         stateName: .moving,
+                         labelKey: "routine.schedule." + schedule.id.uuidString)
+        } else {
+            // Đã tới nơi — đứng yên ở điểm kết thúc cho tới lịch kế tiếp.
+            applyStationary(at: schedule.endLocation.clCoordinate, label: schedule.name)
+        }
+        return true
+    }
+
+    /// Đứng yên tại một toạ độ bất kỳ.
+    private func applyStationary(at coordinate: CLLocationCoordinate2D, label: String) {
+        activeCommuteKey = nil
+        moveMode = .idle
+        currentState = .working
+        currentSpeedKmh = 0.0
+        statusDescription = label
+        moveStepTimer?.invalidate()
+        moveStepTimer = nil
+        _ = SpoofEngine.shared.submit(latitude: coordinate.latitude,
+                                      longitude: coordinate.longitude, from: .routine)
     }
 
     private func applyWorkingState() {

@@ -153,7 +153,7 @@ struct AppSheetDestination: View {
         switch sheet {
         case .routeBuilder:       RouteBuilderScreen()
         case .scenarioStudio:     ScenarioStudioView()
-        case .routineStudio:      RoutineStudioView()
+        case .routineStudio:      RoutineScreen()
         case .deviceManager:      DeviceManagerView()
         case .settings:           SettingsView()
         case .history:            HistoryView()
