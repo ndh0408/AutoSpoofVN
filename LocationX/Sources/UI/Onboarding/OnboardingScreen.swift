@@ -30,13 +30,22 @@ struct OnboardingScreen: View {
         VStack(spacing: 0) {
             progressBar
 
-            ScrollView {
-                content
-                    .padding(.horizontal, AppSpacing.xxl)
-                    .padding(.top, AppSpacing.xxl)
-                    .frame(maxWidth: .infinity)
+            // Căn giữa khi nội dung vừa màn hình, cuộn được khi không vừa.
+            //
+            // Chỉ dùng ScrollView trần thì bước ngắn như màn chào bị dính lên đỉnh, để hở
+            // một khoảng trống lớn phía dưới; còn bỏ ScrollView thì bước dài bị cắt ở máy
+            // nhỏ hoặc khi người dùng phóng to cỡ chữ.
+            GeometryReader { proxy in
+                ScrollView {
+                    content
+                        .padding(.horizontal, AppSpacing.xxl)
+                        .padding(.vertical, AppSpacing.xxl)
+                        .frame(maxWidth: .infinity,
+                               minHeight: proxy.size.height,
+                               alignment: .center)
+                }
+                .scrollBounceBehavior(.basedOnSize)
             }
-            .scrollBounceBehavior(.basedOnSize)
 
             footer
         }

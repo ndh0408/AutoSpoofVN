@@ -520,9 +520,13 @@ final class SimulationCoordinator: ObservableObject {
                                           imported: Bool,
                                           vpnActive: Bool,
                                           serverRunning: Bool) -> DeviceConnectionState {
+        // `.error` chi danh cho hong hoc CUA CHINH APP.
+        //
+        // Chua cai Shadowrocket la mot BUOC THIET LAP chua lam, khong phai loi — dan
+        // huy hieu do "Loi" vao do la doi ten mot viec con phai lam thanh mot su co, va
+        // banner ngay ben duoi da noi ro can cai gi roi.
         guard serverRunning else { return .error(L("pipeline.error.server_down")) }
-        guard installed else { return .error(L("pipeline.error.not_installed")) }
-        guard imported else { return .disconnected }
+        guard installed, imported else { return .disconnected }
         return vpnActive ? .connected(transport: "Shadowrocket") : .connecting
     }
 

@@ -21,13 +21,27 @@ final class PipelineStateTests: XCTestCase {
         XCTAssertFalse(state.isConnected)
     }
 
-    func testNotInstalledIsAnError() {
+    /// Chua cai Shadowrocket KHONG phai loi.
+    ///
+    /// Do la mot buoc thiet lap chua lam. Bao `.error` se to huy hieu do tren thanh
+    /// trang thai va noi voi nguoi dung rang co gi do hong, trong khi thuc ra ho chi
+    /// chua cai mot app tra phi ma banner ngay ben duoi dang moi ho cai.
+    func testNotInstalledIsSetupPendingNotAnError() {
         let state = SimulationCoordinator.pipelineState(installed: false,
                                                         imported: false,
                                                         vpnActive: false,
                                                         serverRunning: true)
+        XCTAssertEqual(state, .disconnected)
+    }
+
+    /// Nguoc lai, may chu toa do chet LA loi cua chinh app.
+    func testServerDownIsAnErrorEvenWithNothingElseSetUp() {
+        let state = SimulationCoordinator.pipelineState(installed: false,
+                                                        imported: false,
+                                                        vpnActive: false,
+                                                        serverRunning: false)
         guard case .error = state else {
-            return XCTFail("chua cai Shadowrocket phai la .error, nhan duoc \(state)")
+            return XCTFail("may chu chet phai la .error, nhan duoc \(state)")
         }
     }
 
