@@ -720,3 +720,6 @@ Buộc iOS dùng WiFi positioning thay vì GPS.";
 "live_activity.real_gps" = "GPS thật";
 "flight.live_activity.flying" = "Đang bay";
 "flight.world_tour.stopped" = "Đã dừng chế độ chu du thế giới";
+"live_activity.status.active" = "HOẠT ĐỘNG";
+"live_activity.status.paused" = "TẠM DỪNG";
+"live_activity.status.halted" = "GPS THẬT";

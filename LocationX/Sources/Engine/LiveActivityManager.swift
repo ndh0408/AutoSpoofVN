@@ -70,26 +70,39 @@ final class LiveActivityManager: ObservableObject {
 
         // Ưu tiên toạ độ từ Coordinator (v2), fallback SpoofEngine (legacy)
         let coord = coordinator.currentCoordinate
-        let coordText = String(format: "%.4f, %.4f", coord.latitude, coord.longitude)
+        let coordinateText = String(format: "%.4f, %.4f", coord.latitude, coord.longitude)
 
         let stateName: String
         let desc: String
         let speed: Double
         let flightNo: String?
         let flightProgress: Double?
+        var altitude: Double?
+        var etaText: String?
+        var routeText: String?
 
         if flight.isFlying, let sim = flight.activeFlight {
             stateName = L("flight.live_activity.flying")
-            desc = "\(sim.origin.code) → \(sim.destination.code) (\(sim.destination.name))"
+            desc = sim.phase.rawValue
             speed = sim.currentSpeedKmh
             flightNo = sim.flightNumber
             flightProgress = sim.progressFraction
+            altitude = sim.altitudeMeters
+            routeText = "\(sim.origin.code) → \(sim.destination.code)"
+            if sim.estimatedMinutesRemaining > 0 {
+                let arrival = Date().addingTimeInterval(sim.estimatedMinutesRemaining * 60)
+                etaText = arrival.formatted(date: .omitted, time: .shortened)
+            }
         } else if coordinator.state.isActive {
             stateName = coordinator.state.displayName
             desc = coordinator.activeSource?.displayName ?? routine.statusDescription
             speed = coordinator.telemetry.speedKmh
             flightNo = nil
-            flightProgress = nil
+            flightProgress = coordinator.telemetry.routeProgress > 0
+                ? coordinator.telemetry.routeProgress : nil
+            routeText = coordinator.session?.routeName
+            etaText = coordinator.telemetry.estimatedArrival
+                .map { $0.formatted(date: .omitted, time: .shortened) }
         } else {
             stateName = routine.currentState.rawValue
             desc = routine.statusDescription
@@ -108,15 +121,25 @@ final class LiveActivityManager: ObservableObject {
             sourceDisplay = L("live_activity.real_gps")
         }
 
+        let isHalted = coordinator.isHalted || engine.isHalted
+        let isRunning = !isHalted && coordinator.state != .paused
+
         let contentState = SpoofActivityAttributes.ContentState(
             stateName: stateName,
             statusDescription: desc,
+            statusLabel: isHalted ? L("live_activity.status.halted")
+                : (isRunning ? L("live_activity.status.active") : L("live_activity.status.paused")),
+            activeSource: sourceDisplay,
+            isHalted: isHalted,
+            isRunning: isRunning,
             speedKmh: speed,
-            coordinateText: coordText,
+            coordinateText: coordinateText,
+            altitudeMeters: altitude,
+            etaText: etaText,
             flightNumber: flightNo,
             flightProgress: flightProgress,
-            activeSource: sourceDisplay,
-            isHalted: coordinator.isHalted || engine.isHalted
+            routeText: routeText,
+            progressText: flightProgress.map { String(format: "%.0f%%", $0 * 100) }
         )
 
         if let activity = currentActivity {
